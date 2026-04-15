@@ -89,6 +89,16 @@ scan_stack() {
         fi
       fi
       ;;
+    ruby)
+      if [[ -f "$TARGET_DIR/Gemfile" ]]; then
+        local gemfile_content
+        gemfile_content=$(cat "$TARGET_DIR/Gemfile" 2>/dev/null)
+        if echo "$gemfile_content" | grep -qi "rails"; then framework="rails"
+        elif echo "$gemfile_content" | grep -qi "sinatra"; then framework="sinatra"
+        elif echo "$gemfile_content" | grep -qi "hanami"; then framework="hanami"
+        fi
+      fi
+      ;;
     rust)
       if [[ -f "$TARGET_DIR/Cargo.toml" ]]; then
         local cargo

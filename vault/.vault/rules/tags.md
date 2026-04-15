@@ -22,6 +22,7 @@ confidence: high
 ## 1. domain/ — Subject Domains
 
   - domain/general
+  - domain/bash
   - domain/ai
   - domain/infrastructure
   - domain/security

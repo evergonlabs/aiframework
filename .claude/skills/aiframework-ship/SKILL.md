@@ -36,6 +36,13 @@ Update any documentation affected by the changes.
 
 ## Step 5: Commit (NEVER push without asking the user)
 
+## Step 5.5: Vault Update
+
+If vault/ exists:
+- Update `vault/memory/status.md` with shipping details
+- If significant architectural decision was made → create ADR in `vault/memory/decisions/`
+- Run `vault/.vault/scripts/vault-tools.sh lint`
+
 ## Step 6: Report
 
 Output a summary table:

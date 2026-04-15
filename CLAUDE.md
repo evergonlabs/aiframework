@@ -13,7 +13,6 @@
 |----------------|------|
 | Understand how to work in this repo | This file (CLAUDE.md) |
 | Debug a recurring issue | `docs/LESSONS_LEARNED.md` (if exists) |
-| Find documentation | `docs/` |
 
 ---
 
@@ -130,26 +129,11 @@ Before marking any new feature complete, verify ALL applicable items:
 
 ```
 ├── bin/
-├── docs/
-│   ├── decisions/
-│   ├── explanation/
-│   ├── guides/
-│   ├── onboarding/
-│   ├── reference/
 ├── lib/
 │   ├── generators/
 │   ├── scanners/
 │   ├── validators/
 ├── templates/
-├── tools/
-│   ├── learnings/
-├── vault/
-│   ├── .vault/
-│   ├── docs/
-│   ├── memory/
-│   ├── raw/
-│   ├── templates/
-│   ├── wiki/
 ├── .gitignore
 ```
 
@@ -173,14 +157,10 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
 ## Key Locations
 
-- **Database & Data Layer**: vault/templates/entity-page.md
-- **AI/LLM Integration**: tools/learnings/aiframework-learnings.jsonl
 - **AI/LLM Integration**: bin/aiframework
 - **Config**: `.gitignore` — Project configuration
 - **Scripts**: `bin/` — CLI entry points and tools
-- **Scripts**: `tools/` — Project scripts
 - **CI**: `.github/` — CI/CD pipeline definitions
-- **Source**: `docs/README.md` — Module documentation
 - **Source**: `lib/generators/tracking.sh` — File generator
 - **Source**: `lib/generators/vault.sh` — File generator
 - **Source**: `lib/scanners/ci.sh` — Repo analysis scanner
@@ -196,8 +176,7 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
 - **Source**: `lib/validators/security.sh` — Verification module
-- **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
-- **Components**: 2 models
+- **Components**: 1 models
 
 ---
 
@@ -223,6 +202,8 @@ Rules: No secrets in code — use environment variables.
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck              # Must pass with 0 errors
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n         # Must pass
 ```
+
+> Run `vault/.vault/scripts/vault-tools.sh lint` to verify vault integrity.
 
 ### Stage 5: REVIEW
 ```
@@ -251,7 +232,6 @@ Run doc-sync check against this matrix:
 | Schema change | CLAUDE.md (Key Locations), migration docs |
 | New dependency | CLAUDE.md (Project Identity), package manifest |
 | New service/module | CLAUDE.md (Key Locations, Project Structure) |
-| Architectural change | `docs/` architecture docs |
 
 ### Stage 8: QA (before every deploy)
 ```
@@ -291,6 +271,8 @@ Run doc-sync check against this matrix:
 | "review the code", "check quality" | Run `/review` immediately |
 | "test the app", "QA", "does it work" | Run `/qa` on the app URL |
 | "deploy", "push", "ship it", "create PR" | Full pipeline: verify → `/review` → `/cso` → `/qa` → `/ship` |
+| "what do we know about X", "previous decisions" | Check vault: `vault/wiki/index.md` and `vault/memory/decisions/` |
+| "vault health", "check vault" | Run `vault/.vault/scripts/vault-tools.sh doctor` |
 
 ---
 
@@ -307,6 +289,8 @@ Before ending ANY session where code was changed, Claude MUST complete:
 - [ ] **Commit**: Are all changes committed with a descriptive message?
 - [ ] **STATUS.md**: Did I update STATUS.md with current progress for multi-phase tasks?
 - [ ] **Push**: Ready to push? Confirm with user before pushing.
+- [ ] **Vault**: Did I update vault/memory/status.md with session progress?
+- [ ] **Decisions**: Any significant decisions? → Log in vault/memory/decisions/
 
 ---
 
@@ -323,11 +307,12 @@ Before ending ANY session where code was changed, Claude MUST complete:
 
 ## Invariants
 
-### INV-1: Database access through ORM only (unknown)
-No raw SQL queries — all database access through the ORM layer.
-
-### INV-2: LLM trust boundary enforcement
+### INV-1: LLM trust boundary enforcement
 Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content.
+
+
+### INV-2: No secrets in source code
+Never commit API keys, passwords, tokens, or credentials. All secrets must be stored in environment variables or a secrets manager.
 
 
 ---
@@ -368,19 +353,8 @@ Full shipping workflow: verify → review → docs → changelog → commit.
 
 ## Review Specialists
 
-### Database & Data Layer
-Trigger paths: vault/templates/entity-page.md
-
-- [ ] All queries go through ORM — no raw SQL
-- [ ] Migrations are reversible (up + down)
-- [ ] Indexes exist for frequently queried columns
-- [ ] N+1 query patterns avoided
-- [ ] Sensitive data is encrypted at rest
-- [ ] Connection pooling configured
-- [ ] Schema changes have migration files
-
 ### AI/LLM Integration
-Trigger paths: tools/learnings/aiframework-learnings.jsonl, bin/aiframework
+Trigger paths: bin/aiframework
 
 - [ ] LLM outputs are sanitized before use
 - [ ] Prompt injection defenses in place
@@ -397,10 +371,47 @@ Trigger paths: tools/learnings/aiframework-learnings.jsonl, bin/aiframework
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| Database & Data Layer | vault/templates/entity-page.md | CLAUDE.md, docs/ |
-| AI/LLM Integration | tools/learnings/aiframework-learnings.jsonl, bin/aiframework | CLAUDE.md, docs/ |
+| AI/LLM Integration | bin/aiframework | CLAUDE.md, docs/ |
 
 When any file in a domain's key files changes, update the corresponding docs.
+
+---
+
+## Persistent Memory Vault
+
+Your knowledge persists across sessions in `vault/`. Three-layer architecture:
+
+| Layer | Path | Purpose | Lifetime |
+|-------|------|---------|----------|
+| **Raw** | `vault/raw/` | Immutable source documents (human-owned) | Permanent |
+| **Wiki** | `vault/wiki/` | Processed knowledge (concepts, entities, comparisons) | Long-lived |
+| **Memory** | `vault/memory/` | Operational state (decisions, notes, status) | Variable |
+
+**Data flow:** `raw/` → `wiki/` → `memory/` (strictly unidirectional)
+
+### Quick Commands
+
+```bash
+vault/.vault/scripts/vault-tools.sh status       # Vault health
+vault/.vault/scripts/vault-tools.sh doctor        # Full diagnostic
+vault/.vault/scripts/vault-tools.sh lint          # Quality scan
+vault/.vault/scripts/vault-tools.sh stale         # Find outdated content
+vault/.vault/scripts/vault-tools.sh orphans       # Find unlinked pages
+vault/.vault/scripts/vault-tools.sh stats         # Usage metrics
+```
+
+### How to Use
+
+- **Session START**: Read `vault/memory/status.md` for ongoing work context
+- **During work**: Save insights to `vault/memory/notes/` (auto-archive after 7 days)
+- **Significant decisions**: Log to `vault/memory/decisions/` using ADR format
+- **Session END**: Update `vault/memory/status.md` with progress
+- **New knowledge**: Create wiki pages in `vault/wiki/concepts/` or `vault/wiki/entities/`
+
+### Architecture
+
+See `vault/docs/architecture.md` for the full three-layer model.
+See `vault/.vault/rules/hard-rules.md` for 15 integrity rules enforced by pre-commit hooks.
 
 ---
 
@@ -441,11 +452,13 @@ If gstack is installed (`~/.claude/skills/gstack/`), use `$B` commands for brows
 ## Session Start Protocol
 
 At the start of each session:
-1. Read `tools/learnings/aiframework-learnings.jsonl` — surface top 5 relevant learnings
-2. Check `git log --oneline -10` — understand recent work
-3. Check `git status` — understand current state
-4. If a STATUS.md file exists — read it for multi-phase task progress
-5. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+1. Read `vault/memory/status.md` — check for ongoing work and operational context
+2. Read `vault/wiki/index.md` — scan domain concepts and knowledge pages
+3. Read `tools/learnings/aiframework-learnings.jsonl` — surface relevant learnings
+4. Check `git log --oneline -10` — understand recent work
+5. Check `git status` — understand current state
+6. If a STATUS.md file exists — read it for multi-phase task progress
+7. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 ---
 

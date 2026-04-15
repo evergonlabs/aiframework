@@ -176,6 +176,25 @@ scan_commands() {
     test_cmd="go test ./..."
   fi
 
+  # --- Commands for Ruby ---
+  if [[ -f "$TARGET_DIR/Gemfile" && -z "$install_cmd" ]]; then
+    install_cmd="bundle install"
+    # Check for Rails
+    if grep -qi 'rails' "$TARGET_DIR/Gemfile" 2>/dev/null; then
+      dev_cmd="bin/rails server"
+    fi
+    # Check for RuboCop
+    if grep -qi 'rubocop' "$TARGET_DIR/Gemfile" 2>/dev/null || [[ -f "$TARGET_DIR/.rubocop.yml" ]]; then
+      lint_cmd="bundle exec rubocop"
+    fi
+    # Check for RSpec
+    if grep -qi 'rspec' "$TARGET_DIR/Gemfile" 2>/dev/null || [[ -d "$TARGET_DIR/spec" ]]; then
+      test_cmd="bundle exec rspec"
+    elif [[ -d "$TARGET_DIR/test" ]]; then
+      test_cmd="bundle exec rails test"
+    fi
+  fi
+
   # --- Commands for Shell/Bash projects ---
   # If no package manager detected and shell scripts exist, detect shell tools
   if [[ -z "$pkg_manager" ]]; then

@@ -8,7 +8,7 @@ echo ""
 
 CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
 
-SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$|^docs/"
+SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$"
 
 NEEDS_CHECK=false
 for file in $CHANGED_FILES; do
@@ -38,13 +38,6 @@ fi
 # Invariant checks — domain-specific
 CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
 INVARIANT_FAIL=false
-# INV-2: Database invariant: no raw SQL strings in changed files
-for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
-  if [ -f "$f" ] && grep -nE '(SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|DROP\s+TABLE)' "$f" | grep -vE '(migration|seed|\.sql$)' > /dev/null 2>&1; then
-    echo "  WARNING: $f may contain raw SQL — use ORM or query builder"
-    INVARIANT_FAIL=true
-  fi
-done
 # INV: AI/LLM trust boundary: check for unsanitized LLM output usage
 for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
   if [ -f "$f" ] && grep -nE '(innerHTML|dangerouslySetInnerHTML|eval\(|exec\()' "$f" > /dev/null 2>&1; then

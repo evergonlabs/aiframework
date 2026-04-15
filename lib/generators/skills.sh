@@ -128,6 +128,12 @@ Output a table:
 | Check | Status | Details |
 |-------|--------|---------|
 | ... | PASS/FAIL/WARN | ... |
+
+## Step 4: Vault Check
+
+If vault/ exists, check for related decisions:
+- Read `vault/memory/decisions/` for ADRs related to changed files
+- Run `vault/.vault/scripts/vault-tools.sh lint` to verify vault integrity
 SKILL2
 
   log_ok "Created .claude/skills/${short}-review/SKILL.md"
@@ -180,6 +186,13 @@ Update any documentation affected by the changes.
 - Bump VERSION (PATCH=fix, MINOR=feature, MAJOR=breaking)
 
 ## Step 5: Commit (NEVER push without asking the user)
+
+## Step 5.5: Vault Update
+
+If vault/ exists:
+- Update `vault/memory/status.md` with shipping details
+- If significant architectural decision was made → create ADR in `vault/memory/decisions/`
+- Run `vault/.vault/scripts/vault-tools.sh lint`
 
 ## Step 6: Report
 

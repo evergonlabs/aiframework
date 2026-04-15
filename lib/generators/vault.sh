@@ -124,6 +124,113 @@ INDEXEOF
   log_ok "Created wiki/index.md with YAML frontmatter"
 
   # ──────────────────────────────────────────────────────────────
+  # Generate initial concept pages from manifest
+  # ──────────────────────────────────────────────────────────────
+  local desc
+  desc=$(echo "$m" | jq -r '.identity.description // "No description"')
+
+  local detected_domains
+  detected_domains=$(echo "$m" | jq -r '.domain.detected_domains[]? | .name' 2>/dev/null)
+
+  # project-overview concept
+  cat > "$vault_root/wiki/concepts/project-overview.md" << CONCEPT
+---
+title: "${name} — Project Overview"
+type: concept
+created: ${today}
+updated: ${today}
+status: current
+tags: [domain/engineering, type/concept, lifecycle/active]
+confidence: high
+---
+
+# ${name}
+
+${desc}
+
+## Key Facts
+
+- **Language**: $(echo "$m" | jq -r '.stack.language // "unknown"')
+- **Framework**: $(echo "$m" | jq -r '.stack.framework // "none"')
+- **Repository**: $(echo "$m" | jq -r '.commands.github_url // "local"')
+
+## Related
+
+- [[tech-stack]]
+CONCEPT
+
+  # tech-stack concept
+  cat > "$vault_root/wiki/concepts/tech-stack.md" << CONCEPT
+---
+title: "Technology Stack"
+type: concept
+created: ${today}
+updated: ${today}
+status: current
+tags: [domain/engineering, type/concept, lifecycle/active]
+confidence: high
+---
+
+# Technology Stack
+
+## Language & Framework
+
+- **Primary**: $(echo "$m" | jq -r '.stack.language // "unknown"') / $(echo "$m" | jq -r '.stack.framework // "none"')
+- **Key dependencies**: $(echo "$m" | jq -r '.stack.key_dependencies | if length > 0 then join(", ") else "none" end' 2>/dev/null || echo "none")
+
+## Quality Tools
+
+- **Linter**: $(echo "$m" | jq -r '.commands.lint // "not configured"')
+- **Type checker**: $(echo "$m" | jq -r '.commands.typecheck // "not configured"')
+- **Test framework**: $(echo "$m" | jq -r '.commands.test // "not configured"')
+
+## Related
+
+- [[project-overview]]
+CONCEPT
+
+  # Domain-specific concept pages
+  if [[ -n "$detected_domains" ]]; then
+    while IFS= read -r domain; do
+      [[ -z "$domain" ]] && continue
+      local domain_display
+      domain_display=$(echo "$m" | jq -r --arg n "$domain" '.domain.detected_domains[] | select(.name == $n) | .display // $n')
+      local domain_paths
+      domain_paths=$(echo "$m" | jq -r --arg n "$domain" '.domain.detected_domains[] | select(.name == $n) | .paths[:3] | join(", ") // "N/A"')
+
+      cat > "$vault_root/wiki/concepts/${domain}.md" << DOMAINCONCEPT
+---
+title: "${domain_display}"
+type: concept
+created: ${today}
+updated: ${today}
+status: current
+tags: [domain/${domain}, type/concept, lifecycle/active]
+confidence: medium
+---
+
+# ${domain_display}
+
+## Overview
+
+This domain was detected based on file patterns: ${domain_paths}
+
+## Key Concerns
+
+*Add domain-specific concerns as they are discovered.*
+
+## Related
+
+- [[project-overview]]
+- [[tech-stack]]
+DOMAINCONCEPT
+
+    done <<< "$detected_domains"
+  fi
+
+  log_ok "Created initial concept pages"
+
+  # ──────────────────────────────────────────────────────────────
   # wiki/log.md — Append-Only Operations Log
   # ──────────────────────────────────────────────────────────────
   cat > "$vault_root/wiki/log.md" << LOGEOF

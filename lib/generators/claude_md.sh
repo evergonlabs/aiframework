@@ -758,6 +758,10 @@ PIPELINE
   fi
   echo '```' >> "$out"
 
+  # Vault lint hint (vault is always generated)
+  echo "" >> "$out"
+  echo "> Run \`vault/.vault/scripts/vault-tools.sh lint\` to verify vault integrity." >> "$out"
+
   cat >> "$out" << 'PIPELINE2'
 
 ### Stage 5: REVIEW
@@ -847,6 +851,8 @@ PIPELINE2
 | "review the code", "check quality" | Run `/review` immediately |
 | "test the app", "QA", "does it work" | Run `/qa` on the app URL |
 | "deploy", "push", "ship it", "create PR" | Full pipeline: verify → `/review` → `/cso` → `/qa` → `/ship` |
+| "what do we know about X", "previous decisions" | Check vault: `vault/wiki/index.md` and `vault/memory/decisions/` |
+| "vault health", "check vault" | Run `vault/.vault/scripts/vault-tools.sh doctor` |
 
 ---
 
@@ -863,6 +869,8 @@ Before ending ANY session where code was changed, Claude MUST complete:
 - [ ] **Commit**: Are all changes committed with a descriptive message?
 - [ ] **STATUS.md**: Did I update STATUS.md with current progress for multi-phase tasks?
 - [ ] **Push**: Ready to push? Confirm with user before pushing.
+- [ ] **Vault**: Did I update vault/memory/status.md with session progress?
+- [ ] **Decisions**: Any significant decisions? → Log in vault/memory/decisions/
 
 ---
 
@@ -1182,6 +1190,48 @@ SKILLS
     echo "" >> "$out"
   fi
 
+  # --- Persistent Memory Vault (always included — vault is generated at step 7/7) ---
+  cat >> "$out" << 'VAULT_SECTION'
+---
+
+## Persistent Memory Vault
+
+Your knowledge persists across sessions in `vault/`. Three-layer architecture:
+
+| Layer | Path | Purpose | Lifetime |
+|-------|------|---------|----------|
+| **Raw** | `vault/raw/` | Immutable source documents (human-owned) | Permanent |
+| **Wiki** | `vault/wiki/` | Processed knowledge (concepts, entities, comparisons) | Long-lived |
+| **Memory** | `vault/memory/` | Operational state (decisions, notes, status) | Variable |
+
+**Data flow:** `raw/` → `wiki/` → `memory/` (strictly unidirectional)
+
+### Quick Commands
+
+```bash
+vault/.vault/scripts/vault-tools.sh status       # Vault health
+vault/.vault/scripts/vault-tools.sh doctor        # Full diagnostic
+vault/.vault/scripts/vault-tools.sh lint          # Quality scan
+vault/.vault/scripts/vault-tools.sh stale         # Find outdated content
+vault/.vault/scripts/vault-tools.sh orphans       # Find unlinked pages
+vault/.vault/scripts/vault-tools.sh stats         # Usage metrics
+```
+
+### How to Use
+
+- **Session START**: Read `vault/memory/status.md` for ongoing work context
+- **During work**: Save insights to `vault/memory/notes/` (auto-archive after 7 days)
+- **Significant decisions**: Log to `vault/memory/decisions/` using ADR format
+- **Session END**: Update `vault/memory/status.md` with progress
+- **New knowledge**: Create wiki pages in `vault/wiki/concepts/` or `vault/wiki/entities/`
+
+### Architecture
+
+See `vault/docs/architecture.md` for the full three-layer model.
+See `vault/.vault/rules/hard-rules.md` for 15 integrity rules enforced by pre-commit hooks.
+
+VAULT_SECTION
+
   # --- Session Learnings ---
   cat >> "$out" << LEARNINGS
 ---
@@ -1223,11 +1273,13 @@ If gstack is installed (\`~/.claude/skills/gstack/\`), use \`\$B\` commands for 
 ## Session Start Protocol
 
 At the start of each session:
-1. Read \`tools/learnings/${short}-learnings.jsonl\` — surface top 5 relevant learnings
-2. Check \`git log --oneline -10\` — understand recent work
-3. Check \`git status\` — understand current state
-4. If a STATUS.md file exists — read it for multi-phase task progress
-5. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+1. Read \`vault/memory/status.md\` — check for ongoing work and operational context
+2. Read \`vault/wiki/index.md\` — scan domain concepts and knowledge pages
+3. Read \`tools/learnings/${short}-learnings.jsonl\` — surface relevant learnings
+4. Check \`git log --oneline -10\` — understand recent work
+5. Check \`git status\` — understand current state
+6. If a STATUS.md file exists — read it for multi-phase task progress
+7. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 ---
 

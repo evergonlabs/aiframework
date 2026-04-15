@@ -8,6 +8,7 @@ tags:
   - type/index
   - lifecycle/active
   - domain/ai
+  - domain/bash
 owner: system
 confidence: high
 ---
@@ -20,8 +21,8 @@ confidence: high
 
 | Slug | Path | Type | Created | Freshness | Primary Tag |
 |------|------|------|---------|-----------|-------------|
-| project-overview | wiki/concepts/project-overview.md | concept | 2026-04-15 | current | domain/unknown |
-| tech-stack | wiki/concepts/tech-stack.md | concept | 2026-04-15 | current | domain/unknown |
+| project-overview | wiki/concepts/project-overview.md | concept | 2026-04-15 | current | domain/bash |
+| tech-stack | wiki/concepts/tech-stack.md | concept | 2026-04-15 | current | domain/bash |
 | ai | wiki/concepts/ai.md | concept | 2026-04-15 | current | domain/ai |
 
 ## Conventions
