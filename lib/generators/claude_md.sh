@@ -1,0 +1,1208 @@
+#!/usr/bin/env bash
+# Generator: CLAUDE.md
+# Reads manifest.json and produces a complete CLAUDE.md
+
+generate_claude_md() {
+  local m="$MANIFEST"
+  local out="$TARGET_DIR/CLAUDE.md"
+
+  # Extract values from manifest
+  local name=$(echo "$m" | jq -r '.identity.name')
+  local desc=$(echo "$m" | jq -r '.identity.description // "No description"')
+  local version=$(echo "$m" | jq -r '.identity.version // "0.1.0"')
+  local short=$(echo "$m" | jq -r '.identity.short_name')
+  local lang=$(echo "$m" | jq -r '.stack.language')
+  local fw=$(echo "$m" | jq -r '.stack.framework // "none"')
+  local is_mono=$(echo "$m" | jq -r '.stack.is_monorepo')
+  local gh_url=$(echo "$m" | jq -r '.commands.github_url // "NOT_FOUND"')
+  local local_path=$(echo "$m" | jq -r '.commands.local_path')
+  local install=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
+  local dev_cmd=$(echo "$m" | jq -r '.commands.dev // "NOT_CONFIGURED"')
+  local build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  local lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
+  local format_cmd=$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')
+  local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
+  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
+  local dev_port=$(echo "$m" | jq -r '.commands.dev_port // empty')
+  local deploy=$(echo "$m" | jq -r '.ci.deploy_target // "none"')
+  local ci_provider=$(echo "$m" | jq -r '.ci.provider // "none"')
+  local today=$(date +%Y-%m-%d)
+
+  # Domain count (used in multiple sections)
+  local domain_count
+  domain_count=$(echo "$m" | jq '.domain.detected_domains | length' 2>/dev/null || echo "0")
+
+  # Key dependencies
+  local key_deps
+  key_deps=$(echo "$m" | jq -r '.stack.key_dependencies | if length > 10 then .[0:10] | join(", ") + "..." else join(", ") end // "none"' 2>/dev/null || echo "none")
+
+  if [[ "$DRY_RUN" == true ]]; then
+    log_info "[DRY RUN] Would write CLAUDE.md to $out"
+    return 0
+  fi
+
+  cat > "$out" << CLAUDEMD
+# CLAUDE.md — ${name}
+
+**Source of truth for Claude Code in this repository.**
+**Update this file after significant decisions, bug fixes, or architectural changes.**
+
+**Last updated: ${today}**
+
+---
+
+## When to Read Which Doc
+
+| You need to... | Read |
+|----------------|------|
+| Understand how to work in this repo | This file (CLAUDE.md) |
+| Debug a recurring issue | \`docs/LESSONS_LEARNED.md\` (if exists) |
+CLAUDEMD
+
+  # Generate doc entries from manifest doc_dirs
+  local doc_dirs_json
+  doc_dirs_json=$(echo "$m" | jq -r '.structure.doc_dirs[]' 2>/dev/null)
+  if [[ -n "$doc_dirs_json" ]]; then
+    while IFS= read -r ddir; do
+      echo "| Find documentation | \`${ddir}/\` |" >> "$out"
+    done <<< "$doc_dirs_json"
+  fi
+
+  # Generate config file entries
+  local config_files_json
+  config_files_json=$(echo "$m" | jq -r '.structure.config_files[]' 2>/dev/null)
+  if [[ -n "$config_files_json" ]]; then
+    while IFS= read -r cfile; do
+      case "$cfile" in
+        tsconfig*) echo "| Understand TypeScript config | \`${cfile}\` |" >> "$out" ;;
+        package.json) echo "| Check dependencies & scripts | \`${cfile}\` |" >> "$out" ;;
+        Dockerfile) echo "| Understand container setup | \`${cfile}\` |" >> "$out" ;;
+        docker-compose*|compose*) echo "| Understand local infra | \`${cfile}\` |" >> "$out" ;;
+        Makefile) echo "| See available make targets | \`${cfile}\` |" >> "$out" ;;
+        pyproject.toml) echo "| Check Python config & deps | \`${cfile}\` |" >> "$out" ;;
+        Cargo.toml) echo "| Check Rust config & deps | \`${cfile}\` |" >> "$out" ;;
+        go.mod) echo "| Check Go module & deps | \`${cfile}\` |" >> "$out" ;;
+      esac
+    done <<< "$config_files_json"
+  fi
+
+  echo "" >> "$out"
+  echo "---" >> "$out"
+  echo "" >> "$out"
+
+  cat >> "$out" << 'CLAUDEMD'
+## Decision Priority
+
+When instructions conflict, follow this order:
+1. **User's explicit instruction** in the current conversation
+2. **Invariants** (below) — these are never overridden
+3. **Workflow Rules** (below) — process guardrails
+4. **Core Principles** (below) — design philosophy
+5. **Reference docs** (\`docs/\`) — context, but code is always the source of truth
+
+When determining system behavior (API shapes, data flow, field names):
+1. **Read the code** — schemas, route handlers, models are the source of truth
+2. **Verified external docs** — official API docs, confirmed library behavior
+3. **Assume nothing** — if you can't verify it, say so
+
+---
+
+## Workflow Rules
+
+### 1. Plan vs Execute
+- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan — don't keep pushing
+- When given a task with clear scope: start executing immediately
+- When hitting a wall (3+ failed attempts), stop and re-plan approach
+
+### 2. Autonomous Iteration
+- Execute fix → verify with tests → if broken, fix again → loop until clean
+- Iterate autonomously: don't ask for hand-holding on fixable issues
+- Commit after each logical group of verified fixes
+
+### 3. Verification Before Done
+- Never mark a task complete without proving it works
+- Run verification commands (Stage 4) — never assume it compiles
+- Never claim "done" without running the actual verification command
+
+### 4. Git Safety
+- After fixes: \`git add\` + \`git commit\` — but do NOT push until user says so
+- NEVER push to main without explicit user confirmation
+- NEVER commit after every small change — batch related changes into logical commits
+- Prefer fewer, larger commits over many small ones
+
+### 5. Subagent Strategy
+- Use subagents for research, exploration, and parallel analysis
+- Limit to 6-8 agents per wave maximum
+- After each wave: summarize results, commit, then start next wave
+- Use \`/compact\` after each major milestone to maintain headroom
+
+### 6. QA Auto-Fix
+When QA discovers issues, ALL must be automatically fixed:
+1. Run tests — collect all failures
+2. Fix each failure: identify root cause → fix implementation (never skip a test)
+3. Run type check → must pass
+4. Run tests again — all must pass
+5. Commit
+CLAUDEMD
+
+  # Language-specific QA rules
+  case "$lang" in
+    typescript|javascript)
+      cat >> "$out" << 'QABLOCK'
+
+**TypeScript QA Rules:**
+- NEVER use `as any` — use proper types or generics
+- NEVER use `@ts-ignore` — fix the underlying type error
+- NEVER use `// @ts-expect-error` without a description of why
+QABLOCK
+      ;;
+    rust)
+      cat >> "$out" << 'QABLOCK'
+
+**Rust QA Rules:**
+- NEVER use `unsafe` blocks without explicit justification in comments
+- NEVER use `#[allow(dead_code)]` — remove unused code instead
+- NEVER use `unwrap()` in production code — use proper error handling
+QABLOCK
+      ;;
+    python)
+      cat >> "$out" << 'QABLOCK'
+
+**Python QA Rules:**
+- NEVER use `type: ignore` without a justification comment explaining why
+- NEVER use bare `except:` — always catch specific exceptions
+- NEVER use `# noqa` without specifying the rule being suppressed
+QABLOCK
+      ;;
+    go)
+      cat >> "$out" << 'QABLOCK'
+
+**Go QA Rules:**
+- NEVER use `//nolint` without a justification comment explaining why
+- NEVER ignore errors — always handle or explicitly document why ignored
+- NEVER use `interface{}` without justification — prefer typed alternatives
+QABLOCK
+      ;;
+  esac
+
+  cat >> "$out" << 'CLAUDEMD'
+
+### 7. Documentation Auto-Sync
+After ANY feature implementation, refactor, or significant change — before marking complete:
+1. CLAUDE.md — if change adds invariants, new key locations, new commands
+2. docs/ — update relevant doc files
+
+### 8. Changelog Update
+After marking any feature complete and before pushing:
+1. Update CHANGELOG.md with user-facing description of changes
+2. Bump VERSION file (PATCH for fixes, MINOR for features, MAJOR for breaking changes)
+
+### 9. CLAUDE.md Auto-Evolution
+This file is a living document that grows with the project. After ANY session with code changes:
+- **New service/module added** → add to Key Locations
+- **New env var added** → add to Environment Variables table
+- **Non-obvious bug fixed** → add to Session Learnings via \`/learn\`
+- **New invariant discovered** → add to Invariants section
+- **Structural change** → update Project Structure
+- NEVER delete content — only add, refine, or mark as deprecated
+
+---
+
+## Core Principles
+
+CLAUDEMD
+
+  # Check manifest for core_principles
+  local core_principles
+  core_principles=$(echo "$m" | jq -r '.domain.core_principles[]?' 2>/dev/null)
+  if [[ -n "$core_principles" ]]; then
+    local cp_num=1
+    while IFS= read -r principle; do
+      [[ -z "$principle" ]] && continue
+      echo "${cp_num}. ${principle}" >> "$out"
+      ((cp_num++)) || true
+    done <<< "$core_principles"
+  else
+    echo "*Core principles will emerge as the project matures. Add principles here when patterns are established.*" >> "$out"
+    echo "" >> "$out"
+    local cp_num=1
+    echo "${cp_num}. Code must pass all configured quality gates before merge" >> "$out"
+    ((cp_num++)) || true
+    if [[ -n "$lang" && "$lang" != "unknown" ]]; then
+      echo "${cp_num}. Follow ${lang} community conventions and idioms" >> "$out"
+      ((cp_num++)) || true
+    fi
+  fi
+
+  # READ_ONLY_REPOS section
+  local read_only_dirs
+  read_only_dirs=$(echo "$m" | jq -r '.structure.read_only_dirs[]?' 2>/dev/null)
+  if [[ -n "$read_only_dirs" ]]; then
+    echo "" >> "$out"
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## READ_ONLY_REPOS" >> "$out"
+    echo "" >> "$out"
+    echo "The following directories are **read-only** — do NOT modify files in these paths:" >> "$out"
+    echo "" >> "$out"
+    while IFS= read -r ro_dir; do
+      echo "- \`${ro_dir}/\`" >> "$out"
+    done <<< "$read_only_dirs"
+  fi
+
+  cat >> "$out" << CLAUDEMD
+
+---
+
+## Project Identity
+
+**${name}** — ${desc}
+
+**Stack:** ${lang} / ${fw} / ${key_deps}
+CLAUDEMD
+
+  # Conditional sections
+  [[ "$deploy" != "none" ]] && echo "**Deploy:** ${deploy}" >> "$out"
+  [[ -n "$dev_port" ]] && echo "**Port:** ${dev_port}" >> "$out"
+
+  cat >> "$out" << CLAUDEMD
+
+---
+
+## Repository
+
+**GitHub:** \`${gh_url}\`
+**Local path:** \`${local_path}\`
+
+---
+
+CLAUDEMD
+
+  # --- Project Structure ---
+  echo "## Project Structure" >> "$out"
+  echo "" >> "$out"
+  echo '```' >> "$out"
+  # Generate tree from manifest
+  echo "$m" | jq -r '.structure.directories[]' 2>/dev/null | while IFS= read -r dir; do
+    echo "├── ${dir}/"
+  done >> "$out"
+  echo "$m" | jq -r '.structure.config_files[]' 2>/dev/null | while IFS= read -r f; do
+    echo "├── ${f}"
+  done >> "$out"
+  echo '```' >> "$out"
+  echo "" >> "$out"
+
+  # Architecture diagram if 3+ domains
+  if [[ "$domain_count" -ge 3 ]]; then
+    echo "### Architecture Overview" >> "$out"
+    echo "" >> "$out"
+    echo '```' >> "$out"
+    # Build ASCII diagram from detected domains
+    local domain_names_list
+    domain_names_list=$(echo "$m" | jq -r '.domain.detected_domains[].display' 2>/dev/null)
+    local has_frontend=false has_api=false has_db=false has_auth=false has_ai=false has_workers=false
+    while IFS= read -r dname; do
+      case "$dname" in
+        *Frontend*) has_frontend=true ;;
+        *API*) has_api=true ;;
+        *Database*) has_db=true ;;
+        *Auth*) has_auth=true ;;
+        *AI*|*LLM*) has_ai=true ;;
+        *Worker*|*Job*) has_workers=true ;;
+      esac
+    done <<< "$domain_names_list"
+
+    if $has_frontend; then
+      echo "  [Client/Browser]" >> "$out"
+      echo "        |" >> "$out"
+      echo "        v" >> "$out"
+    fi
+    if $has_auth; then
+      echo "  [Auth Layer] ──> [API Endpoints]" >> "$out"
+    elif $has_api; then
+      echo "  [API Endpoints]" >> "$out"
+    fi
+    if $has_api || $has_auth; then
+      echo "        |" >> "$out"
+      echo "        v" >> "$out"
+    fi
+    if $has_ai && $has_db; then
+      echo "  [Business Logic]" >> "$out"
+      echo "     /        \\" >> "$out"
+      echo "    v          v" >> "$out"
+      echo "  [Database]  [AI/LLM Service]" >> "$out"
+    elif $has_db; then
+      echo "  [Business Logic]" >> "$out"
+      echo "        |" >> "$out"
+      echo "        v" >> "$out"
+      echo "  [Database]" >> "$out"
+    elif $has_ai; then
+      echo "  [Business Logic]" >> "$out"
+      echo "        |" >> "$out"
+      echo "        v" >> "$out"
+      echo "  [AI/LLM Service]" >> "$out"
+    fi
+    if $has_workers; then
+      echo "        |" >> "$out"
+      echo "        v" >> "$out"
+      echo "  [Background Workers/Jobs]" >> "$out"
+    fi
+    echo '```' >> "$out"
+    echo "" >> "$out"
+  fi
+
+  # Monorepo section
+  if [[ "$is_mono" == "true" ]]; then
+    echo "### Monorepo Layout" >> "$out"
+    echo "" >> "$out"
+    echo "$m" | jq -r '.stack.monorepo_apps[]' 2>/dev/null | while IFS= read -r app; do
+      echo "- \`apps/${app}/\`"
+    done >> "$out"
+    echo "$m" | jq -r '.stack.monorepo_libs[]' 2>/dev/null | while IFS= read -r lib; do
+      echo "- \`libs/${lib}/\`"
+    done >> "$out"
+    echo "" >> "$out"
+
+    # Shared Libraries / Path Aliases
+    local mono_libs_list
+    mono_libs_list=$(echo "$m" | jq -r '.stack.monorepo_libs[]' 2>/dev/null)
+    if [[ -n "$mono_libs_list" ]]; then
+      echo "### Shared Libraries" >> "$out"
+      echo "" >> "$out"
+      while IFS= read -r slib; do
+        echo "- \`libs/${slib}/\` — shared library" >> "$out"
+      done <<< "$mono_libs_list"
+      echo "" >> "$out"
+    fi
+
+    # tsconfig path aliases
+    if [[ -f "$TARGET_DIR/tsconfig.json" ]]; then
+      local ts_paths
+      ts_paths=$(jq -r '.compilerOptions.paths // empty | to_entries[] | "- \`\(.key)\` → \`\(.value[0])\`"' "$TARGET_DIR/tsconfig.json" 2>/dev/null)
+      if [[ -n "$ts_paths" ]]; then
+        echo "### Path Aliases (tsconfig)" >> "$out"
+        echo "" >> "$out"
+        echo "$ts_paths" >> "$out"
+        echo "" >> "$out"
+      fi
+    elif [[ -f "$TARGET_DIR/tsconfig.base.json" ]]; then
+      local ts_paths
+      ts_paths=$(jq -r '.compilerOptions.paths // empty | to_entries[] | "- \`\(.key)\` → \`\(.value[0])\`"' "$TARGET_DIR/tsconfig.base.json" 2>/dev/null)
+      if [[ -n "$ts_paths" ]]; then
+        echo "### Path Aliases (tsconfig)" >> "$out"
+        echo "" >> "$out"
+        echo "$ts_paths" >> "$out"
+        echo "" >> "$out"
+      fi
+    fi
+  fi
+
+  # --- Key Commands ---
+  cat >> "$out" << CMDBLOCK
+---
+
+## Key Commands
+
+\`\`\`bash
+# Install
+${install}
+
+# Dev
+${dev_cmd}
+
+# Build
+${build_cmd}
+
+# Lint
+${lint_cmd}
+
+# Type check
+${typecheck}
+
+# Test
+${test_cmd}
+CMDBLOCK
+
+  [[ "$format_cmd" != "NOT_CONFIGURED" ]] && echo -e "\n# Format\n${format_cmd}" >> "$out"
+
+  # Docker build command if Dockerfile exists
+  local has_dockerfile
+  has_dockerfile=$(echo "$m" | jq -r '.structure.config_files[] | select(. == "Dockerfile")' 2>/dev/null)
+  if [[ -n "$has_dockerfile" ]]; then
+    echo -e "\n# Docker\ndocker build -t ${name} ." >> "$out"
+  fi
+
+  echo '```' >> "$out"
+
+  # Missing tools note
+  local missing
+  missing=$(echo "$m" | jq -r '.quality.missing_tools | if length > 0 then join(", ") else empty end' 2>/dev/null)
+  if [[ -n "$missing" ]]; then
+    echo "" >> "$out"
+    echo "> **Note:** The following tools are not yet configured: ${missing}." >> "$out"
+    echo "> Setting these up is recommended as a first step." >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Key Locations ---
+  echo "---" >> "$out"
+  echo "" >> "$out"
+  echo "## Key Locations" >> "$out"
+  echo "" >> "$out"
+
+  # Entry points
+  local entries
+  entries=$(echo "$m" | jq -r '.structure.entry_points[]' 2>/dev/null)
+  if [[ -n "$entries" ]]; then
+    while IFS= read -r entry; do
+      echo "- **Entry point**: \`${entry}\`" >> "$out"
+    done <<< "$entries"
+  fi
+
+  # Domain-specific locations
+  echo "$m" | jq -r '.domain.detected_domains[]? | "- **\(.display)**: \(.paths[:5][]? // empty)"' 2>/dev/null >> "$out" || true
+
+  # Config files from manifest
+  local kl_config_files
+  kl_config_files=$(echo "$m" | jq -r '.structure.config_files[]' 2>/dev/null)
+  if [[ -n "$kl_config_files" ]]; then
+    while IFS= read -r cfile; do
+      [[ -z "$cfile" ]] && continue
+      local cdesc=""
+      case "$cfile" in
+        package.json) cdesc="Project dependencies and scripts" ;;
+        tsconfig*) cdesc="TypeScript compiler options" ;;
+        Dockerfile) cdesc="Container image definition" ;;
+        docker-compose*|compose*) cdesc="Local infrastructure services" ;;
+        Makefile) cdesc="Build targets and automation" ;;
+        pyproject.toml) cdesc="Python project config and dependencies" ;;
+        Cargo.toml) cdesc="Rust crate config and dependencies" ;;
+        go.mod) cdesc="Go module and dependencies" ;;
+        .eslintrc*|eslint.config*) cdesc="Linting rules" ;;
+        .prettierrc*|prettier.config*) cdesc="Code formatting rules" ;;
+        jest.config*|vitest.config*) cdesc="Test runner configuration" ;;
+        webpack.config*) cdesc="Webpack bundler config" ;;
+        vite.config*) cdesc="Vite bundler config" ;;
+        babel.config*|.babelrc*) cdesc="Babel transpiler config" ;;
+        *.env*) cdesc="Environment variables template" ;;
+        *) cdesc="Project configuration" ;;
+      esac
+      echo "- **Config**: \`${cfile}\` — ${cdesc}" >> "$out"
+    done <<< "$kl_config_files"
+  fi
+
+  # Script directories from manifest
+  local kl_script_dirs
+  kl_script_dirs=$(echo "$m" | jq -r '.structure.script_dirs[]' 2>/dev/null)
+  if [[ -n "$kl_script_dirs" ]]; then
+    while IFS= read -r sdir; do
+      [[ -z "$sdir" ]] && continue
+      local sdesc=""
+      case "$sdir" in
+        bin|bin/) sdesc="CLI entry points and tools" ;;
+        scripts|scripts/) sdesc="Automation scripts" ;;
+        *) sdesc="Project scripts" ;;
+      esac
+      echo "- **Scripts**: \`${sdir}/\` — ${sdesc}" >> "$out"
+    done <<< "$kl_script_dirs"
+  fi
+
+  # CI directories from manifest
+  local kl_ci_dirs
+  kl_ci_dirs=$(echo "$m" | jq -r '.structure.ci_dirs[]' 2>/dev/null)
+  if [[ -n "$kl_ci_dirs" ]]; then
+    while IFS= read -r cidir; do
+      [[ -z "$cidir" ]] && continue
+      echo "- **CI**: \`${cidir}/\` — CI/CD pipeline definitions" >> "$out"
+    done <<< "$kl_ci_dirs"
+  fi
+
+  # Test directories from manifest
+  local kl_test_dirs
+  kl_test_dirs=$(echo "$m" | jq -r '.structure.test_dirs[]' 2>/dev/null)
+  if [[ -n "$kl_test_dirs" ]]; then
+    while IFS= read -r tdir; do
+      [[ -z "$tdir" ]] && continue
+      echo "- **Tests**: \`${tdir}/\` — Test suite" >> "$out"
+    done <<< "$kl_test_dirs"
+  fi
+
+  # Component counts from manifest
+  local kl_comp_summary
+  kl_comp_summary=$(echo "$m" | jq -r '
+    .domain.component_counts // {} |
+    to_entries | map(select(.value > 0)) |
+    if length > 0 then
+      map("\(.value) \(.key)") | join(", ")
+    else empty end
+  ' 2>/dev/null)
+  if [[ -n "$kl_comp_summary" ]]; then
+    echo "- **Components**: ${kl_comp_summary}" >> "$out"
+  fi
+
+  local key_loc_count
+  key_loc_count=$(echo "$m" | jq '[.structure.entry_points, (.domain.detected_domains[]?.paths // []), .structure.config_files, .structure.script_dirs, .structure.ci_dirs, .structure.test_dirs] | flatten | length' 2>/dev/null || echo "0")
+  if [[ "$key_loc_count" == "0" ]]; then
+    echo "*Key locations will be added as the project develops.*" >> "$out"
+  fi
+
+  # Component counts (Edit 20)
+  local component_counts
+  component_counts=$(echo "$m" | jq -r '.domain.detected_domains[]? | select(.components != null or .pages != null) | "- **\(.display)**: \(.file_count) files\(if .pages then ", \(.pages) pages" else "" end)\(if .components then ", \(.components) components" else "" end)"' 2>/dev/null)
+  if [[ -n "$component_counts" ]]; then
+    echo "" >> "$out"
+    echo "### Component Counts" >> "$out"
+    echo "" >> "$out"
+    echo "$component_counts" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- API Contract Rules (Edit 8) ---
+  local has_api_domain
+  has_api_domain=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "api") | .name' 2>/dev/null)
+  if [[ -n "$has_api_domain" ]]; then
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## API Contract Rules" >> "$out"
+    echo "" >> "$out"
+
+    # Detect validation library
+    local validation_lib="unknown"
+    if [[ -f "$TARGET_DIR/package.json" ]]; then
+      local pkg_content
+      pkg_content=$(cat "$TARGET_DIR/package.json" 2>/dev/null)
+      if echo "$pkg_content" | jq -e '.dependencies.zod // .devDependencies.zod' >/dev/null 2>&1; then
+        validation_lib="zod"
+      elif echo "$pkg_content" | jq -e '.dependencies.joi // .devDependencies.joi' >/dev/null 2>&1; then
+        validation_lib="joi"
+      elif echo "$pkg_content" | jq -e '.dependencies.yup // .devDependencies.yup' >/dev/null 2>&1; then
+        validation_lib="yup"
+      elif echo "$pkg_content" | jq -e '.dependencies["class-validator"] // .devDependencies["class-validator"]' >/dev/null 2>&1; then
+        validation_lib="class-validator"
+      fi
+    elif [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
+      if grep -q 'pydantic' "$TARGET_DIR/pyproject.toml" 2>/dev/null; then
+        validation_lib="pydantic"
+      fi
+    fi
+
+    # Get ORM from domain scanner
+    local orm_name
+    orm_name=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "database") | .orm // "none"' 2>/dev/null)
+
+    echo "- **Validation:** ${validation_lib}" >> "$out"
+    [[ -n "$orm_name" && "$orm_name" != "none" && "$orm_name" != "unknown" ]] && echo "- **ORM:** ${orm_name}" >> "$out"
+    echo "- All API endpoints MUST validate input before processing" >> "$out"
+    echo "- Response shapes must be consistent — use typed response wrappers" >> "$out"
+    echo "- Never expose internal errors to clients — use error codes" >> "$out"
+    echo "- Breaking API changes require version bump and migration plan" >> "$out"
+    echo "" >> "$out"
+  fi
+
+  # --- Makefile System (Edit 9) ---
+  local makefile_targets_json
+  makefile_targets_json=$(echo "$m" | jq -r '.commands.makefile_targets[]?' 2>/dev/null)
+  if [[ -n "$makefile_targets_json" ]]; then
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## Makefile System" >> "$out"
+    echo "" >> "$out"
+    echo "Available \`make\` targets:" >> "$out"
+    echo "" >> "$out"
+    echo '```bash' >> "$out"
+    while IFS= read -r target; do
+      echo "make ${target}" >> "$out"
+    done <<< "$makefile_targets_json"
+    echo '```' >> "$out"
+    echo "" >> "$out"
+  fi
+
+  # --- Autonomous Pipeline ---
+  cat >> "$out" << 'PIPELINE'
+---
+
+## Autonomous Pipeline (12 Stages)
+
+### Stage 1: INVESTIGATE (before writing any code)
+When: User reports a bug or asks to fix something.
+```
+/investigate "description of the issue"
+```
+
+### Stage 2: PLAN (before major features)
+When: User asks for a significant feature or architectural change.
+```
+/plan-eng-review "description of the feature"
+```
+
+### Stage 3: BUILD (write the code)
+Rules: No secrets in code — use environment variables.
+
+### Stage 4: VERIFY (after every code change — ALWAYS)
+PIPELINE
+
+  echo '```bash' >> "$out"
+  local _has_verify_cmd=false
+  if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then echo "${lint_cmd}              # Must pass with 0 errors" >> "$out"; _has_verify_cmd=true; fi
+  if [[ "$typecheck" != "NOT_CONFIGURED" ]]; then echo "${typecheck}         # Must pass" >> "$out"; _has_verify_cmd=true; fi
+  if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then echo "${test_cmd}              # Must pass" >> "$out"; _has_verify_cmd=true; fi
+  if [[ "$build_cmd" != "NOT_CONFIGURED" ]]; then echo "${build_cmd}             # Must compile/build" >> "$out"; _has_verify_cmd=true; fi
+  if [[ "$_has_verify_cmd" == false ]]; then
+    echo "# No quality gate commands configured yet." >> "$out"
+    echo "# Add lint, typecheck, test, and build commands to enable verification." >> "$out"
+  fi
+  echo '```' >> "$out"
+
+  cat >> "$out" << 'PIPELINE2'
+
+### Stage 5: REVIEW
+```
+/review
+```
+
+### Stage 6: SECURITY (when touching auth/security/API)
+```
+/cso
+```
+
+### Stage 6.5: CHANGELOG UPDATE
+After completing any feature, fix, or significant change:
+1. Update `CHANGELOG.md` with user-facing description
+2. Bump `VERSION` file (PATCH for fixes, MINOR for features, MAJOR for breaking)
+3. Commit changelog + version bump with the feature commit
+
+### Stage 7: DOCS (after structural changes)
+PIPELINE2
+
+  # Generate Doc-Sync Matrix from manifest (Edit 11)
+  echo "Run doc-sync check against this matrix:" >> "$out"
+  echo "" >> "$out"
+  echo "| Change Type | Files to Update |" >> "$out"
+  echo "|-------------|----------------|" >> "$out"
+  echo "| New endpoint/route | CLAUDE.md (Key Locations), API docs |" >> "$out"
+  echo "| New env variable | CLAUDE.md (Env Variables), .env.example |" >> "$out"
+  echo "| New invariant | CLAUDE.md (Invariants) |" >> "$out"
+  echo "| Schema change | CLAUDE.md (Key Locations), migration docs |" >> "$out"
+  echo "| New dependency | CLAUDE.md (Project Identity), package manifest |" >> "$out"
+  echo "| New service/module | CLAUDE.md (Key Locations, Project Structure) |" >> "$out"
+
+  # Add doc_dirs from manifest
+  local doc_sync_dirs
+  doc_sync_dirs=$(echo "$m" | jq -r '.structure.doc_dirs[]' 2>/dev/null)
+  if [[ -n "$doc_sync_dirs" ]]; then
+    while IFS= read -r dsdir; do
+      echo "| Architectural change | \`${dsdir}/\` architecture docs |" >> "$out"
+    done <<< "$doc_sync_dirs"
+  fi
+
+  echo "" >> "$out"
+
+  # Stage 8 with APP_URL (Edit 12)
+  echo "### Stage 8: QA (before every deploy)" >> "$out"
+  echo '```' >> "$out"
+  if [[ -n "$dev_port" ]]; then
+    echo "/qa http://localhost:${dev_port}" >> "$out"
+  else
+    echo "/qa" >> "$out"
+  fi
+  echo '```' >> "$out"
+
+  cat >> "$out" << 'PIPELINE2'
+
+### Stage 9: SHIP
+```
+/ship
+```
+
+### Stage 10: POST-DEPLOY
+```
+/canary
+```
+
+### Stage 11: LEARN
+```
+/learn "description of what was learned"
+```
+
+### Stage 12: RETRO (weekly)
+```
+/retro
+```
+
+---
+
+## Skill Routing Table
+
+| User says something like... | Claude's action |
+|-----------------------------|----------------|
+| "there's a bug", "it's broken", "fix this" | Start with `/investigate` before coding |
+| "add feature", "build X" (big scope) | `/plan-eng-review` then build |
+| "add feature", "change X" (small, clear) | Build directly, then verify + `/review` |
+| "check security", "audit" | Run `/cso` immediately |
+| "review the code", "check quality" | Run `/review` immediately |
+| "test the app", "QA", "does it work" | Run `/qa` on the app URL |
+| "deploy", "push", "ship it", "create PR" | Full pipeline: verify → `/review` → `/cso` → `/qa` → `/ship` |
+
+---
+
+## End-of-Session Checklist
+
+Before ending ANY session where code was changed, Claude MUST complete:
+
+- [ ] **Verify**: Did I run lint + test + build? All pass?
+- [ ] **Review**: Did I run `/review` on the changes?
+- [ ] **Security**: If I touched auth/API/permissions → did I run `/cso`?
+- [ ] **Docs**: Did any structural change happen? → Update docs
+- [ ] **Learn**: Did I discover something non-obvious? → `/learn`
+- [ ] **CHANGELOG**: Did I update CHANGELOG.md + VERSION?
+- [ ] **Commit**: Are all changes committed with a descriptive message?
+- [ ] **STATUS.md**: Did I update STATUS.md with current progress for multi-phase tasks?
+- [ ] **Push**: Ready to push? Confirm with user before pushing.
+
+---
+
+## Quick Reference Matrix
+
+| Trigger | Skills to run (in order) |
+|---------|------------------------|
+| Bug reported | `/investigate` → fix → verify → `/review` → `/cso` → docs → `/qa` → `/ship` → `/canary` → `/learn` |
+| New feature | `/plan-eng-review` → build → verify → `/review` → `/cso` → docs → `/qa` → `/ship` → `/canary` → `/learn` |
+| Small fix | build → verify → `/review` → docs → `/ship` |
+| Refactor | build → verify → `/review` → `/cso` → docs → `/qa` → `/ship` |
+
+PIPELINE2
+
+  # --- Invariants ---
+  echo "---" >> "$out"
+  echo "" >> "$out"
+  echo "## Invariants" >> "$out"
+  echo "" >> "$out"
+
+  if [[ "$domain_count" -gt 0 ]]; then
+    local inv_num=1
+    # Generate invariants from detected domains
+    echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r domain; do
+      case "$domain" in
+        auth)
+          echo "### INV-${inv_num}: Authentication guards on all protected endpoints"
+          echo "Every endpoint handling user data must have auth middleware/guards applied."
+          echo ""
+          ;;
+        database)
+          local orm_val
+          orm_val=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "database") | .orm // "unknown"')
+          echo "### INV-${inv_num}: Database access through ORM only (${orm_val})"
+          echo "No raw SQL queries — all database access through the ORM layer."
+          echo ""
+          ;;
+        api)
+          echo "### INV-${inv_num}: Input validation on all API endpoints"
+          echo "Every endpoint accepting user input must validate and sanitize before processing."
+          echo ""
+          ;;
+        ai)
+          echo "### INV-${inv_num}: LLM trust boundary enforcement"
+          echo "Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content."
+          echo ""
+          ;;
+        sandbox)
+          echo "### INV-${inv_num}: Sandbox isolation for code execution"
+          echo "All user code execution must run in an isolated sandbox with resource limits."
+          echo ""
+          ;;
+      esac
+      ((inv_num++)) || true
+    done >> "$out"
+  else
+    echo "*No invariants discovered yet. As the project matures, invariants will be added here when patterns emerge. Use \`/learn\` to capture rules as they are discovered.*" >> "$out"
+  fi
+  echo "" >> "$out"
+
+  # --- Environment Variables ---
+  echo "---" >> "$out"
+  echo "" >> "$out"
+  echo "## Environment Variables" >> "$out"
+  echo "" >> "$out"
+
+  local env_count
+  env_count=$(echo "$m" | jq '.env.variables | length' 2>/dev/null || echo "0")
+
+  if [[ "$env_count" -gt 0 ]]; then
+    local has_public
+    has_public=$(echo "$m" | jq -r '.env.has_public_env')
+
+    if [[ "$has_public" == "true" ]]; then
+      echo "| Variable | Scope | Required | Description |" >> "$out"
+      echo "|----------|-------|----------|-------------|" >> "$out"
+      echo "$m" | jq -r '.env.variables[] | "| \(.name) | \(if (.name | startswith("NEXT_PUBLIC_")) then "Client" else "Server" end) | \(if .required then "Yes" else "No" end) | \(.description // "-") |"' 2>/dev/null >> "$out"
+    else
+      echo "| Variable | Required | Description |" >> "$out"
+      echo "|----------|----------|-------------|" >> "$out"
+      echo "$m" | jq -r '.env.variables[] | "| \(.name) | \(if .required then "Yes" else "No" end) | \(.description // "-") |"' 2>/dev/null >> "$out"
+    fi
+  else
+    echo "*No environment variables discovered. Add variables here when .env.example is created.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Deploy ---
+  echo "---" >> "$out"
+  echo "" >> "$out"
+
+  if [[ "$deploy" != "none" ]]; then
+    echo "## Deploy" >> "$out"
+    echo "" >> "$out"
+    echo "**Target:** ${deploy}" >> "$out"
+
+    local compose
+    compose=$(echo "$m" | jq -r '.ci.compose_file // empty')
+    if [[ -n "$compose" ]]; then
+      echo "" >> "$out"
+      echo "### Local Development Infrastructure" >> "$out"
+      echo "" >> "$out"
+      echo "\`${compose}\` provides:" >> "$out"
+      echo "$m" | jq -r '.identity.compose_services[]' 2>/dev/null | while IFS= read -r svc; do
+        echo "- ${svc}"
+      done >> "$out"
+      echo "" >> "$out"
+      echo '```bash' >> "$out"
+      echo "docker compose up -d    # Start infra" >> "$out"
+      echo "${dev_cmd}             # Start app" >> "$out"
+      echo '```' >> "$out"
+    fi
+  else
+    echo "## Deploy" >> "$out"
+    echo "" >> "$out"
+    echo "*No deployment pipeline discovered. Add deploy configuration when ready.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- GitHub Secrets ---
+  echo "---" >> "$out"
+  echo "" >> "$out"
+
+  local secrets_count
+  secrets_count=$(echo "$m" | jq '.ci.github_secrets | length' 2>/dev/null || echo "0")
+
+  if [[ "$secrets_count" -gt 0 ]]; then
+    echo "## GitHub Secrets" >> "$out"
+    echo "" >> "$out"
+    echo "| Secret | Purpose | Used By |" >> "$out"
+    echo "|--------|---------|---------|" >> "$out"
+    # Match each secret to the workflow file that uses it
+    echo "$m" | jq -r '.ci.github_secrets[]' 2>/dev/null | while IFS= read -r secret; do
+      local used_by
+      used_by=$(echo "$m" | jq -r --arg s "$secret" '.ci.workflows[]? | select(.secrets != null and (.secrets | contains($s))) | .file' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
+      [[ -z "$used_by" ]] && used_by="-"
+      echo "| ${secret} | - | \`${used_by}\` |"
+    done >> "$out"
+  else
+    echo "## GitHub Secrets" >> "$out"
+    echo "" >> "$out"
+    echo "*No CI secrets discovered. Add secrets here when CI workflows are configured.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Testing ---
+  echo "---" >> "$out"
+  echo "" >> "$out"
+
+  local test_tool
+  test_tool=$(echo "$m" | jq -r '.quality.test_framework.tool // empty')
+
+  if [[ -n "$test_tool" ]]; then
+    local test_cfg
+    test_cfg=$(echo "$m" | jq -r '.quality.test_framework.config // "built-in"')
+    local test_count
+    test_count=$(echo "$m" | jq -r '.structure.test_file_count // 0')
+    local test_pattern
+    test_pattern=$(echo "$m" | jq -r '.structure.test_pattern // "NOT_FOUND"')
+
+    echo "## Testing" >> "$out"
+    echo "" >> "$out"
+    echo "- **Framework:** ${test_tool}" >> "$out"
+    echo "- **Config:** ${test_cfg}" >> "$out"
+    echo "- **Run:** \`${test_cmd}\`" >> "$out"
+    echo "- **Pattern:** ${test_pattern}" >> "$out"
+    echo "- **Test files:** ${test_count}" >> "$out"
+
+    if [[ "$test_count" == "0" ]]; then
+      echo "" >> "$out"
+      echo "> **Note:** Test framework is configured but **no test files exist yet**. Writing tests is a recommended first step." >> "$out"
+    fi
+  else
+    echo "## Testing" >> "$out"
+    echo "" >> "$out"
+    echo "*No test framework configured. Add testing setup as a priority.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Custom Skills ---
+  cat >> "$out" << SKILLS
+---
+
+## Custom Skills
+
+### \`/${short}-review\`
+Project-specific code review checking all invariants.
+
+### \`/${short}-ship\`
+Full shipping workflow: verify → review → docs → changelog → commit.
+
+---
+
+## Review Specialists
+
+SKILLS
+
+  # Generate review specialists with inline checklists (Edit 15)
+  echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r spec_domain; do
+    local spec_display
+    spec_display=$(echo "$m" | jq -r --arg n "$spec_domain" '.domain.detected_domains[] | select(.name == $n) | .display' 2>/dev/null)
+    local spec_paths
+    spec_paths=$(echo "$m" | jq -r --arg n "$spec_domain" '.domain.detected_domains[] | select(.name == $n) | .paths[:3] | join(", ") // "N/A"' 2>/dev/null)
+    echo "### ${spec_display}" >> "$out"
+    echo "Trigger paths: ${spec_paths}" >> "$out"
+    echo "" >> "$out"
+
+    case "$spec_domain" in
+      auth)
+        echo "- [ ] All protected endpoints have auth middleware" >> "$out"
+        echo "- [ ] Session tokens are validated on every request" >> "$out"
+        echo "- [ ] Password hashing uses bcrypt/argon2 (never MD5/SHA1)" >> "$out"
+        echo "- [ ] JWT secrets are not hardcoded" >> "$out"
+        echo "- [ ] Rate limiting on login/register endpoints" >> "$out"
+        echo "- [ ] CSRF protection enabled for state-changing operations" >> "$out"
+        echo "- [ ] Logout invalidates session/token server-side" >> "$out"
+        ;;
+      database)
+        echo "- [ ] All queries go through ORM — no raw SQL" >> "$out"
+        echo "- [ ] Migrations are reversible (up + down)" >> "$out"
+        echo "- [ ] Indexes exist for frequently queried columns" >> "$out"
+        echo "- [ ] N+1 query patterns avoided" >> "$out"
+        echo "- [ ] Sensitive data is encrypted at rest" >> "$out"
+        echo "- [ ] Connection pooling configured" >> "$out"
+        echo "- [ ] Schema changes have migration files" >> "$out"
+        ;;
+      api)
+        echo "- [ ] All inputs validated before processing" >> "$out"
+        echo "- [ ] Error responses use consistent format" >> "$out"
+        echo "- [ ] Rate limiting configured for public endpoints" >> "$out"
+        echo "- [ ] CORS policy is restrictive (not wildcard)" >> "$out"
+        echo "- [ ] Response types are explicitly defined" >> "$out"
+        echo "- [ ] No sensitive data in URL parameters" >> "$out"
+        echo "- [ ] Pagination on list endpoints" >> "$out"
+        echo "- [ ] API versioning strategy documented" >> "$out"
+        ;;
+      ai)
+        echo "- [ ] LLM outputs are sanitized before use" >> "$out"
+        echo "- [ ] Prompt injection defenses in place" >> "$out"
+        echo "- [ ] Token limits enforced per request" >> "$out"
+        echo "- [ ] API keys stored in env vars, not code" >> "$out"
+        echo "- [ ] Fallback behavior when LLM is unavailable" >> "$out"
+        echo "- [ ] Cost monitoring/alerting configured" >> "$out"
+        echo "- [ ] Output validation before displaying to users" >> "$out"
+        ;;
+      sandbox)
+        echo "- [ ] Code execution isolated in sandbox" >> "$out"
+        echo "- [ ] Resource limits (CPU, memory, time) enforced" >> "$out"
+        echo "- [ ] Network access restricted in sandbox" >> "$out"
+        echo "- [ ] Filesystem access scoped to workspace" >> "$out"
+        echo "- [ ] Process cleanup after execution" >> "$out"
+        ;;
+      frontend)
+        echo "- [ ] XSS prevention — no dangerouslySetInnerHTML without sanitization" >> "$out"
+        echo "- [ ] Forms have proper validation" >> "$out"
+        echo "- [ ] Loading and error states handled" >> "$out"
+        echo "- [ ] Accessibility: semantic HTML, ARIA labels" >> "$out"
+        echo "- [ ] Responsive design tested" >> "$out"
+        echo "- [ ] Images optimized and lazy-loaded" >> "$out"
+        ;;
+      external-apis)
+        echo "- [ ] API keys in env vars, not code" >> "$out"
+        echo "- [ ] Retry logic with exponential backoff" >> "$out"
+        echo "- [ ] Timeout configuration on all HTTP calls" >> "$out"
+        echo "- [ ] Error handling for rate limits (429)" >> "$out"
+        echo "- [ ] Response validation before use" >> "$out"
+        ;;
+      workers)
+        echo "- [ ] Idempotent job processing" >> "$out"
+        echo "- [ ] Dead letter queue for failed jobs" >> "$out"
+        echo "- [ ] Job timeout configured" >> "$out"
+        echo "- [ ] Concurrency limits set" >> "$out"
+        echo "- [ ] Monitoring/alerting on job failures" >> "$out"
+        ;;
+      *)
+        echo "- [ ] Code follows project conventions" >> "$out"
+        echo "- [ ] Tests cover critical paths" >> "$out"
+        echo "- [ ] No hardcoded secrets" >> "$out"
+        ;;
+    esac
+    echo "" >> "$out"
+  done
+
+  if [[ "$domain_count" == "0" ]]; then
+    echo "*Review specialists will be created when domain-specific code is detected.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Doc-Sync Matrix section (Edit 16) ---
+  if [[ "$domain_count" -gt 0 ]]; then
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## Doc-Sync Matrix" >> "$out"
+    echo "" >> "$out"
+    echo "| Domain | Key Files | Doc Impact |" >> "$out"
+    echo "|--------|-----------|------------|" >> "$out"
+    echo "$m" | jq -r '.domain.detected_domains[] | "| \(.display) | \(.paths[:2] | join(", ") // "-") | CLAUDE.md, docs/ |"' 2>/dev/null >> "$out" || true
+    echo "" >> "$out"
+    echo "When any file in a domain's key files changes, update the corresponding docs." >> "$out"
+    echo "" >> "$out"
+  fi
+
+  # --- Session Learnings ---
+  cat >> "$out" << LEARNINGS
+---
+
+## Session Learnings
+
+Stored in \`tools/learnings/${short}-learnings.jsonl\`. Use \`/learn\` to add new entries.
+
+*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run \`/learn\` to add it here.*
+
+---
+
+## gstack Browser Integration
+
+If gstack is installed (\`~/.claude/skills/gstack/\`), use \`\$B\` commands for browser interactions:
+- \`\$B\` is ~20x faster than Playwright MCP (~100ms vs ~2-5s)
+- Uses ref-based element selection (\`@e1\`, \`@e2\`) instead of CSS selectors
+- Persistent Chromium daemon — cookies/tabs/login persist between commands
+
+### Command Reference
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| \`goto\` | \`\$B goto <url>\` | Navigate to a URL |
+| \`snapshot\` | \`\$B snapshot\` | Get page structure with element refs |
+| \`click\` | \`\$B click @e1\` | Click an element by ref |
+| \`fill\` | \`\$B fill @e1 "text"\` | Fill an input field |
+| \`screenshot\` | \`\$B screenshot\` | Capture a screenshot |
+| \`console\` | \`\$B console\` | Read browser console logs |
+| \`network\` | \`\$B network\` | Read network requests/responses |
+| \`text\` | \`\$B text @e1\` | Get text content of an element |
+| \`html\` | \`\$B html @e1\` | Get HTML content of an element |
+| \`responsive\` | \`\$B responsive <width>\` | Set viewport width for responsive testing |
+| \`diff\` | \`\$B diff\` | Compare current page with previous snapshot |
+| \`chain\` | \`\$B chain "click @e1" "fill @e2 text" "screenshot"\` | Chain multiple commands |
+
+---
+
+## Session Start Protocol
+
+At the start of each session:
+1. Read \`tools/learnings/${short}-learnings.jsonl\` — surface top 5 relevant learnings
+2. Check \`git log --oneline -10\` — understand recent work
+3. Check \`git status\` — understand current state
+4. If a STATUS.md file exists — read it for multi-phase task progress
+5. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+
+---
+
+*Last updated: ${today}. Session: Initial automation setup via aiframework.*
+
+<!-- CLAUDE.md Guidance:
+- Update this file after significant decisions, bug fixes, or architectural changes
+- NEVER delete content — only add, refine, or mark as deprecated
+- Use /learn to capture non-obvious discoveries
+- Session summary format: "Session YYYY-MM-DD: <what was done>, <key decisions>, <blockers>"
+-->
+
+<!-- Previous Session Summary:
+Session ${today}: Initial CLAUDE.md generation via aiframework.
+Key decisions: Automated project analysis and documentation generation.
+Blockers: None.
+-->
+LEARNINGS
+
+  # --- Execution Matrices (Edit 19) ---
+  cat >> "$out" << 'MATRICES'
+
+---
+
+## Execution Matrices
+
+### Bug Fix Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/investigate` — reproduce & understand | Can reproduce? |
+| 2 | Plan fix approach | Root cause identified? |
+| 3 | Implement fix | Code change minimal & correct? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` (if security-related) | No vulnerabilities? |
+| 7 | Update docs + CHANGELOG | Docs accurate? |
+| 8 | `/qa` | App works? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/learn` | Lesson captured? |
+
+### Feature Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/plan-eng-review` | Plan approved? |
+| 2 | Build — implement feature | Code complete? |
+| 3 | Write tests | Coverage adequate? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` | No security gaps? |
+| 7 | Update docs + CHANGELOG + VERSION | Docs accurate? |
+| 8 | `/qa` | Feature works end-to-end? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/canary` | No regressions? |
+| 11 | `/learn` | Lessons captured? |
+
+### Deploy Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | Verify: lint + typecheck + test + build | All pass? |
+| 2 | `/review` | No issues? |
+| 3 | `/cso` | Secure? |
+| 4 | `/qa` | QA pass? |
+| 5 | Update CHANGELOG + VERSION | Done? |
+| 6 | `/ship` | Deploy triggered? |
+| 7 | `/canary` — monitor post-deploy | Healthy? |
+
+### Weekly Cadence
+
+| Day | Task |
+|-----|------|
+| Monday | Review open PRs, triage issues |
+| Wednesday | `/retro` — mid-week check |
+| Friday | `/retro` — weekly retrospective, update CLAUDE.md |
+
+### Failure Recovery Table
+
+| Failure | Recovery Action |
+|---------|----------------|
+| Test fails after code change | Revert change, re-investigate, fix root cause |
+| Build fails | Check compiler errors, fix type/syntax issues |
+| Lint fails | Auto-fix with formatter, then manual review |
+| Deploy fails | Rollback, check logs, fix and re-deploy |
+| `/cso` finds vulnerability | Block deploy, fix immediately, re-run `/cso` |
+| QA regression | Investigate with `/investigate`, add regression test |
+
+MATRICES
+
+  log_ok "CLAUDE.md written to $out"
+}

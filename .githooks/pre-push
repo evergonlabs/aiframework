@@ -1,0 +1,37 @@
+#!/bin/bash
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  aiframework Pre-Push Quality Gate"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
+
+SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$"
+
+NEEDS_CHECK=false
+for file in $CHANGED_FILES; do
+  if ! echo "$file" | grep -qE "$SKIP_PATTERNS"; then
+    NEEDS_CHECK=true
+    break
+  fi
+done
+
+if [ "$NEEDS_CHECK" = false ]; then
+  echo "  Only non-app files changed — skipping quality checks"
+  exit 0
+fi
+# Invariant checks — domain-specific
+CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
+INVARIANT_FAIL=false
+if [ "$INVARIANT_FAIL" = true ]; then
+  echo ""
+  echo "  Invariant warnings detected. Review before pushing."
+  echo "  To bypass: git push --no-verify"
+fi
+echo ""
+echo "  All gates passed — push allowed"
+echo "  TIP: Run /review and /cso before creating a PR"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+exit 0

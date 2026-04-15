@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vault://schemas/skill-policy.json",
+  "title": "Skill Security Policy",
+  "description": "Defines security tiers for agent skill execution within the vault.",
+  "type": "object",
+  "required": ["version", "tiers"],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "tiers": {
+      "type": "object",
+      "properties": {
+        "strict": {
+          "type": "object",
+          "description": "Maximum restrictions. For production-touching operations.",
+          "properties": {
+            "allowed_tools": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["Read", "Grep", "Glob"]
+            },
+            "forbidden_paths": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": [".vault/rules/", ".vault/hooks/", ".vault/scripts/", "CLAUDE.md", "AGENTS.md", ".github/workflows/"]
+            },
+            "require_human_approval": { "type": "boolean", "default": true },
+            "max_files_per_session": { "type": "integer", "default": 5 },
+            "allow_delete": { "type": "boolean", "default": false },
+            "allow_raw_modification": { "type": "boolean", "default": false }
+          }
+        },
+        "moderate": {
+          "type": "object",
+          "description": "Standard restrictions. For wiki and memory operations.",
+          "properties": {
+            "allowed_tools": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
+            },
+            "forbidden_paths": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": [".vault/rules/", ".vault/hooks/", ".vault/scripts/", "CLAUDE.md", "AGENTS.md"]
+            },
+            "require_human_approval": { "type": "boolean", "default": false },
+            "max_files_per_session": { "type": "integer", "default": 20 },
+            "allow_delete": { "type": "boolean", "default": false },
+            "allow_raw_modification": { "type": "boolean", "default": false }
+          }
+        },
+        "permissive": {
+          "type": "object",
+          "description": "Minimal restrictions. For development and testing only.",
+          "properties": {
+            "allowed_tools": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["Read", "Grep", "Glob", "Edit", "Write", "Bash", "Agent"]
+            },
+            "forbidden_paths": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": [".vault/hooks/"]
+            },
+            "require_human_approval": { "type": "boolean", "default": false },
+            "max_files_per_session": { "type": "integer", "default": 100 },
+            "allow_delete": { "type": "boolean", "default": false },
+            "allow_raw_modification": { "type": "boolean", "default": false }
+          }
+        }
+      },
+      "required": ["strict", "moderate", "permissive"]
+    },
+    "default_tier": {
+      "type": "string",
+      "enum": ["strict", "moderate", "permissive"],
+      "default": "moderate"
+    }
+  }
+}

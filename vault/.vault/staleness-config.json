@@ -1,0 +1,31 @@
+{
+  "project": "aiframework",
+  "generated_at": "2026-04-15",
+  "version": "1.0",
+  "domains": {
+    "wiki/concepts": {
+      "max_age_days": 30,
+      "review_trigger": "major_release"
+    },
+    "wiki/sources": {
+      "max_age_days": 14,
+      "review_trigger": "dependency_update"
+    },
+    "wiki/entities": {
+      "max_age_days": 60,
+      "review_trigger": "schema_change"
+    },
+    "wiki/comparisons": {
+      "max_age_days": 90,
+      "review_trigger": "manual"
+    },
+    "memory/decisions": {
+      "max_age_days": 180,
+      "review_trigger": "quarterly_review"
+    },
+    "memory/notes": {
+      "max_age_days": 7,
+      "review_trigger": "sprint_end"
+    }
+  }
+}

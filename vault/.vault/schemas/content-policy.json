@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vault://schemas/content-policy.json",
+  "title": "Content Integrity Policy",
+  "description": "Defines patterns for detecting prompt injection, content manipulation, and integrity violations.",
+  "type": "object",
+  "required": ["version", "injection_patterns", "content_rules"],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "injection_patterns": {
+      "type": "array",
+      "description": "Regex patterns that indicate potential prompt injection or manipulation attempts.",
+      "items": {
+        "type": "object",
+        "required": ["id", "pattern", "severity", "description"],
+        "properties": {
+          "id": { "type": "string" },
+          "pattern": { "type": "string" },
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+          "description": { "type": "string" }
+        }
+      },
+      "default": [
+        {
+          "id": "INJ-001",
+          "pattern": "(?i)(ignore|disregard|forget)\\s+(all\\s+)?(previous|above|prior)\\s+(instructions?|rules?|constraints?)",
+          "severity": "critical",
+          "description": "Instruction override attempt"
+        },
+        {
+          "id": "INJ-002",
+          "pattern": "(?i)you\\s+are\\s+now\\s+(a|an|the)\\s+",
+          "severity": "critical",
+          "description": "Role reassignment attempt"
+        },
+        {
+          "id": "INJ-003",
+          "pattern": "(?i)(system|admin)\\s*:\\s*",
+          "severity": "high",
+          "description": "System prompt injection attempt"
+        },
+        {
+          "id": "INJ-004",
+          "pattern": "(?i)<!--.*(?:ignore|override|bypass).*-->",
+          "severity": "high",
+          "description": "Hidden HTML comment with override instructions"
+        },
+        {
+          "id": "INJ-005",
+          "pattern": "(?i)\\[\\s*(?:INST|SYSTEM|PROMPT)\\s*\\]",
+          "severity": "high",
+          "description": "Fake instruction block markers"
+        },
+        {
+          "id": "INJ-006",
+          "pattern": "(?i)do\\s+not\\s+follow\\s+(the\\s+)?rules",
+          "severity": "medium",
+          "description": "Direct rule bypass instruction"
+        },
+        {
+          "id": "INJ-007",
+          "pattern": "(?i)execute\\s+(this\\s+)?(bash|shell|command|script)",
+          "severity": "medium",
+          "description": "Embedded command execution attempt"
+        },
+        {
+          "id": "INJ-008",
+          "pattern": "(?i)base64\\s*[:=]\\s*[A-Za-z0-9+/=]{20,}",
+          "severity": "medium",
+          "description": "Obfuscated base64 content"
+        }
+      ]
+    },
+    "content_rules": {
+      "type": "object",
+      "properties": {
+        "max_frontmatter_size_bytes": { "type": "integer", "default": 4096 },
+        "max_tag_count": { "type": "integer", "default": 20 },
+        "max_related_count": { "type": "integer", "default": 30 },
+        "max_title_length": { "type": "integer", "default": 200 },
+        "require_ascii_titles": { "type": "boolean", "default": false },
+        "forbidden_extensions_in_wiki": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [".exe", ".bin", ".dll", ".so", ".dylib", ".zip", ".tar", ".gz", ".png", ".jpg", ".gif", ".pdf", ".mp3", ".mp4"]
+        }
+      }
+    }
+  }
+}

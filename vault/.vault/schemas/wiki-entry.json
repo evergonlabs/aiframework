@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vault://schemas/wiki-entry.json",
+  "title": "Wiki Entry Frontmatter Schema",
+  "description": "Validates YAML frontmatter for all wiki and memory markdown files.",
+  "type": "object",
+  "required": ["title", "type", "created", "updated", "status", "tags"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Human-readable page title. Must be unique across the vault (HR-006)."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["source", "concept", "entity", "comparison", "decision", "log", "index", "status", "note", "rules", "taxonomy", "template", "architecture"],
+      "description": "Page type classification."
+    },
+    "created": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "ISO 8601 creation date."
+    },
+    "updated": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "ISO 8601 last meaningful edit date (HR-007)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "current", "stale", "archived"],
+      "description": "Content lifecycle status."
+    },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of source file paths or URLs this page derives from."
+    },
+    "related": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+      "description": "Slugs of related wiki pages."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]+/[a-z0-9-]+$"
+      },
+      "minItems": 1,
+      "description": "Tags from approved taxonomy (HR-003, HR-009)."
+    },
+    "owner": {
+      "type": "string",
+      "description": "Who is responsible for this page (agent name, 'system', or human)."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low", "speculative"],
+      "description": "Confidence calibration per SR-009."
+    }
+  },
+  "additionalProperties": false
+}

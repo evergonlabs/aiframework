@@ -1,0 +1,20 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# aiframework runtime
+.aiframework/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude memory (local only)
+.claude/memory/
