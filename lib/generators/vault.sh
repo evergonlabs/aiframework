@@ -369,6 +369,7 @@ Required fields:
 - Any meaningful content change MUST update this field.
 - Automated tooling (\`vault-tools.sh\`) updates this on detected changes.
 - Staleness checks (SR-008) depend on this field being accurate.
+- **Automation:** Run \`vault-tools.sh lint\` — it warns on stale \`updated\` fields. Update manually when editing wiki pages.
 
 ## HR-008: Index Registration Required
 
@@ -2544,6 +2545,13 @@ if [[ -n "$config_changes" ]]; then
   ((errors++))
 else
   log_pass "HR-012: Agent config protection intact"
+fi
+
+# HR-013: CI/Template protection
+ci_changes=\$(git diff --cached --name-only -- ".github/workflows/" ".gitlab-ci.yml" 2>/dev/null || true)
+if [[ -n "\$ci_changes" ]]; then
+  echo "[WARN] HR-013: CI pipeline files modified — verify changes are intentional"
+  echo "\$ci_changes" | sed 's/^/  /'
 fi
 
 # HR-014: No file deletions in vault

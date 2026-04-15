@@ -349,6 +349,9 @@ Project-specific code review checking all invariants.
 ### `/aiframework-ship`
 Full shipping workflow: verify → review → docs → changelog → commit.
 
+### `/aiframework-learn`
+Capture project learnings to persistent storage (JSONL + vault).
+
 ---
 
 ## Review Specialists
@@ -419,7 +422,17 @@ See `vault/.vault/rules/hard-rules.md` for 15 integrity rules enforced by pre-co
 
 Stored in `tools/learnings/aiframework-learnings.jsonl`. Use `/learn` to add new entries.
 
-*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run `/learn` to add it here.*
+*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run `/aiframework-learn` to capture it.*
+
+### Learnings Format (JSONL)
+
+Each line in the learnings file is a JSON object:
+```json
+{"date": "2026-04-15", "category": "bug|gotcha|pattern|decision", "summary": "One-line summary", "detail": "Full explanation", "files": ["path/to/relevant/file"]}
+```
+
+To query: `grep "keyword" tools/learnings/aiframework-learnings.jsonl`
+To add: `/aiframework-learn "description"` or append a JSON line manually.
 
 ---
 
@@ -530,7 +543,7 @@ Blockers: None.
 |-----|------|
 | Monday | Review open PRs, triage issues |
 | Wednesday | `/retro` — mid-week check |
-| Friday | `/retro` — weekly retrospective, update CLAUDE.md |
+| Friday | `/retro` — weekly retrospective, update CLAUDE.md, run `vault-tools.sh doctor` |
 
 ### Failure Recovery Table
 

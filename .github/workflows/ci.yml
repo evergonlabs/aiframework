@@ -16,3 +16,6 @@ jobs:
         run: sudo apt-get install -y shellcheck
       - name: Run ShellCheck
         run: find . -name "*.sh" -not -path "*/.git/*" -not -path "*/vault/*" | xargs shellcheck
+      - name: Vault integrity check
+        if: hashFiles('vault/.vault/scripts/vault-tools.sh') != ''
+        run: bash vault/.vault/scripts/vault-tools.sh lint --report || true

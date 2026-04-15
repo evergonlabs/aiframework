@@ -138,6 +138,13 @@ else
   log_pass "HR-012: Agent config protection intact"
 fi
 
+# HR-013: CI/Template protection
+ci_changes=\$(git diff --cached --name-only -- ".github/workflows/" ".gitlab-ci.yml" 2>/dev/null || true)
+if [[ -n "\$ci_changes" ]]; then
+  echo "[WARN] HR-013: CI pipeline files modified — verify changes are intentional"
+  echo "\$ci_changes" | sed 's/^/  /'
+fi
+
 # HR-014: No file deletions in vault
 vault_deletions=$(git diff --cached --diff-filter=D --name-only -- "vault/" 2>/dev/null || true)
 if [[ -n "$vault_deletions" ]]; then

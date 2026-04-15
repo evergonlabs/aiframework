@@ -78,6 +78,7 @@ Required fields:
 - Any meaningful content change MUST update this field.
 - Automated tooling (`vault-tools.sh`) updates this on detected changes.
 - Staleness checks (SR-008) depend on this field being accurate.
+- **Automation:** Run `vault-tools.sh lint` — it warns on stale `updated` fields. Update manually when editing wiki pages.
 
 ## HR-008: Index Registration Required
 
