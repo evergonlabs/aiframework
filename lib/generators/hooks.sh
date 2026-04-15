@@ -174,8 +174,24 @@ PREPUSH_HEAD
   # Add gates
   if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
     ((gate_num++))
+    # Extract core lint tool for availability check
+    local lint_tool
+    lint_tool=$(echo "$lint_cmd" | grep -oE 'shellcheck|eslint|ruff|clippy|golangci-lint|rubocop' | head -1)
+
     cat >> "$TARGET_DIR/.githooks/pre-push" << GATE
 # Gate ${gate_num}: Lint
+GATE
+
+    # Add tool availability check if it's an external tool
+    if [[ -n "$lint_tool" ]]; then
+      cat >> "$TARGET_DIR/.githooks/pre-push" << LINTCHECK
+if ! command -v ${lint_tool} >/dev/null 2>&1; then
+  echo "  [${gate_num}/${total_gates}] ${lint_tool} not installed — skipping lint"
+else
+LINTCHECK
+    fi
+
+    cat >> "$TARGET_DIR/.githooks/pre-push" << GATE
 echo "  [${gate_num}/${total_gates}] Linting..."
 ${lint_cmd} 2>&1
 if [ \$? -ne 0 ]; then
@@ -183,8 +199,13 @@ if [ \$? -ne 0 ]; then
   exit 1
 fi
 echo "  [${gate_num}/${total_gates}] Lint passed"
-
 GATE
+
+    # Close the if block if we opened one
+    if [[ -n "$lint_tool" ]]; then
+      echo "fi" >> "$TARGET_DIR/.githooks/pre-push"
+    fi
+    echo "" >> "$TARGET_DIR/.githooks/pre-push"
   fi
 
   if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
