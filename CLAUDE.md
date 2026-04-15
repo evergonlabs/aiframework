@@ -101,7 +101,7 @@ This file is a living document that grows with the project. After ANY session wi
 
 ## Project Identity
 
-**aiframework** — **Universal Automation Bootstrap** — Deterministic repo analysis + CLAUDE.md generation + verification.
+**aiframework** — Universal Automation Bootstrap for AI-assisted development. Deterministic repo analysis, CLAUDE.md generation, and knowledge vault creation — in one command.
 
 **Stack:** unknown / none / 
 
