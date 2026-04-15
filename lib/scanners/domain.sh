@@ -353,9 +353,101 @@ scan_domain() {
       "tests": ($tests | tonumber)
     }')
 
+  # --- ENFORCED vs ASPIRATIONAL marking (A16b) ---
+  # Check each invariant against linter/type-checker config to determine enforcement
+  local eslint_config_content=""
+  local has_eslint=false has_mypy=false has_pyright=false has_tsc_strict=false has_ruff=false
+
+  # Read ESLint config if present
+  for eslint_file in ".eslintrc.json" ".eslintrc.js" ".eslintrc.yml" "eslint.config.js" "eslint.config.mjs"; do
+    if [[ -f "$TARGET_DIR/$eslint_file" ]]; then
+      has_eslint=true
+      eslint_config_content=$(cat "$TARGET_DIR/$eslint_file" 2>/dev/null || true)
+      break
+    fi
+  done
+
+  # Check for Python type checkers
+  if [[ -f "$TARGET_DIR/mypy.ini" || -f "$TARGET_DIR/.mypy.ini" || -f "$TARGET_DIR/setup.cfg" ]]; then
+    has_mypy=true
+  fi
+  if [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
+    grep -q '\[tool\.mypy\]' "$TARGET_DIR/pyproject.toml" 2>/dev/null && has_mypy=true
+    grep -q '\[tool\.pyright\]' "$TARGET_DIR/pyproject.toml" 2>/dev/null && has_pyright=true
+    grep -q '\[tool\.ruff\]' "$TARGET_DIR/pyproject.toml" 2>/dev/null && has_ruff=true
+  fi
+  if [[ -f "$TARGET_DIR/pyrightconfig.json" ]]; then
+    has_pyright=true
+  fi
+
+  # Check for strict TypeScript
+  if [[ -f "$TARGET_DIR/tsconfig.json" ]]; then
+    local strict_val
+    strict_val=$(jq -r '.compilerOptions.strict // false' "$TARGET_DIR/tsconfig.json" 2>/dev/null)
+    [[ "$strict_val" == "true" ]] && has_tsc_strict=true
+  fi
+
+  # Build enforcement-annotated invariants array
+  local annotated_invariants="[]"
+  local inv_count
+  inv_count=$(echo "$invariants" | jq 'length' 2>/dev/null || echo "0")
+  local idx=0
+  while [[ "$idx" -lt "$inv_count" ]]; do
+    local inv_name
+    inv_name=$(echo "$invariants" | jq -r ".[$idx]" 2>/dev/null)
+    local enforcement="ASPIRATIONAL"
+
+    case "$inv_name" in
+      *no-explicit-any*|*no-any*|*no\ as\ any*)
+        if [[ "$has_eslint" == true ]] && echo "$eslint_config_content" | grep -q 'no-explicit-any' 2>/dev/null; then
+          enforcement="ENFORCED"
+        elif [[ "$has_tsc_strict" == true ]]; then
+          enforcement="ENFORCED"
+        fi
+        ;;
+      *type-safety*|*strict-type*|*typescript-strict*)
+        if [[ "$has_tsc_strict" == true ]]; then
+          enforcement="ENFORCED"
+        elif [[ "$has_mypy" == true || "$has_pyright" == true ]]; then
+          enforcement="ENFORCED"
+        fi
+        ;;
+      *monorepo-boundary*)
+        # Check if there's an eslint rule for import boundaries
+        if [[ "$has_eslint" == true ]] && echo "$eslint_config_content" | grep -qE '(import/no-relative-packages|boundaries/element-types|no-restricted-imports)' 2>/dev/null; then
+          enforcement="ENFORCED"
+        fi
+        ;;
+      *monetary-precision*|*transaction-atomicity*)
+        # These are typically not enforced by linters
+        enforcement="ASPIRATIONAL"
+        ;;
+      *no-raw-sql*)
+        if [[ "$has_eslint" == true ]] && echo "$eslint_config_content" | grep -q 'no-raw-sql' 2>/dev/null; then
+          enforcement="ENFORCED"
+        fi
+        ;;
+      *)
+        # Check if any linter rule name matches the invariant name
+        if [[ "$has_eslint" == true ]] && echo "$eslint_config_content" | grep -qi "${inv_name}" 2>/dev/null; then
+          enforcement="ENFORCED"
+        elif [[ "$has_ruff" == true ]] && grep -qi "${inv_name}" "$TARGET_DIR/pyproject.toml" 2>/dev/null; then
+          enforcement="ENFORCED"
+        fi
+        ;;
+    esac
+
+    annotated_invariants=$(echo "$annotated_invariants" | jq \
+      --arg name "$inv_name" \
+      --arg enf "$enforcement" \
+      '. + [{"name": $name, "enforcement": $enf}]')
+
+    idx=$((idx + 1))
+  done
+
   MANIFEST=$(echo "$MANIFEST" | jq \
     --argjson domains "$domains" \
-    --argjson invariants "$invariants" \
+    --argjson invariants "$annotated_invariants" \
     --argjson security "$security_concerns" \
     --argjson cross_imports "$cross_package_imports" \
     --argjson principles "$core_principles" \

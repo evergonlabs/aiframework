@@ -8,7 +8,7 @@ echo ""
 
 CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
 
-SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$"
+SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$|^docs/"
 
 NEEDS_CHECK=false
 for file in $CHANGED_FILES; do
@@ -22,9 +22,39 @@ if [ "$NEEDS_CHECK" = false ]; then
   echo "  Only non-app files changed — skipping quality checks"
   exit 0
 fi
+# Gate 1: Lint
+echo "  [1/1] Linting..."
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck 2>&1
+if [ $? -ne 0 ]; then
+  echo "  BLOCKED: Lint errors. Fix before pushing."
+  exit 1
+fi
+echo "  [1/1] Lint passed"
+
 # Invariant checks — domain-specific
 CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
 INVARIANT_FAIL=false
+# INV-2: Database invariant: no raw SQL strings in changed files
+for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
+  if [ -f "$f" ] && grep -nE '(SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|DROP\s+TABLE)' "$f" | grep -vE '(migration|seed|\.sql$)' > /dev/null 2>&1; then
+    echo "  WARNING: $f may contain raw SQL — use ORM or query builder"
+    INVARIANT_FAIL=true
+  fi
+done
+# INV: AI/LLM trust boundary: check for unsanitized LLM output usage
+for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
+  if [ -f "$f" ] && grep -nE '(innerHTML|dangerouslySetInnerHTML|eval\(|exec\()' "$f" > /dev/null 2>&1; then
+    echo "  WARNING: $f may use unsanitized output — check LLM trust boundary"
+    INVARIANT_FAIL=true
+  fi
+done
+# INV: No secrets in source code
+for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json|lock)$'); do
+  if [ -f "$f" ] && grep -nE '(ghp_[a-zA-Z0-9]{36}|sk-ant-|sk-proj-|AKIA[A-Z0-9]{16}|password\s*=\s*["\x27][^"\x27]+["\x27])' "$f" > /dev/null 2>&1; then
+    echo "  WARNING: $f may contain hardcoded secrets"
+    INVARIANT_FAIL=true
+  fi
+done
 if [ "$INVARIANT_FAIL" = true ]; then
   echo ""
   echo "  Invariant warnings detected. Review before pushing."

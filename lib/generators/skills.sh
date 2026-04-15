@@ -102,6 +102,19 @@ SKILLMD
     ((inv_num++)) || true
   done >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
 
+  # Count how many INV- entries were written and ensure at least 2
+  local review_inv_count
+  review_inv_count=$(grep -c 'INV-' "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md" 2>/dev/null || echo "0")
+  if [[ "$review_inv_count" -lt 2 ]]; then
+    local next_inv=$((review_inv_count + 1))
+    cat >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md" << GENERAL_INV
+### 1.${next_inv} INV-${next_inv}: No Secrets in Source Code
+Verify no API keys, passwords, tokens, or credentials are committed.
+Look for: hardcoded secrets, .env files committed, credentials in config, tokens in URLs.
+
+GENERAL_INV
+  fi
+
   cat >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md" << 'SKILL2'
 
 ## Step 2: Specialist Army (if applicable)

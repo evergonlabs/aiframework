@@ -20,10 +20,13 @@
 5. Request review
 
 ## Code Style
-- Enforced by linter: not configured
+- Linter: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck`
 - Formatted by: not configured
 
 ## Testing
-- Framework: not configured
-- Run: `NOT_CONFIGURED`
-- Write tests for all new functionality
+
+No test framework is configured yet. Testing is done via:
+
+1. **Syntax check**: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n`
+2. **Lint**: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck`
+3. **CI**: GitHub Actions runs quality checks on all PRs

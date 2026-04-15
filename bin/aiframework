@@ -80,6 +80,12 @@ parse_args() {
     exit 1
   fi
 
+  # Handle --help/-h as first argument
+  if [[ "$1" == "--help" || "$1" == "-h" || "$1" == "help" ]]; then
+    usage
+    exit 0
+  fi
+
   COMMAND="$1"
   shift
 
@@ -296,6 +302,26 @@ cmd_verify() {
 
 cmd_run() {
   cmd_discover
+
+  # Analysis summary (A20)
+  echo ""
+  log_step "Analysis Summary"
+  echo "  Project: $(echo "$MANIFEST" | jq -r '.identity.name')"
+  echo "  Language: $(echo "$MANIFEST" | jq -r '.stack.language')"
+  echo "  Framework: $(echo "$MANIFEST" | jq -r '.stack.framework // "none"')"
+  echo "  Domains: $(echo "$MANIFEST" | jq -r '.domain.detected_domains | length' 2>/dev/null || echo 0)"
+  echo "  Env vars: $(echo "$MANIFEST" | jq '.env.variables | length' 2>/dev/null || echo 0)"
+  echo "  CI: $(echo "$MANIFEST" | jq -r '.ci.provider // "none"')"
+  echo ""
+
+  if [[ "$NON_INTERACTIVE" != "true" ]] && [[ -t 0 ]]; then
+    read -p "  Proceed with generation? [Y/n] " confirm
+    if [[ "$confirm" =~ ^[Nn] ]]; then
+      log_warn "Aborted by user"
+      return 1
+    fi
+  fi
+
   echo ""
   echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""

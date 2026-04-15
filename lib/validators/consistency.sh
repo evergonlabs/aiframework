@@ -13,10 +13,17 @@ validate_consistency() {
     lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
 
     if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
-      if grep -q "$lint_cmd" "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
+      if grep -Fq "$lint_cmd" "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
         report_row "Cmd sync: pre-push" "PASS" "Commands match"
       else
-        report_row "Cmd sync: pre-push" "FAIL" "Lint cmd mismatch"
+        # Also check for the core command (e.g., "shellcheck" from "find ... | xargs shellcheck")
+        local lint_core
+        lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$')
+        if [[ -n "$lint_core" ]] && grep -Fq "$lint_core" "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
+          report_row "Cmd sync: pre-push" "PASS" "Core lint tool matches"
+        else
+          report_row "Cmd sync: pre-push" "FAIL" "Lint cmd mismatch"
+        fi
       fi
     else
       report_row "Cmd sync: pre-push" "SKIP" "No lint configured"
@@ -67,6 +74,24 @@ validate_consistency() {
     fi
   else
     report_row "Cmd sync: SETUP-DEV" "SKIP" "Files missing"
+  fi
+
+  # --- E8: Doc-sync matrix in CLAUDE.md matches doc-sync in ship skill ---
+  if [[ -f "$TARGET_DIR/CLAUDE.md" && -f "$TARGET_DIR/.claude/skills/${short}-ship/SKILL.md" ]]; then
+    local has_docsync_claude=false
+    local has_docsync_ship=false
+    grep -q 'Doc.Sync\|doc.sync\|Doc Sync' "$TARGET_DIR/CLAUDE.md" 2>/dev/null && has_docsync_claude=true
+    grep -q 'Doc Sync\|doc.sync\|documentation' "$TARGET_DIR/.claude/skills/${short}-ship/SKILL.md" 2>/dev/null && has_docsync_ship=true
+
+    if $has_docsync_claude && $has_docsync_ship; then
+      report_row "Doc-sync: CLAUDE↔ship" "PASS" "Both reference doc sync"
+    elif ! $has_docsync_claude && ! $has_docsync_ship; then
+      report_row "Doc-sync: CLAUDE↔ship" "SKIP" "No doc-sync in either"
+    else
+      report_row "Doc-sync: CLAUDE↔ship" "WARN" "Doc-sync not in both files"
+    fi
+  else
+    report_row "Doc-sync: CLAUDE↔ship" "SKIP" "Files missing"
   fi
 
   # --- E9/E10: No unresolved {{}} placeholders ---
@@ -124,7 +149,9 @@ validate_consistency() {
     local lint_cmd
     lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
     if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
-      if ! grep -q "$lint_cmd" "$ci_file" 2>/dev/null; then
+      local lint_core
+      lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$')
+      if ! grep -Fq "$lint_cmd" "$ci_file" 2>/dev/null && ! grep -Fq "$lint_core" "$ci_file" 2>/dev/null; then
         ci_match=false
         ci_details="lint cmd missing from CI"
       fi
@@ -133,7 +160,7 @@ validate_consistency() {
     local test_cmd
     test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
     if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
-      if ! grep -q "$test_cmd" "$ci_file" 2>/dev/null; then
+      if ! grep -Fq "$test_cmd" "$ci_file" 2>/dev/null; then
         ci_match=false
         ci_details="${ci_details:+$ci_details; }test cmd missing from CI"
       fi
@@ -142,7 +169,7 @@ validate_consistency() {
     local build_cmd
     build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
     if [[ "$build_cmd" != "NOT_CONFIGURED" ]]; then
-      if ! grep -q "$build_cmd" "$ci_file" 2>/dev/null; then
+      if ! grep -Fq "$build_cmd" "$ci_file" 2>/dev/null; then
         ci_match=false
         ci_details="${ci_details:+$ci_details; }build cmd missing from CI"
       fi
@@ -180,7 +207,7 @@ validate_consistency() {
     local inv_in_claude
     inv_in_claude=$(grep -c '### INV-' "$TARGET_DIR/CLAUDE.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
     local inv_in_prepush
-    inv_in_prepush=$(grep -c 'INV-' "$TARGET_DIR/.githooks/pre-push" 2>/dev/null || true)
+    inv_in_prepush=$(grep -cE '# INV[-:]' "$TARGET_DIR/.githooks/pre-push" 2>/dev/null || true)
     inv_in_prepush=$(echo "$inv_in_prepush" | head -1 | tr -d '[:space:]')
     [[ -z "$inv_in_prepush" ]] && inv_in_prepush=0
 

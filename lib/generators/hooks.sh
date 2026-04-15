@@ -70,8 +70,27 @@ generate_hooks() {
   esac
 
   if [[ -n "$precommit_check" ]]; then
+    # Extract the core tool name for availability check
+    local core_tool
+    core_tool=$(echo "$precommit_check" | grep -oE 'shellcheck|eslint|ruff|clippy|tsc|mypy|pyright' | head -1)
+
     cat > "$TARGET_DIR/.githooks/pre-commit" << PRECOMMIT
 #!/bin/bash
+PRECOMMIT
+
+    # Add tool availability check if core tool is known
+    if [[ -n "$core_tool" ]]; then
+      cat >> "$TARGET_DIR/.githooks/pre-commit" << TOOLCHECK
+# Check if ${core_tool} is installed
+if ! command -v ${core_tool} >/dev/null 2>&1; then
+  echo "Pre-commit: ${core_tool} not installed — skipping lint check"
+  echo "  Install: brew install ${core_tool} (macOS) or apt-get install ${core_tool} (Linux)"
+  exit 0
+fi
+TOOLCHECK
+    fi
+
+    cat >> "$TARGET_DIR/.githooks/pre-commit" << PRECOMMIT
 echo "Pre-commit: ${precommit_label}..."
 ${precommit_check} 2>&1
 if [ \$? -ne 0 ]; then
@@ -84,11 +103,31 @@ PRECOMMIT
     log_ok "Created .githooks/pre-commit (${precommit_label})"
   else
     log_warn "No pre-commit hook created — no type checker or linter configured"
+    # Document skip reason
+    cat > "$TARGET_DIR/.githooks/pre-commit-SKIPPED.md" << 'SKIPDOC'
+# Pre-commit Hook: SKIPPED
+
+**Reason:** No type checker or linter is configured for this project.
+
+**When to add:**
+- Configure a linter (ESLint, Ruff, Clippy, etc.)
+- Re-run aiframework to auto-generate the pre-commit hook
+SKIPDOC
   fi
 
   # --- Pre-push hook ---
   # Build skip patterns from project structure
   local skip_patterns='^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$'
+
+  # Add manifest-detected dirs to skip patterns
+  local extra_skip_dirs
+  extra_skip_dirs=$(echo "$m" | jq -r '.structure.doc_dirs[]?' 2>/dev/null)
+  if [[ -n "$extra_skip_dirs" ]]; then
+    while IFS= read -r edir; do
+      [[ -z "$edir" ]] && continue
+      skip_patterns+="|^${edir}/"
+    done <<< "$extra_skip_dirs"
+  fi
 
   # Add test file patterns based on language
   case "$lang" in
@@ -213,8 +252,30 @@ for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
 done
 INV_DB
           ;;
+        ai)
+          cat >> "$TARGET_DIR/.githooks/pre-push" << 'INV_AI'
+# INV: AI/LLM trust boundary: check for unsanitized LLM output usage
+for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
+  if [ -f "$f" ] && grep -nE '(innerHTML|dangerouslySetInnerHTML|eval\(|exec\()' "$f" > /dev/null 2>&1; then
+    echo "  WARNING: $f may use unsanitized output — check LLM trust boundary"
+    INVARIANT_FAIL=true
+  fi
+done
+INV_AI
+          ;;
       esac
     done
+
+    # General invariant: no secrets in source code
+    cat >> "$TARGET_DIR/.githooks/pre-push" << 'INV_SECRETS'
+# INV: No secrets in source code
+for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json|lock)$'); do
+  if [ -f "$f" ] && grep -nE '(ghp_[a-zA-Z0-9]{36}|sk-ant-|sk-proj-|AKIA[A-Z0-9]{16}|password\s*=\s*["\x27][^"\x27]+["\x27])' "$f" > /dev/null 2>&1; then
+    echo "  WARNING: $f may contain hardcoded secrets"
+    INVARIANT_FAIL=true
+  fi
+done
+INV_SECRETS
 
     cat >> "$TARGET_DIR/.githooks/pre-push" << 'INV_TAIL'
 if [ "$INVARIANT_FAIL" = true ]; then

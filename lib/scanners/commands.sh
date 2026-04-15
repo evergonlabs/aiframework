@@ -176,6 +176,19 @@ scan_commands() {
     test_cmd="go test ./..."
   fi
 
+  # --- Commands for Shell/Bash projects ---
+  # If no package manager detected and shell scripts exist, detect shell tools
+  if [[ -z "$pkg_manager" ]]; then
+    local sh_count
+    sh_count=$(find "$TARGET_DIR" -maxdepth 3 -name '*.sh' -not -path '*/.git/*' -not -path '*/node_modules/*' 2>/dev/null | wc -l | tr -d '[:space:]')
+    if [[ "$sh_count" -gt 3 ]]; then
+      # ShellCheck is the standard shell linter — always recommend for bash projects
+      [[ -z "$lint_cmd" ]] && lint_cmd="find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck"
+      # bash -n for syntax checking
+      [[ -z "$typecheck_cmd" || "$typecheck_cmd" == "NOT_CONFIGURED" ]] && typecheck_cmd="find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n"
+    fi
+  fi
+
   # --- Makefile targets ---
   local makefile_targets="[]"
   if [[ -f "$TARGET_DIR/Makefile" ]]; then

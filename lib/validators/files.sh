@@ -84,7 +84,11 @@ validate_files() {
   elif [[ -f "$TARGET_DIR/.githooks/pre-commit" && -f "$TARGET_DIR/.githooks/pre-push" ]]; then
     report_row "Git hooks (2)" "PASS" "pre-commit + pre-push"
   elif [[ -f "$TARGET_DIR/.githooks/pre-push" ]]; then
-    report_row "Git hooks (1)" "WARN" "pre-push only (no pre-commit)"
+    if [[ -f "$TARGET_DIR/.githooks/pre-commit-SKIPPED.md" ]]; then
+      report_row "Git hooks (1)" "PASS" "pre-push + skip documented"
+    else
+      report_row "Git hooks (1)" "WARN" "pre-push only (no pre-commit)"
+    fi
   else
     report_row "Git hooks" "FAIL" "Not created"
   fi

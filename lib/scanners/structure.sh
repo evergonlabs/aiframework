@@ -146,6 +146,56 @@ scan_structure() {
   local entry_points
   entry_points=$(_arr_to_json "${found_entries[@]+"${found_entries[@]}"}")
 
+  # --- Key files detection (A10) ---
+  # Scan for important source files, service/module files, and subdirectory READMEs
+  local found_key_files=()
+  local key_file_count=0
+
+  # Source code files in src/, app/, lib/ directories (first 5 of each)
+  for sdir in src app lib bin; do
+    if [[ -d "$TARGET_DIR/$sdir" ]]; then
+      while IFS= read -r f; do
+        [[ -n "$f" ]] && found_key_files+=("$f") && key_file_count=$((key_file_count + 1))
+        [[ "$key_file_count" -ge 30 ]] && break
+      done < <(find "$TARGET_DIR/$sdir" -maxdepth 2 -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.py" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.sh" \) \
+        -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/__pycache__/*" \
+        -not -name "*.test.*" -not -name "*.spec.*" -not -name "test_*" \
+        2>/dev/null | head -15 | sed "s|$TARGET_DIR/||")
+    fi
+    [[ "$key_file_count" -ge 30 ]] && break
+  done
+
+  # Key service/module files (across entire project)
+  if [[ "$key_file_count" -lt 30 ]]; then
+    while IFS= read -r f; do
+      [[ -n "$f" ]] && found_key_files+=("$f") && key_file_count=$((key_file_count + 1))
+      [[ "$key_file_count" -ge 30 ]] && break
+    done < <(find "$TARGET_DIR" -maxdepth 6 -type f \
+      \( -name "*service*" -o -name "*controller*" -o -name "*model*" -o -name "*schema*" -o -name "*route*" -o -name "*handler*" -o -name "*middleware*" -o -name "*config*" -o -name "*util*" -o -name "*helper*" \) \
+      -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/__pycache__/*" \
+      -not -name "*.test.*" -not -name "*.spec.*" -not -name "test_*" \
+      -not -name "*.md" -not -name "*.txt" -not -name "*.json" -not -name "*.lock" -not -name "*.yml" -not -name "*.yaml" \
+      2>/dev/null | head -20 | sed "s|$TARGET_DIR/||")
+  fi
+
+  # README files in subdirectories
+  if [[ "$key_file_count" -lt 30 ]]; then
+    while IFS= read -r f; do
+      [[ -n "$f" ]] && found_key_files+=("$f") && key_file_count=$((key_file_count + 1))
+      [[ "$key_file_count" -ge 30 ]] && break
+    done < <(find "$TARGET_DIR" -maxdepth 4 -mindepth 2 -type f -name "README*" \
+      -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+      2>/dev/null | head -10 | sed "s|$TARGET_DIR/||")
+  fi
+
+  # Deduplicate and convert to JSON
+  local key_files_json
+  if [[ ${#found_key_files[@]} -eq 0 ]]; then
+    key_files_json="[]"
+  else
+    key_files_json=$(printf '%s\n' "${found_key_files[@]}" | sort -u | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+  fi
+
   local src_count=${#found_src[@]}
 
   MANIFEST=$(echo "$MANIFEST" | jq \
@@ -161,6 +211,7 @@ scan_structure() {
     --argjson file_counts "$file_counts" \
     --arg total "$total_files" \
     --argjson entries "$entry_points" \
+    --argjson key_files "$key_files_json" \
     '. + {
       "structure": {
         "directories": $all_dirs,
@@ -174,7 +225,8 @@ scan_structure() {
         "ci_dirs": $ci,
         "file_counts": $file_counts,
         "total_files": ($total | tonumber),
-        "entry_points": $entries
+        "entry_points": $entries,
+        "key_files": $key_files
       }
     }')
 

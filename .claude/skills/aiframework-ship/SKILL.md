@@ -20,7 +20,8 @@ allowed-tools:
 ## Step 1: Verify
 
 ```bash
-# No lint/typecheck/test/build commands configured yet
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 ```
 
 ## Step 2: Invariant Scan

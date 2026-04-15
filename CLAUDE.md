@@ -13,6 +13,7 @@
 |----------------|------|
 | Understand how to work in this repo | This file (CLAUDE.md) |
 | Debug a recurring issue | `docs/LESSONS_LEARNED.md` (if exists) |
+| Find documentation | `docs/` |
 
 ---
 
@@ -89,6 +90,15 @@ This file is a living document that grows with the project. After ANY session wi
 - **Structural change** → update Project Structure
 - NEVER delete content — only add, refine, or mark as deprecated
 
+### 10. New Feature Checklist
+Before marking any new feature complete, verify ALL applicable items:
+- [ ] Feature works as specified
+- [ ] Edge cases handled
+- [ ] Error states covered
+- [ ] Tests added for new functionality
+- [ ] Documentation updated if needed
+- [ ] No regressions in existing functionality
+
 ---
 
 ## Core Principles
@@ -96,6 +106,8 @@ This file is a living document that grows with the project. After ANY session wi
 *Core principles will emerge as the project matures. Add principles here when patterns are established.*
 
 1. Code must pass all configured quality gates before merge
+2. Follow bash community conventions and idioms
+3. Never commit secrets, credentials, or API keys — use environment variables
 
 ---
 
@@ -103,7 +115,7 @@ This file is a living document that grows with the project. After ANY session wi
 
 **aiframework** — Universal Automation Bootstrap for AI-assisted development. Deterministic repo analysis, CLAUDE.md generation, and knowledge vault creation — in one command.
 
-**Stack:** unknown / none / 
+**Stack:** bash / none
 
 ---
 
@@ -118,8 +130,26 @@ This file is a living document that grows with the project. After ANY session wi
 
 ```
 ├── bin/
+├── docs/
+│   ├── decisions/
+│   ├── explanation/
+│   ├── guides/
+│   ├── onboarding/
+│   ├── reference/
 ├── lib/
+│   ├── generators/
+│   ├── scanners/
+│   ├── validators/
 ├── templates/
+├── tools/
+│   ├── learnings/
+├── vault/
+│   ├── .vault/
+│   ├── docs/
+│   ├── memory/
+│   ├── raw/
+│   ├── templates/
+│   ├── wiki/
 ├── .gitignore
 ```
 
@@ -128,37 +158,46 @@ This file is a living document that grows with the project. After ANY session wi
 ## Key Commands
 
 ```bash
-# Install
-NOT_CONFIGURED
-
-# Dev
-NOT_CONFIGURED
-
-# Build
-NOT_CONFIGURED
-
 # Lint
-NOT_CONFIGURED
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
 
 # Type check
-NOT_CONFIGURED
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
-# Test
-NOT_CONFIGURED
 ```
 
-> **Note:** The following tools are not yet configured: linter, formatter, type-checker, test-framework.
+> **Note:** The following tools are not yet configured: formatter, test-framework.
 > Setting these up is recommended as a first step.
 
 ---
 
 ## Key Locations
 
+- **Database & Data Layer**: vault/templates/entity-page.md
+- **AI/LLM Integration**: tools/learnings/aiframework-learnings.jsonl
 - **AI/LLM Integration**: bin/aiframework
 - **Config**: `.gitignore` — Project configuration
 - **Scripts**: `bin/` — CLI entry points and tools
+- **Scripts**: `tools/` — Project scripts
 - **CI**: `.github/` — CI/CD pipeline definitions
-- **Components**: 1 models
+- **Source**: `docs/README.md` — Module documentation
+- **Source**: `lib/generators/tracking.sh` — File generator
+- **Source**: `lib/generators/vault.sh` — File generator
+- **Source**: `lib/scanners/ci.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/commands.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/domain.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/env.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/identity.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/quality.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/stack.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/structure.sh` — Repo analysis scanner
+- **Source**: `lib/scanners/user_context.sh` — Repo analysis scanner
+- **Source**: `lib/validators/consistency.sh` — Verification module
+- **Source**: `lib/validators/files.sh` — Verification module
+- **Source**: `lib/validators/quality_gate.sh` — Verification module
+- **Source**: `lib/validators/security.sh` — Verification module
+- **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
+- **Components**: 2 models
 
 ---
 
@@ -181,8 +220,8 @@ Rules: No secrets in code — use environment variables.
 
 ### Stage 4: VERIFY (after every code change — ALWAYS)
 ```bash
-# No quality gate commands configured yet.
-# Add lint, typecheck, test, and build commands to enable verification.
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck              # Must pass with 0 errors
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n         # Must pass
 ```
 
 ### Stage 5: REVIEW
@@ -212,6 +251,7 @@ Run doc-sync check against this matrix:
 | Schema change | CLAUDE.md (Key Locations), migration docs |
 | New dependency | CLAUDE.md (Project Identity), package manifest |
 | New service/module | CLAUDE.md (Key Locations, Project Structure) |
+| Architectural change | `docs/` architecture docs |
 
 ### Stage 8: QA (before every deploy)
 ```
@@ -283,7 +323,10 @@ Before ending ANY session where code was changed, Claude MUST complete:
 
 ## Invariants
 
-### INV-1: LLM trust boundary enforcement
+### INV-1: Database access through ORM only (unknown)
+No raw SQL queries — all database access through the ORM layer.
+
+### INV-2: LLM trust boundary enforcement
 Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content.
 
 
@@ -325,8 +368,19 @@ Full shipping workflow: verify → review → docs → changelog → commit.
 
 ## Review Specialists
 
+### Database & Data Layer
+Trigger paths: vault/templates/entity-page.md
+
+- [ ] All queries go through ORM — no raw SQL
+- [ ] Migrations are reversible (up + down)
+- [ ] Indexes exist for frequently queried columns
+- [ ] N+1 query patterns avoided
+- [ ] Sensitive data is encrypted at rest
+- [ ] Connection pooling configured
+- [ ] Schema changes have migration files
+
 ### AI/LLM Integration
-Trigger paths: bin/aiframework
+Trigger paths: tools/learnings/aiframework-learnings.jsonl, bin/aiframework
 
 - [ ] LLM outputs are sanitized before use
 - [ ] Prompt injection defenses in place
@@ -343,7 +397,8 @@ Trigger paths: bin/aiframework
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| AI/LLM Integration | bin/aiframework | CLAUDE.md, docs/ |
+| Database & Data Layer | vault/templates/entity-page.md | CLAUDE.md, docs/ |
+| AI/LLM Integration | tools/learnings/aiframework-learnings.jsonl, bin/aiframework | CLAUDE.md, docs/ |
 
 When any file in a domain's key files changes, update the corresponding docs.
 

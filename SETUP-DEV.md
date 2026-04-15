@@ -30,7 +30,7 @@ cp .env.example .env
 
 ### Step 5: Verify everything works
 ```bash
-
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
 
 
 ```

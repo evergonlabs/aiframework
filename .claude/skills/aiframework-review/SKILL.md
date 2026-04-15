@@ -20,7 +20,11 @@ allowed-tools:
 
 For each changed file (`git diff --name-only HEAD~1 HEAD`), check:
 
-### 1.1 INV-1: LLM Trust Boundary
+### 1.1 INV-1: Database Safety
+Verify no raw SQL, all queries through ORM, migrations are reversible.
+Look for: raw SQL strings, missing migrations, schema changes without migration.
+
+### 1.2 INV-2: LLM Trust Boundary
 Verify LLM output is never trusted as safe.
 Look for: unsanitized AI output in HTML, eval of AI-generated code, AI output in SQL.
 

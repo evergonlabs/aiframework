@@ -25,6 +25,15 @@ scan_stack() {
     language="javascript"
   fi
 
+  # Bash/Shell detection: if no language found but project has many .sh files
+  if [[ "$language" == "unknown" ]]; then
+    local sh_count
+    sh_count=$(find "$TARGET_DIR" -maxdepth 3 -name '*.sh' -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/vault/*' 2>/dev/null | wc -l | tr -d '[:space:]')
+    if [[ "$sh_count" -gt 3 ]]; then
+      language="bash"
+    fi
+  fi
+
   # --- Framework Detection ---
   case "$language" in
     python)

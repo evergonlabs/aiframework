@@ -1,0 +1,14 @@
+#!/bin/bash
+# Check if shellcheck is installed
+if ! command -v shellcheck >/dev/null 2>&1; then
+  echo "Pre-commit: shellcheck not installed — skipping lint check"
+  echo "  Install: brew install shellcheck (macOS) or apt-get install shellcheck (Linux)"
+  exit 0
+fi
+echo "Pre-commit: Lint checking..."
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck 2>&1
+if [ $? -ne 0 ]; then
+  echo "Lint checking failed. Fix errors before committing."
+  exit 1
+fi
+echo "Lint checking passed."

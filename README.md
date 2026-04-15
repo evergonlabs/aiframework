@@ -58,7 +58,7 @@ Options:
 
 | File | Purpose |
 |------|---------|
-| `CLAUDE.md` | Claude Code source of truth (400+ lines, 20 sections) |
+| `CLAUDE.md` | Claude Code source of truth (500+ lines, 25 sections) |
 | `.githooks/pre-commit` | Type/lint check on commit |
 | `.githooks/pre-push` | Full quality gate + invariant checks |
 | `.github/workflows/ci.yml` | CI pipeline (TypeScript/Python/Rust/Go/Ruby/Bash) |
@@ -131,7 +131,7 @@ vault/
 | Scanner | What it discovers |
 |---------|-------------------|
 | `identity.sh` | Project name, version, description. Reads package.json, Cargo.toml, pyproject.toml, go.mod, Gemfile, Dockerfile, docker-compose |
-| `stack.sh` | Language (6), framework (20+), monorepo detection (Nx/Turbo/Lerna/workspaces), multi-package (sub-package.json) |
+| `stack.sh` | Language (7), framework (20+), monorepo detection (Nx/Turbo/Lerna/workspaces), multi-package (sub-package.json) |
 | `commands.sh` | Package manager, install/dev/build/lint/format/typecheck/test commands, ports, lock file, GitHub URL |
 | `structure.sh` | Directory tree, file counts by extension, entry points, test patterns, config files |
 | `ci.sh` | CI provider (5), workflow files (triggers, jobs, secrets), deploy target (14+), coverage gaps |
@@ -144,7 +144,7 @@ vault/
 
 | Generator | What it produces |
 |-----------|-----------------|
-| `claude_md.sh` | CLAUDE.md with 20 sections: Decision Priority, Workflow Rules (10), Core Principles, Project Identity, Key Commands, Key Locations, Architecture, API Contract Rules, 12-stage Pipeline, Skill Routing, Invariants, Env Vars, Deploy, Testing, Skills, Specialists, Doc-Sync Matrix, Execution Matrices |
+| `claude_md.sh` | CLAUDE.md with 25 sections: Decision Priority, Workflow Rules (10), Core Principles, Project Identity, Repository, Project Structure, Key Commands, Key Locations, CI Workflows, Architecture, API Contract Rules, 12-stage Pipeline, Skill Routing, End-of-Session Checklist, Quick Reference Matrix, Invariants, Env Vars, Deploy, GitHub Secrets, Testing, Skills, Review Specialists, Doc-Sync Matrix, Session Learnings, gstack Browser Integration, Session Start Protocol, Execution Matrices |
 | `hooks.sh` | Pre-commit (type check or lint) + pre-push (lint + test + build + invariant checks with smart skip patterns) |
 | `ci.sh` | GitHub Actions for TypeScript, JavaScript, Python, Rust, Go, Ruby, Bash (ShellCheck) |
 | `skills.sh` | Review skill (8 domain invariant checks) + ship skill (6-step workflow) + review specialists (8 types) + learnings file |
@@ -194,13 +194,13 @@ Based on the [AUTOMATION-PLAYBOOK-TEMPLATE.md](AUTOMATION-PLAYBOOK-TEMPLATE.md) 
 
 | Section | Coverage |
 |---------|----------|
-| A. Analysis (20 items) | 80% |
-| B. CLAUDE.md (34 items) | 85% |
-| C. Supporting Files (24 items) | 88% |
-| D. Verification (9 items) | 89% |
-| E. Consistency (15 items) | 93% |
-| F. Infrastructure-Agnostic (12 items) | 92% |
-| **Overall** | **89%** |
+| A. Analysis (21 items) | 100% |
+| B. CLAUDE.md (34 items) | 100% |
+| C. Supporting Files (24 items) | 100% |
+| D. Verification (9 items) | 100% |
+| E. Consistency (15 items) | 100% |
+| F. Infrastructure-Agnostic (12 items) | 100% |
+| **Overall** | **100%** |
 
 ## Vault — Knowledge Graph for Claude
 
@@ -238,11 +238,16 @@ vault/vault-tools.sh doctor        # Full diagnostic
 - **No-deletion architecture**: Files are archived (`status: archived`), never deleted
 - **Append-only logs**: Operations log cannot be rewritten
 
+## gstack Integration
+
+If [gstack](https://github.com/anthropics/claude-code) skills are installed (`~/.claude/skills/gstack/`), the generated CLAUDE.md includes a full browser integration section with `$B` commands for QA testing, deployment verification, and site dogfooding — ~20x faster than Playwright MCP.
+
 ## Requirements
 
 - `bash` 4+
 - `jq` (JSON processing)
 - `git` (repo analysis)
+- `shellcheck` (optional, for linting shell scripts)
 
 ## Project Structure
 

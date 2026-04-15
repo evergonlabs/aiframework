@@ -207,6 +207,15 @@ This file is a living document that grows with the project. After ANY session wi
 - **Structural change** → update Project Structure
 - NEVER delete content — only add, refine, or mark as deprecated
 
+### 10. New Feature Checklist
+Before marking any new feature complete, verify ALL applicable items:
+- [ ] Feature works as specified
+- [ ] Edge cases handled
+- [ ] Error states covered
+- [ ] Tests added for new functionality
+- [ ] Documentation updated if needed
+- [ ] No regressions in existing functionality
+
 ---
 
 ## Core Principles
@@ -231,6 +240,14 @@ CLAUDEMD
     ((cp_num++)) || true
     if [[ -n "$lang" && "$lang" != "unknown" ]]; then
       echo "${cp_num}. Follow ${lang} community conventions and idioms" >> "$out"
+      ((cp_num++)) || true
+    else
+      echo "${cp_num}. Keep scripts simple, readable, and well-documented" >> "$out"
+      ((cp_num++)) || true
+    fi
+    # Ensure at least 3 core principles
+    if [[ "$cp_num" -lt 4 ]]; then
+      echo "${cp_num}. Never commit secrets, credentials, or API keys — use environment variables" >> "$out"
       ((cp_num++)) || true
     fi
   fi
@@ -259,7 +276,7 @@ CLAUDEMD
 
 **${name}** — ${desc}
 
-**Stack:** ${lang} / ${fw} / ${key_deps}
+**Stack:** ${lang} / ${fw}$(if [[ -n "$key_deps" && "$key_deps" != "none" ]]; then echo " / ${key_deps}"; fi)
 CLAUDEMD
 
   # Conditional sections
@@ -283,9 +300,19 @@ CLAUDEMD
   echo "## Project Structure" >> "$out"
   echo "" >> "$out"
   echo '```' >> "$out"
-  # Generate tree from manifest
+  # Generate tree from manifest — include subdirectories for key dirs
   echo "$m" | jq -r '.structure.directories[]' 2>/dev/null | while IFS= read -r dir; do
     echo "├── ${dir}/"
+    # Show subdirectories (1 level deep) for source-code dirs
+    if [[ -d "$TARGET_DIR/$dir" ]]; then
+      local subdirs
+      subdirs=$(find "$TARGET_DIR/$dir" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort | sed "s|$TARGET_DIR/$dir/||")
+      if [[ -n "$subdirs" ]]; then
+        while IFS= read -r subdir; do
+          echo "│   ├── ${subdir}/"
+        done <<< "$subdirs"
+      fi
+    fi
   done >> "$out"
   echo "$m" | jq -r '.structure.config_files[]' 2>/dev/null | while IFS= read -r f; do
     echo "├── ${f}"
@@ -399,30 +426,50 @@ CLAUDEMD
   fi
 
   # --- Key Commands ---
-  cat >> "$out" << CMDBLOCK
----
+  echo "---" >> "$out"
+  echo "" >> "$out"
+  echo "## Key Commands" >> "$out"
+  echo "" >> "$out"
+  echo '```bash' >> "$out"
 
-## Key Commands
+  # Only show commands that are configured
+  if [[ "$install" != "NOT_CONFIGURED" ]]; then
+    echo "# Install" >> "$out"
+    echo "$install" >> "$out"
+    echo "" >> "$out"
+  fi
+  if [[ "$dev_cmd" != "NOT_CONFIGURED" ]]; then
+    echo "# Dev" >> "$out"
+    echo "$dev_cmd" >> "$out"
+    echo "" >> "$out"
+  fi
+  if [[ "$build_cmd" != "NOT_CONFIGURED" ]]; then
+    echo "# Build" >> "$out"
+    echo "$build_cmd" >> "$out"
+    echo "" >> "$out"
+  fi
+  if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
+    echo "# Lint" >> "$out"
+    echo "$lint_cmd" >> "$out"
+    echo "" >> "$out"
+  fi
+  if [[ "$typecheck" != "NOT_CONFIGURED" ]]; then
+    echo "# Type check" >> "$out"
+    echo "$typecheck" >> "$out"
+    echo "" >> "$out"
+  fi
+  if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
+    echo "# Test" >> "$out"
+    echo "$test_cmd" >> "$out"
+    echo "" >> "$out"
+  fi
 
-\`\`\`bash
-# Install
-${install}
-
-# Dev
-${dev_cmd}
-
-# Build
-${build_cmd}
-
-# Lint
-${lint_cmd}
-
-# Type check
-${typecheck}
-
-# Test
-${test_cmd}
-CMDBLOCK
+  # If nothing is configured, show a note
+  local _any_cmd=false
+  [[ "$install" != "NOT_CONFIGURED" || "$dev_cmd" != "NOT_CONFIGURED" || "$build_cmd" != "NOT_CONFIGURED" || "$lint_cmd" != "NOT_CONFIGURED" || "$typecheck" != "NOT_CONFIGURED" || "$test_cmd" != "NOT_CONFIGURED" ]] && _any_cmd=true
+  if [[ "$_any_cmd" == false ]]; then
+    echo "# No commands configured yet" >> "$out"
+  fi
 
   [[ "$format_cmd" != "NOT_CONFIGURED" ]] && echo -e "\n# Format\n${format_cmd}" >> "$out"
 
@@ -435,16 +482,43 @@ CMDBLOCK
 
   echo '```' >> "$out"
 
-  # Missing tools note
-  local missing
-  missing=$(echo "$m" | jq -r '.quality.missing_tools | if length > 0 then join(", ") else empty end' 2>/dev/null)
-  if [[ -n "$missing" ]]; then
+  # Missing tools note — filter out tools detected by commands scanner
+  local missing_arr=()
+  local raw_missing
+  raw_missing=$(echo "$m" | jq -r '.quality.missing_tools[]?' 2>/dev/null)
+  if [[ -n "$raw_missing" ]]; then
+    while IFS= read -r tool; do
+      case "$tool" in
+        linter) [[ "$lint_cmd" == "NOT_CONFIGURED" ]] && missing_arr+=("$tool") ;;
+        type-checker) [[ "$typecheck" == "NOT_CONFIGURED" ]] && missing_arr+=("$tool") ;;
+        test-framework) [[ "$test_cmd" == "NOT_CONFIGURED" ]] && missing_arr+=("$tool") ;;
+        *) missing_arr+=("$tool") ;;
+      esac
+    done <<< "$raw_missing"
+  fi
+  if [[ ${#missing_arr[@]} -gt 0 ]]; then
+    local missing_str
+    missing_str=$(printf '%s\n' "${missing_arr[@]}" | paste -sd',' - | sed 's/,/, /g')
     echo "" >> "$out"
-    echo "> **Note:** The following tools are not yet configured: ${missing}." >> "$out"
+    echo "> **Note:** The following tools are not yet configured: ${missing_str}." >> "$out"
     echo "> Setting these up is recommended as a first step." >> "$out"
   fi
 
   echo "" >> "$out"
+
+  # --- CI Workflows Table (F12) ---
+  local ci_workflow_count
+  ci_workflow_count=$(echo "$m" | jq '.ci.workflows | length' 2>/dev/null || echo "0")
+  if [[ "$ci_workflow_count" -gt 0 ]]; then
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## CI Workflows" >> "$out"
+    echo "" >> "$out"
+    echo "| Workflow | Purpose | Trigger |" >> "$out"
+    echo "|----------|---------|---------|" >> "$out"
+    echo "$m" | jq -r '.ci.workflows[]? | "| \`\(.file)\` | \(.purpose // "-") | \(.trigger // "-") |"' 2>/dev/null >> "$out" || true
+    echo "" >> "$out"
+  fi
 
   # --- Key Locations ---
   echo "---" >> "$out"
@@ -527,6 +601,34 @@ CMDBLOCK
       [[ -z "$tdir" ]] && continue
       echo "- **Tests**: \`${tdir}/\` — Test suite" >> "$out"
     done <<< "$kl_test_dirs"
+  fi
+
+  # Additional key files from deep scan
+  local kl_key_files
+  kl_key_files=$(echo "$m" | jq -r '.structure.key_files[]' 2>/dev/null)
+  if [[ -n "$kl_key_files" ]]; then
+    while IFS= read -r kfile; do
+      [[ -z "$kfile" ]] && continue
+      local kfdesc=""
+      case "$kfile" in
+        *service*|*Service*) kfdesc="Business logic service" ;;
+        *controller*|*Controller*) kfdesc="Request handler" ;;
+        *model*|*Model*) kfdesc="Data model" ;;
+        *schema*|*Schema*) kfdesc="Schema definition" ;;
+        *route*|*Route*|*router*) kfdesc="Route definitions" ;;
+        *handler*|*Handler*) kfdesc="Event/request handler" ;;
+        *middleware*|*Middleware*) kfdesc="Middleware layer" ;;
+        *config*|*Config*) kfdesc="Configuration" ;;
+        *util*|*Util*|*helper*|*Helper*) kfdesc="Utility functions" ;;
+        *README*) kfdesc="Module documentation" ;;
+        */scanners/*) kfdesc="Repo analysis scanner" ;;
+        */generators/*) kfdesc="File generator" ;;
+        */validators/*) kfdesc="Verification module" ;;
+        */scripts/*) kfdesc="Automation script" ;;
+        *) kfdesc="Source module" ;;
+      esac
+      echo "- **Source**: \`${kfile}\` — ${kfdesc}" >> "$out"
+    done <<< "$kl_key_files"
   fi
 
   # Component counts from manifest
@@ -819,6 +921,18 @@ PIPELINE2
   else
     echo "*No invariants discovered yet. As the project matures, invariants will be added here when patterns emerge. Use \`/learn\` to capture rules as they are discovered.*" >> "$out"
   fi
+
+  # Ensure at least 2 invariants (B20)
+  local inv_count
+  inv_count=$(grep -c '### INV-' "$out" 2>/dev/null || echo "0")
+  if [[ "$inv_count" -lt 2 ]]; then
+    local next_inv=$((inv_count + 1))
+    echo "" >> "$out"
+    echo "### INV-${next_inv}: No secrets in source code" >> "$out"
+    echo "Never commit API keys, passwords, tokens, or credentials. All secrets must be stored in environment variables or a secrets manager." >> "$out"
+    echo "" >> "$out"
+  fi
+
   echo "" >> "$out"
 
   # --- Environment Variables ---
