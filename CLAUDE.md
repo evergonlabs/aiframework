@@ -213,6 +213,7 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Tests**: `tests/test_validators.sh` — Validator test suite (9 tests)
 - **Skills**: `.claude/skills/aif-feedback/SKILL.md` — User feedback collection
 - **Data**: `tools/learnings/feedback.jsonl` — Feedback storage
+- **Docs**: `docs/reference/llm-agent-integration.md` — LLM agent integration reference
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions

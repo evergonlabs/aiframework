@@ -36,3 +36,4 @@
 | Document | Description |
 |----------|-------------|
 | [`reference/code-indexer.md`](reference/code-indexer.md) | Code indexer: output schema, language support, dependency graph, downstream consumers |
+| [`reference/llm-agent-integration.md`](reference/llm-agent-integration.md) | LLM agent integration: manifest schema, CLAUDE.md contract, skill authoring, vault protocol |

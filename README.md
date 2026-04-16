@@ -106,7 +106,7 @@ That's it. Claude Code now reads your generated CLAUDE.md and has full project c
     └── <name>-learn/  # /name-learn → persist learnings
 ```
 
-## Skills Reference (9 total)
+## Skills Reference (10 total)
 
 | Skill | When to use | What it does |
 |-------|------------|-------------|
@@ -115,6 +115,7 @@ That's it. Claude Code now reads your generated CLAUDE.md and has full project c
 | `/aif-analyze` | Code quality check | Read code-index.json for missing tests, circular deps, god modules |
 | `/aif-evolve` | Weekly | Analyze native Claude Code session data + learnings, propose CLAUDE.md updates |
 | `/aif-pulse` | Weekly | Research latest Claude Code features, suggest project improvements |
+| `/aif-feedback` | After runs | Collect structured user feedback (5 questions) for `/aif-evolve` |
 | `/aif-review` | Before merging | Code review against project invariants |
 | `/aif-ship` | Ready to push | Full pipeline: lint -> review -> docs -> changelog -> commit |
 | `/aif-learn` | After discoveries | Capture gotcha/pattern to persistent JSONL storage |
@@ -177,9 +178,10 @@ aiframework-generated projects improve over time:
 
 1. **Drift detection**: `aiframework refresh` checks if package.json/deps changed and re-generates
 2. **Learning capture**: `/aif-learn` persists gotchas to JSONL
-3. **Rule evolution**: `/aif-evolve` reads native Claude Code insights (session friction, tool errors, satisfaction) + learnings, proposes CLAUDE.md updates
-4. **Ecosystem pulse**: `/aif-pulse` researches latest Claude Code features and suggests adoption
-5. **Pre-push warning**: Git hook warns if manifest is stale
+3. **Feedback loop**: `/aif-feedback` collects structured user feedback (quality, accuracy, missing context)
+4. **Rule evolution**: `/aif-evolve` reads native Claude Code insights + learnings + feedback, proposes CLAUDE.md updates
+5. **Ecosystem pulse**: `/aif-pulse` researches latest Claude Code features and suggests adoption
+6. **Pre-push warning**: Git hook warns if manifest is stale
 
 ## CLI Reference
 
@@ -227,7 +229,7 @@ aiframework/
 │   ├── freshness/            # Drift detection
 │   ├── knowledge/            # Cross-repo learning store
 │   └── data/                 # JSON registries (languages, domains, etc.)
-├── .claude/skills/           # 9 aif-* skills
+├── .claude/skills/           # 10 aif-* skills
 ├── tests/                    # Unit + integration tests
 ├── docs/                     # Onboarding, guides, reference, architecture
 ├── vault/                    # Knowledge vault (rules, wiki, memory)
