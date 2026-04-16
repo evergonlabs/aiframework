@@ -19,7 +19,19 @@ Run periodically (weekly or after major milestones) to:
 
 ## Step 1: Load Native Claude Code Insights
 
-Read session data from Claude Code's usage analytics:
+Read session data from Claude Code's usage analytics.
+
+**Fallback mode**: If `~/.claude/usage-data/` does not exist or contains no data, skip native insights entirely and proceed to Step 2 (learnings-only mode). This is normal for users who have not opted into usage analytics.
+
+```bash
+# Check if usage data exists before attempting to read
+if [[ -d ~/.claude/usage-data/session-meta ]] && ls ~/.claude/usage-data/session-meta/*.json &>/dev/null; then
+  echo "Native insights available"
+else
+  echo "No native insights — using learnings-only mode"
+  # Skip to Step 2
+fi
+```
 
 ```bash
 # Session metadata — duration, tools, tokens, friction, satisfaction
@@ -49,7 +61,7 @@ For each facet JSON in `~/.claude/usage-data/facets/`, extract:
 ### Aggregation
 
 ```bash
-# Get all sessions for this project
+# Get all sessions for this project (guarded — graceful if no data)
 python3 -c "
 import json, os, sys
 from pathlib import Path
@@ -58,6 +70,10 @@ from collections import Counter
 project = os.getcwd()
 meta_dir = Path.home() / '.claude/usage-data/session-meta'
 facets_dir = Path.home() / '.claude/usage-data/facets'
+
+if not meta_dir.exists():
+    print('No usage-data directory — running in learnings-only mode.')
+    sys.exit(0)
 
 sessions = []
 for f in meta_dir.glob('*.json'):
