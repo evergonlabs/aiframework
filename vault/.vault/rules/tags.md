@@ -37,6 +37,8 @@ confidence: high
   - domain/ml
   - domain/mobile
   - domain/networking
+  - domain/engineering
+  - domain/ai-llm
 
 ## 2. type/ — Page Types
 
@@ -212,6 +214,9 @@ confidence: high
   - source-type/adr
   - source-type/changelog
   - source-type/api-spec
+  - source-type/documentation
+  - source-type/code-index
+  - source-type/manifest
 
 ## 14. confidence/ — Confidence Level
 
