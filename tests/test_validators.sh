@@ -12,13 +12,20 @@ TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0
 
-# Colors (must match bin/aiframework for validators)
+# Colors (must match bin/aiframework for validators — used by sourced validator files)
+# shellcheck disable=SC2034
 RED='\033[0;31m'
+# shellcheck disable=SC2034
 GREEN='\033[0;32m'
+# shellcheck disable=SC2034
 YELLOW='\033[1;33m'
+# shellcheck disable=SC2034
 BLUE='\033[0;34m'
+# shellcheck disable=SC2034
 CYAN='\033[0;36m'
+# shellcheck disable=SC2034
 BOLD='\033[1m'
+# shellcheck disable=SC2034
 NC='\033[0m'
 
 pass() {
@@ -124,6 +131,7 @@ warnings=0
 total_checks=0
 
 reset_counters() {
+  # shellcheck disable=SC2034
   passed=0; failed=0; warnings=0; total_checks=0
 }
 

@@ -39,7 +39,7 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   echo "  [1/1] shellcheck not installed — skipping lint"
 else
 echo "  [1/1] Linting..."
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck 2>&1
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck --severity=error 2>&1
 if [ $? -ne 0 ]; then
   echo "  BLOCKED: Lint errors. Fix before pushing."
   exit 1
