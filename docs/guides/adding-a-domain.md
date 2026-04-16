@@ -8,26 +8,42 @@ Domains represent application concerns like "authentication", "payments", "searc
 
 ## Step 1: Add to the Registry
 
-Edit `lib/data/domains.json` and add your domain entry:
+Edit `lib/data/domains.json` and add your domain entry inside the `"domains"` object. The key is your domain's machine-readable identifier (kebab-case):
 
 ```json
 {
-  "name": "your-domain",
-  "display": "Your Domain",
-  "signals": {
-    "files": ["**/your-pattern/**", "src/your-domain/**"],
-    "dependencies": ["your-lib", "another-lib"],
-    "keywords": ["your_keyword"]
+  "domains": {
+    "your-domain": {
+      "display": "Your Domain",
+      "file_patterns": ["**/your-pattern/**", "src/your-domain/**"],
+      "dependency_markers": {
+        "python": ["your-python-lib"],
+        "typescript": ["your-ts-lib"],
+        "javascript": ["your-js-lib"]
+      },
+      "invariants": [
+        {
+          "id": "YD-1",
+          "rule": "Description of a rule to enforce",
+          "severity": "high"
+        }
+      ],
+      "security_concerns": [
+        "concern-one",
+        "concern-two"
+      ]
+    }
   }
 }
 ```
 
 Fields:
-- **name**: Machine-readable identifier (kebab-case)
+- **key**: Machine-readable identifier (kebab-case), used as the domain name
 - **display**: Human-readable name shown in CLAUDE.md
-- **signals.files**: Glob patterns that indicate this domain
-- **signals.dependencies**: Package names in package.json, pyproject.toml, etc.
-- **signals.keywords**: Code patterns to grep for
+- **file_patterns**: Glob patterns that indicate this domain
+- **dependency_markers**: Per-language maps of package names (supports python, typescript, javascript, ruby, go, rust, java, csharp, php, elixir)
+- **invariants**: Array of rule objects with `id`, `rule`, and `severity` (critical/high/medium)
+- **security_concerns**: Array of security concern identifiers
 
 ## Step 2: Create a Review Specialist
 

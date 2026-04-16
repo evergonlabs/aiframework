@@ -12,7 +12,7 @@ discover → generate → verify
 
 ### Stage 1: Discover
 
-Ten bash scanners read the target repository and produce `manifest.json` -- a structured JSON document containing every fact about the project. A Python-based code indexer runs in parallel to produce `code-index.json` with file listings, symbol tables, import edges, and module groupings.
+Twelve bash scanners read the target repository and produce `manifest.json` -- a structured JSON document containing every fact about the project. A Python-based code indexer runs in parallel to produce `code-index.json` with file listings, symbol tables, import edges, and module groupings.
 
 **Key constraint:** Discovery is deterministic. Given the same repo state, it produces the same manifest. No network calls, no randomness, no AI. Every value in the manifest is traced to a specific file in the repo.
 
@@ -22,7 +22,7 @@ Seven generators read the manifest and code index, then write 19+ files plus 22+
 
 ### Stage 3: Verify
 
-Four validators run 36 checks against the generated files to ensure consistency: files exist, commands match across CLAUDE.md / hooks / CI, no secrets are hardcoded, and quality gates pass. Verification catches drift between the manifest and generated output.
+Five validators run 46+ checks against the generated files to ensure consistency: files exist, commands match across CLAUDE.md / hooks / CI, no secrets are hardcoded, and quality gates pass. Verification catches drift between the manifest and generated output.
 
 ## Why Manifest-Driven?
 
@@ -70,7 +70,7 @@ The code indexer fills this gap by parsing actual source files to extract:
 
 This structured view feeds into CLAUDE.md (module maps, architecture hot spots), vault wiki pages (module entities, architecture concepts), and the enhance stage (identifying missing tests, god modules, orphan files).
 
-The indexer supports seven languages (Bash, Python, TypeScript, JavaScript, Go, Rust, Ruby) and runs deterministically in under 50ms for medium-sized repos.
+The indexer supports seven languages with full symbol extraction (Bash, Python, TypeScript, JavaScript, Go, Rust, Ruby); the language registry (`lib/data/languages.json`) supports 20 languages for detection via marker files. It runs deterministically in under 50ms for medium-sized repos.
 
 ## The Enhance Layer
 

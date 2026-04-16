@@ -14,6 +14,7 @@
 | Understand how to work in this repo | This file (CLAUDE.md) |
 | Debug a recurring issue | `docs/LESSONS_LEARNED.md` (if exists) |
 | Find documentation | `docs/` |
+| See available make targets | `Makefile` |
 
 ---
 
@@ -71,6 +72,11 @@ When QA discovers issues, ALL must be automatically fixed:
 4. Run tests again — all must pass
 5. Commit
 
+**C QA Rules:**
+- All heap allocations must have corresponding frees — verify with Valgrind or AddressSanitizer
+- All user-facing buffers must use bounds-checked functions (snprintf, strncpy) — no strcpy/sprintf
+- All public headers must use include guards or #pragma once
+
 ### 7. Documentation Auto-Sync
 After ANY feature implementation, refactor, or significant change — before marking complete:
 1. CLAUDE.md — if change adds invariants, new key locations, new commands
@@ -103,15 +109,19 @@ Before marking any new feature complete, verify ALL applicable items:
 
 ## Core Principles
 
-1. All config via env vars
+*Core principles will emerge as the project matures. Add principles here when patterns are established.*
+
+1. Code must pass all configured quality gates before merge
+2. Follow c community conventions and idioms
+3. Never commit secrets, credentials, or API keys — use environment variables
 
 ---
 
 ## Project Identity
 
-**aiframework** — Universal Automation Bootstrap for AI-assisted development. Deterministic repo analysis, CLAUDE.md generation, and knowledge vault creation — in one command.
+**aiframework** — One command. Any repo. Fully configured for AI-assisted development with Claude Code.
 
-**Stack:** bash / none
+**Stack:** c / none
 
 ---
 
@@ -140,8 +150,9 @@ Before marking any new feature complete, verify ALL applicable items:
 │   ├── knowledge/
 │   ├── scanners/
 │   ├── validators/
-├── tests/
 ├── templates/
+├── tests/
+│   ├── __pycache__/
 ├── tools/
 │   ├── learnings/
 │   ├── review-specialists/
@@ -152,6 +163,7 @@ Before marking any new feature complete, verify ALL applicable items:
 │   ├── raw/
 │   ├── templates/
 │   ├── wiki/
+├── Makefile
 ├── .gitignore
 ```
 
@@ -160,16 +172,22 @@ Before marking any new feature complete, verify ALL applicable items:
 ## Key Commands
 
 ```bash
+# Build
+make
+
 # Lint
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
+cppcheck --enable=all .
 
 # Type check
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
-```
+# Test
+make test
 
-> **Note:** The following tools are not yet configured: formatter, test-framework.
-> Setting these up is recommended as a first step.
+
+# Format
+clang-format -i
+```
 
 ---
 
@@ -182,48 +200,103 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
 ## Key Locations
 
-- **Database & Data Layer**: vault/templates/entity-page.md
-- **AI/LLM Integration**: tools/learnings/aiframework-learnings.jsonl
-- **AI/LLM Integration**: tools/review-specialists/ai-llm.md
-- **AI/LLM Integration**: bin/aiframework
-- **AI/LLM Integration**: vault/wiki/concepts/ai.md
+- **API Layer**: tools/review-specialists/api.md
+- **Config**: `Makefile` — Build targets and automation
 - **Config**: `.gitignore` — Project configuration
 - **Scripts**: `bin/` — CLI entry points and tools
 - **Scripts**: `tools/` — Project scripts
 - **CI**: `.github/` — CI/CD pipeline definitions
+- **Tests**: `tests/` — Test suite
 - **Source**: `docs/README.md` — Module documentation
-- **Source**: `lib/scanners/ci.sh` — Repo analysis scanner
+- **Source**: `lib/indexers/__init__.py` — Source module
+- **Source**: `lib/indexers/graph.py` — Source module
+- **Source**: `lib/indexers/lang_bash.py` — Source module
+- **Source**: `lib/indexers/lang_go.py` — Source module
+- **Source**: `lib/indexers/lang_python.py` — Source module
+- **Source**: `lib/indexers/lang_ruby.py` — Source module
+- **Source**: `lib/indexers/lang_rust.py` — Source module
+- **Source**: `lib/indexers/lang_typescript.py` — Source module
+- **Source**: `lib/indexers/parse.py` — Source module
+- **Source**: `lib/knowledge/store.sh` — Source module
+- **Source**: `lib/scanners/archetype.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/commands.sh` — Repo analysis scanner
-- **Source**: `lib/scanners/domain.sh` — Repo analysis scanner
-- **Source**: `lib/scanners/env.sh` — Repo analysis scanner
-- **Source**: `lib/scanners/identity.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/quality.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/stack.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/structure.sh` — Repo analysis scanner
-- **Source**: `lib/scanners/user_context.sh` — Repo analysis scanner
-- **Source**: `lib/scanners/code_index.sh` — Code indexer scanner
-- **Source**: `lib/indexers/parse.py` — Code indexer entry point
-- **Source**: `lib/indexers/graph.py` — Dependency graph builder
-- **Source**: `lib/scanners/archetype.sh` — Repo archetype detection
-- **Source**: `lib/knowledge/store.sh` — Cross-repo learning system
-- **Data**: `lib/data/languages.json` — Language registry (20 languages)
-- **Data**: `lib/data/domains.json` — Domain registry (18 domains)
-- **Data**: `lib/data/archetypes.json` — Archetype registry (11 types)
-- **Data**: `lib/data/deploy_targets.json` — Deploy target registry (24 targets)
-- **Tests**: `tests/test_indexer.py` — Indexer unit tests
-- **Tests**: `tests/test_validators.sh` — Validator test suite (9 tests)
-- **Skills**: `.claude/skills/aif-feedback/SKILL.md` — User feedback collection
-- **Data**: `tools/learnings/feedback.jsonl` — Feedback storage
-- **Docs**: `docs/reference/llm-agent-integration.md` — LLM agent integration reference
-- **Source**: `lib/generators/report.sh` — Post-run report generator
-- **Source**: `lib/generators/preserve.sh` — Existing file detection, backup, and merge
-- **Source**: `lib/scanners/skill_suggest.sh` — Skill suggestion scanner (11 patterns)
-- **Source**: `lib/validators/files.sh` — Verification module
-- **Source**: `lib/validators/quality_gate.sh` — Verification module
-- **Source**: `lib/validators/consistency.sh` — Verification module
-- **Source**: `lib/validators/security.sh` — Security scanner
-- **Source**: `lib/freshness/track.sh` — Drift detection module
+- **Source**: `lib/validators/consistency.sh` — Consistency validator
+- **Source**: `lib/validators/security.sh` — Security validator
+- **Source**: `lib/validators/freshness.sh` — Freshness validator
+- **Source**: `lib/freshness/track.sh` — Freshness tracking module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
+- **Source**: `vault/raw/README.md` — Module documentation
+- **Source**: `vault/wiki/sources/README.md` — Module documentation
+
+---
+
+## Module Map
+
+| Module | Role | Files | Key Symbols | Depends On |
+|--------|------|-------|-------------|------------|
+| . | general | 4 | - | - |
+| lib/freshness | general | 1 | freshness_save_hashes, freshness_check_drift | - |
+| lib/generators | generation | 10 | generate_tracking, _sanitize_manifest_val, generate_skills | - |
+| lib/indexers | general | 9 | _extract_rdoc_comment, parse_ruby, _extract_doc_comment | lib/indexers |
+| lib/knowledge | general | 1 | knowledge_init, knowledge_record_profile, knowledge_record_miss | - |
+| lib/scanners | discovery | 12 | _arr_to_json, scan_structure, scan_stack | - |
+| lib/validators | verification | 5 | report_row, validate_files, validate_quality_gate | - |
+| tests | testing | 3 | pass, fail, setup_fixture | - |
+| vault/.vault/hooks | general | 1 | find_vault_root | - |
+| vault/.vault/scripts | tooling | 3 | cmd_lint, cmd_validate, cmd_orphans | - |
+
+### Architecture Hot Spots
+
+- **Most complex**: `tests` (60 symbols across 3 files)
+
+---
+
+## Repo Map (Most Important Files)
+
+> Files ranked by architectural importance (how many other files depend on them).
+
+- `lib/indexers/__init__.py` (score: 0.004362244897959184)
+- `lib/indexers/graph.py` (score: 0.004362244897959184)
+- `vault/.vault/scripts/vault-tools.sh` (score: 0.0030612244897959186)
+- `lib/validators/files.sh` (score: 0.0030612244897959186)
+- `tests/test_validators.sh` (score: 0.0030612244897959186)
+- `lib/indexers/lang_bash.py` (score: 0.0030612244897959186)
+- `lib/generators/vault.sh` (score: 0.0030612244897959186)
+- `lib/indexers/lang_rust.py` (score: 0.0030612244897959186)
+- `lib/indexers/lang_go.py` (score: 0.0030612244897959186)
+- `lib/generators/skills.sh` (score: 0.0030612244897959186)
+- `lib/indexers/lang_ruby.py` (score: 0.0030612244897959186)
+- `lib/generators/tracking.sh` (score: 0.0030612244897959186)
+- `lib/generators/vault_ingest.sh` (score: 0.0030612244897959186)
+- `lib/scanners/structure.sh` (score: 0.0030612244897959186)
+- `vault/.vault/hooks/pre-commit.sh` (score: 0.0030612244897959186)
+
+---
+
+## API Contract Rules
+
+- **Validation:** unknown
+- All API endpoints MUST validate input before processing
+- Response shapes must be consistent — use typed response wrappers
+- Never expose internal errors to clients — use error codes
+- Breaking API changes require version bump and migration plan
+
+---
+
+## Makefile System
+
+Available `make` targets:
+
+```bash
+make install
+make uninstall
+make lint
+make test
+make check
+```
 
 ---
 
@@ -246,8 +319,10 @@ Rules: No secrets in code — use environment variables.
 
 ### Stage 4: VERIFY (after every code change — ALWAYS)
 ```bash
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck              # Must pass with 0 errors
+cppcheck --enable=all .              # Must pass with 0 errors
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n         # Must pass
+make test              # Must pass
+make             # Must compile/build
 ```
 
 > Run `vault/.vault/scripts/vault-tools.sh lint` to verify vault integrity.
@@ -321,6 +396,12 @@ Run doc-sync check against this matrix:
 | "deploy", "push", "ship it", "create PR" | Full pipeline: verify → `/review` → `/cso` → `/qa` → `/ship` |
 | "what do we know about X", "previous decisions" | Check vault: `vault/wiki/index.md` and `vault/memory/decisions/` |
 | "vault health", "check vault" | Run `vault/.vault/scripts/vault-tools.sh doctor` |
+| "refactor", "clean up", "simplify" | Build → verify → `/review` → `/cso` → docs → `/qa` → `/ship` |
+| "update docs", "fix docs" | Update docs directly, then verify + `/review` |
+| "performance", "optimize", "too slow" | `/investigate` → profile → fix → verify → `/review` |
+| "CI", "tests failing", "pipeline broken" | `/investigate` the CI/test failure, fix, verify locally |
+| "what changed recently", "catch me up" | Check `git log --oneline -20` + `vault/memory/status.md` |
+| "give feedback", "rate the output" | Run `/aif-feedback` to collect structured feedback |
 
 ---
 
@@ -355,12 +436,39 @@ Before ending ANY session where code was changed, Claude MUST complete:
 
 ## Invariants
 
-### INV-1: Database access through ORM only (unknown)
-No raw SQL queries — all database access through the ORM layer.
+### INV-1: Input validation on all API endpoints
+Every endpoint accepting user input must validate and sanitize before processing.
 
-### INV-2: LLM trust boundary enforcement
-Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content.
 
+### INV-2: No secrets in source code
+Never commit API keys, passwords, tokens, or credentials. All secrets must be stored in environment variables or a secrets manager.
+
+
+---
+
+## Project Profile
+
+- **Archetype**: api-service
+- **Maturity**: mature
+- **Complexity**: complex
+
+### Archetype Invariants
+
+- {
+-   "id": "SVC-1",
+-   "rule": "All endpoints must be documented in OpenAPI/GraphQL schema",
+-   "severity": "medium"
+- }
+- {
+-   "id": "SVC-2",
+-   "rule": "All endpoints must have request/response validation",
+-   "severity": "high"
+- }
+- {
+-   "id": "SVC-3",
+-   "rule": "Health check endpoint must exist at /health or /healthz",
+-   "severity": "medium"
+- }
 
 ---
 
@@ -384,7 +492,11 @@ Never trust LLM output as safe — validate, sanitize, and scope all AI-generate
 
 ## Testing
 
-*No test framework configured. Add testing setup as a priority.*
+- **Framework:** make
+- **Config:** data-driven
+- **Run:** `make test`
+- **Pattern:** test_*.py / *_test.py
+- **Test files:** 1
 
 ---
 
@@ -400,22 +512,22 @@ Full shipping workflow: verify → review → docs → changelog → commit.
 Capture project learnings to persistent storage (JSONL + vault).
 
 ### `/aif-feedback`
-Collect structured user feedback (5 questions) saving to `tools/learnings/feedback.jsonl`. Integrates with `/aif-evolve`.
+Collect structured feedback on generated output quality.
 
 ### `/aif-evolve`
 Analyze accumulated learnings and patterns. Synthesizes JSONL learnings into CLAUDE.md updates, new rules, and vault entries. Run periodically.
 
 ### `/aif-enhance`
-Enhance manifest with deeper analysis. Identifies gaps in heuristic scan, researches unknown infrastructure, analyzes code patterns, enriches vault.
+Research gaps in manifest using Claude Code's native tools. Enriches vault with concept pages and framework conventions.
 
 ### `/aif-research`
-Research framework conventions, invariants, and best practices from official documentation via WebSearch.
+Deep-dive research on a topic using web search and code analysis. Produces structured findings.
 
 ### `/aif-analyze`
-Deep code analysis using the code index. Finds missing tests, circular deps, god modules, and architectural issues.
+Analyze codebase patterns, architecture, and quality metrics. Identifies improvement opportunities.
 
 ### `/aif-ingest`
-Ingest a document into the vault knowledge base. Deposits into `vault/raw/` with source summary.
+Ingest external documents into the vault. Processes raw files into wiki pages.
 
 ### `/aif-pulse`
 Check for latest Claude Code features, best practices, and ecosystem updates. Discovers new capabilities and suggests project improvements. Run weekly.
@@ -424,27 +536,17 @@ Check for latest Claude Code features, best practices, and ecosystem updates. Di
 
 ## Review Specialists
 
-### Database & Data Layer
-Trigger paths: vault/templates/entity-page.md
+### API Layer
+Trigger paths: tools/review-specialists/api.md
 
-- [ ] All queries go through ORM — no raw SQL
-- [ ] Migrations are reversible (up + down)
-- [ ] Indexes exist for frequently queried columns
-- [ ] N+1 query patterns avoided
-- [ ] Sensitive data is encrypted at rest
-- [ ] Connection pooling configured
-- [ ] Schema changes have migration files
-
-### AI/LLM Integration
-Trigger paths: tools/learnings/aiframework-learnings.jsonl, tools/review-specialists/ai-llm.md, bin/aiframework
-
-- [ ] LLM outputs are sanitized before use
-- [ ] Prompt injection defenses in place
-- [ ] Token limits enforced per request
-- [ ] API keys stored in env vars, not code
-- [ ] Fallback behavior when LLM is unavailable
-- [ ] Cost monitoring/alerting configured
-- [ ] Output validation before displaying to users
+- [ ] All inputs validated before processing
+- [ ] Error responses use consistent format
+- [ ] Rate limiting configured for public endpoints
+- [ ] CORS policy is restrictive (not wildcard)
+- [ ] Response types are explicitly defined
+- [ ] No sensitive data in URL parameters
+- [ ] Pagination on list endpoints
+- [ ] API versioning strategy documented
 
 
 ---
@@ -453,8 +555,7 @@ Trigger paths: tools/learnings/aiframework-learnings.jsonl, tools/review-special
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| Database & Data Layer | vault/templates/entity-page.md | CLAUDE.md, docs/ |
-| AI/LLM Integration | tools/learnings/aiframework-learnings.jsonl, tools/review-specialists/ai-llm.md | CLAUDE.md, docs/ |
+| API Layer | tools/review-specialists/api.md | CLAUDE.md, docs/ |
 
 When any file in a domain's key files changes, update the corresponding docs.
 
@@ -502,7 +603,7 @@ See `vault/.vault/rules/hard-rules.md` for 15 integrity rules enforced by pre-co
 
 Stored in `tools/learnings/aiframework-learnings.jsonl`. Use `/learn` to add new entries.
 
-*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run `/aif-learn` to capture it.*
+*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run `/aiframework-learn` to capture it.*
 
 ### Learnings Format (JSONL)
 
@@ -512,7 +613,7 @@ Each line in the learnings file is a JSON object:
 ```
 
 To query: `grep "keyword" tools/learnings/aiframework-learnings.jsonl`
-To add: `/aif-learn "description"` or append a JSON line manually.
+To add: `/aiframework-learn "description"` or append a JSON line manually.
 
 ---
 
@@ -555,7 +656,7 @@ At the start of each session:
 
 ---
 
-*Last updated: 2026-04-15. Session: Initial automation setup via aiframework.*
+*Generated: 2026-04-16 by aiframework v1.1.0. Run `aiframework refresh` to update.*
 
 <!-- CLAUDE.md Guidance:
 - Update this file after significant decisions, bug fixes, or architectural changes
@@ -565,7 +666,7 @@ At the start of each session:
 -->
 
 <!-- Previous Session Summary:
-Session 2026-04-15: Initial CLAUDE.md generation via aiframework.
+Session 2026-04-16: Initial CLAUDE.md generation via aiframework.
 Key decisions: Automated project analysis and documentation generation.
 Blockers: None.
 -->

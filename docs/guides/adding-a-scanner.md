@@ -26,6 +26,8 @@ Scanners are sourced (not executed) by `bin/aiframework`, which means they share
 | Domain | `lib/scanners/domain.sh` | Domain-specific concerns (auth, DB, API, AI, etc.) |
 | User Context | `lib/scanners/user_context.sh` | Interactive questions for human context |
 | Code Index | `lib/scanners/code_index.sh` | Files, symbols, imports, dependency graph |
+| Archetype | `lib/scanners/archetype.sh` | Repo archetype detection (library, web-app, cli-tool, etc.) |
+| Skill Suggest | `lib/scanners/skill_suggest.sh` | Suggests custom skills based on detected repo patterns |
 
 ## Creating a New Scanner
 
@@ -141,7 +143,7 @@ MANIFEST=$(echo "$MANIFEST" | jq \
 
 Open `bin/aiframework` and add your scanner in two places.
 
-**Source the file** (around line 158, with the other scanner sources):
+**Source the file** (with the other scanner sources in `bin/aiframework`):
 
 ```bash
 source "$LIB_DIR/scanners/your_scanner.sh"
@@ -150,11 +152,11 @@ source "$LIB_DIR/scanners/your_scanner.sh"
 **Call the function** in `cmd_discover()` (update the step counter):
 
 ```bash
-log_step "11/11 Your Scanner"
+log_step "13/13 Your Scanner"
 scan_your_scanner
 ```
 
-Remember to update the step numbering (e.g., change `10/10` to `11/11` for the existing last step, and add yours as the new last step or insert it at the appropriate position).
+Remember to update the step numbering for all existing steps and add yours as the new last step (there are currently 12 scanners, so a new one would be 13/13).
 
 ## Step 4: Test Your Scanner
 

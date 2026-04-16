@@ -95,6 +95,8 @@ Dict keyed by directory path. Each entry:
 
 ## Language Support
 
+> **Note:** The Python indexer provides full symbol extraction for 7 languages (listed below). The language registry (`lib/data/languages.json`) supports 20 languages for detection via marker files.
+
 ### Extension Mapping
 
 | Extension | Language |

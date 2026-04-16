@@ -45,7 +45,7 @@ This runs three stages in sequence:
 
 1. **Discover** -- scans the repo, produces `.aiframework/manifest.json`
 2. **Generate** -- reads manifest, writes CLAUDE.md + vault + hooks + CI + docs
-3. **Verify** -- runs 36 checks to ensure generated files are consistent
+3. **Verify** -- runs 46+ checks to ensure generated files are consistent
 
 Enhancement is done via the `/aif-enhance` skill directly in Claude Code -- no API key needed.
 
