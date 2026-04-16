@@ -22,6 +22,42 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 LIB_DIR="$ROOT_DIR/lib"
 TEMPLATES_DIR="$ROOT_DIR/templates"
 
+# Cleanup trap — remove temp files on exit
+_aiframework_cleanup() {
+  if [[ -n "${_AIF_TMPDIR:-}" && -d "$_AIF_TMPDIR" ]]; then
+    rm -rf "$_AIF_TMPDIR"
+  fi
+}
+trap _aiframework_cleanup EXIT
+
+# Dependency check — validate required tools are available
+check_dependencies() {
+  local missing=0
+
+  if ! command -v jq &>/dev/null; then
+    echo "ERROR: 'jq' is required but not installed."
+    echo "  macOS:        brew install jq"
+    echo "  Ubuntu/Debian: sudo apt-get install jq"
+    echo "  Fedora:       sudo dnf install jq"
+    missing=1
+  fi
+
+  if ! command -v git &>/dev/null; then
+    echo "ERROR: 'git' is required but not installed."
+    echo "  macOS:        xcode-select --install"
+    echo "  Ubuntu/Debian: sudo apt-get install git"
+    missing=1
+  fi
+
+  if [[ $missing -ne 0 ]]; then
+    echo ""
+    echo "Install missing dependencies and try again."
+    exit 1
+  fi
+}
+
+check_dependencies
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'

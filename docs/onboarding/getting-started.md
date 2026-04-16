@@ -11,7 +11,7 @@ Before you begin, make sure you have the following installed:
 | `bash` | 4.0+ | `bash --version` | Core runtime (all scanners and generators are bash) |
 | `jq` | 1.6+ | `jq --version` | JSON processing for manifest creation and reading |
 | `git` | 2.0+ | `git --version` | Repo analysis (branch, remote, log parsing) |
-| `python3` | 3.9+ | `python3 --version` | Code indexer (symbol extraction, dependency graphing) |
+| `python3` | 3.10+ | `python3 --version` | Code indexer (symbol extraction, dependency graphing) |
 
 **Optional but recommended:**
 
@@ -212,7 +212,7 @@ The tool gracefully degrades -- if ShellCheck is missing, hooks detect this and 
 
 ### `python3: command not found` or wrong version
 
-Python 3.9+ is required for the code indexer. If unavailable, use `--no-index` to skip indexing:
+Python 3.10+ is required for the code indexer. If unavailable, use `--no-index` to skip indexing:
 
 ```bash
 ./bin/aiframework run --target /path/to/project --no-index
