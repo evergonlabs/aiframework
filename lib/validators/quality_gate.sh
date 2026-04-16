@@ -4,10 +4,14 @@
 
 validate_quality_gate() {
   local m="$MANIFEST"
-  local lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
-  local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
-  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
-  local build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  local lint
+  lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
+  local typecheck
+  typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
+  local test_cmd
+  test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
+  local build
+  build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
 
   # We don't actually RUN the commands in verification (that would modify state)
   # Instead we verify they are valid commands that exist

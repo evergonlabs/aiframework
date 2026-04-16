@@ -19,12 +19,18 @@ generate_hooks() {
     return 0
   fi
 
-  local lang=$(echo "$m" | jq -r '.stack.language')
-  local name=$(echo "$m" | jq -r '.identity.name')
-  local lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
-  local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
-  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
-  local build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  local lang
+  lang=$(echo "$m" | jq -r '.stack.language')
+  local name
+  name=$(echo "$m" | jq -r '.identity.name')
+  local lint_cmd
+  lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
+  local typecheck
+  typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
+  local test_cmd
+  test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
+  local build_cmd
+  build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
 
   if [[ "$DRY_RUN" == true ]]; then
     log_info "[DRY RUN] Would create .githooks/pre-commit and .githooks/pre-push"

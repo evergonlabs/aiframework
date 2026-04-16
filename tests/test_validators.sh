@@ -29,14 +29,14 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 pass() {
-  ((TESTS_PASSED++))
-  ((TESTS_RUN++))
+  TESTS_PASSED=$((TESTS_PASSED + 1))
+  TESTS_RUN=$((TESTS_RUN + 1))
   echo -e "  ${GREEN}PASS${NC} $1"
 }
 
 fail() {
-  ((TESTS_FAILED++))
-  ((TESTS_RUN++))
+  TESTS_FAILED=$((TESTS_FAILED + 1))
+  TESTS_RUN=$((TESTS_RUN + 1))
   echo -e "  ${RED}FAIL${NC} $1: $2"
 }
 

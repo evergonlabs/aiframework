@@ -22,17 +22,28 @@ generate_ci() {
     return 0
   fi
 
-  local lang=$(echo "$m" | jq -r '.stack.language')
-  local name=$(echo "$m" | jq -r '.identity.name')
-  local pkg=$(echo "$m" | jq -r '.commands.package_manager // "npm"')
-  local install=$(echo "$m" | jq -r '.commands.install // "npm install"')
-  local build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
-  local lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
-  local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
-  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
-  local lock=$(echo "$m" | jq -r '.commands.lock_file // ""')
-  local node_ver=$(echo "$m" | jq -r '.stack.node_version // "20"')
-  local py_ver=$(echo "$m" | jq -r '.stack.python_version // "3.12"')
+  local lang
+  lang=$(echo "$m" | jq -r '.stack.language')
+  local name
+  name=$(echo "$m" | jq -r '.identity.name')
+  local pkg
+  pkg=$(echo "$m" | jq -r '.commands.package_manager // "npm"')
+  local install
+  install=$(echo "$m" | jq -r '.commands.install // "npm install"')
+  local build
+  build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  local lint
+  lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
+  local typecheck
+  typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
+  local test_cmd
+  test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
+  local lock
+  lock=$(echo "$m" | jq -r '.commands.lock_file // ""')
+  local node_ver
+  node_ver=$(echo "$m" | jq -r '.stack.node_version // "20"')
+  local py_ver
+  py_ver=$(echo "$m" | jq -r '.stack.python_version // "3.12"')
 
   # Source dirs for path triggers
   local src_dirs
@@ -252,9 +263,12 @@ CIYML
       ;;
 
     ruby)
-      local ruby_ver=$(echo "$m" | jq -r '.stack.ruby_version // "3.2"')
-      local rubocop_configured=$(echo "$m" | jq -r '.quality.linter.tool // ""')
-      local rspec_configured=$(echo "$m" | jq -r '.quality.test_framework.tool // ""')
+      local ruby_ver
+      ruby_ver=$(echo "$m" | jq -r '.stack.ruby_version // "3.2"')
+      local rubocop_configured
+      rubocop_configured=$(echo "$m" | jq -r '.quality.linter.tool // ""')
+      local rspec_configured
+      rspec_configured=$(echo "$m" | jq -r '.quality.test_framework.tool // ""')
 
       cat > "$out" << CIYML
 name: CI

@@ -8,7 +8,7 @@ Before you begin, make sure you have the following installed:
 
 | Tool | Minimum Version | Check Command | Purpose |
 |------|----------------|---------------|---------|
-| `bash` | 4.0+ | `bash --version` | Core runtime (all scanners and generators are bash) |
+| `bash` | 3.2+ (4.0+ recommended) | `bash --version` | Core runtime (all scanners and generators are bash) |
 | `jq` | 1.6+ | `jq --version` | JSON processing for manifest creation and reading |
 | `git` | 2.0+ | `git --version` | Repo analysis (branch, remote, log parsing) |
 | `python3` | 3.10+ | `python3 --version` | Code indexer (symbol extraction, dependency graphing) |

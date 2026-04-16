@@ -4,17 +4,28 @@
 
 generate_docs() {
   local m="$MANIFEST"
-  local name=$(echo "$m" | jq -r '.identity.name')
-  local short=$(echo "$m" | jq -r '.identity.short_name')
-  local lang=$(echo "$m" | jq -r '.stack.language')
-  local gh_url=$(echo "$m" | jq -r '.commands.github_url // "https://github.com/org/repo"')
-  local install=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
-  local lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
-  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
-  local build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
-  local format_cmd=$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')
-  local node_ver=$(echo "$m" | jq -r '.stack.node_version // "20"')
-  local py_ver=$(echo "$m" | jq -r '.stack.python_version // "3.12"')
+  local name
+  name=$(echo "$m" | jq -r '.identity.name')
+  local short
+  short=$(echo "$m" | jq -r '.identity.short_name')
+  local lang
+  lang=$(echo "$m" | jq -r '.stack.language')
+  local gh_url
+  gh_url=$(echo "$m" | jq -r '.commands.github_url // "https://github.com/org/repo"')
+  local install
+  install=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
+  local lint
+  lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
+  local test_cmd
+  test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
+  local build
+  build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  local format_cmd
+  format_cmd=$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')
+  local node_ver
+  node_ver=$(echo "$m" | jq -r '.stack.node_version // "20"')
+  local py_ver
+  py_ver=$(echo "$m" | jq -r '.stack.python_version // "3.12"')
 
   if [[ "$DRY_RUN" == true ]]; then
     log_info "[DRY RUN] Would create docs/, SETUP-DEV.md, CONTRIBUTING.md"

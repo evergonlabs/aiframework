@@ -11,11 +11,11 @@ _sanitize_manifest_val() {
   # Remove backticks
   val="${val//\`/}"
   # Remove $(...) patterns (including nested)
-  val=$(echo "$val" | sed -E 's/\$\([^)]*\)/REMOVED/g')
+  val=$(echo "$val" | sed 's/\$([^)]*)/REMOVED/g')
   # Remove ${...} patterns
-  val=$(echo "$val" | sed -E 's/\$\{[^}]*\}/REMOVED/g')
+  val=$(echo "$val" | sed 's/\${[^}]*}/REMOVED/g')
   # Remove $((...)) arithmetic
-  val=$(echo "$val" | sed -E 's/\$\(\([^)]*\)\)/REMOVED/g')
+  val=$(echo "$val" | sed 's/\$(([^)]*))//g')
   # Remove backslashes (escape sequences)
   val="${val//\\/}"
   # Remove newlines and carriage returns
@@ -248,9 +248,6 @@ SHIP2
   mkdir -p "$TARGET_DIR/tools/review-specialists"
 
   echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r domain; do
-    local display trigger_desc
-    display=$(echo "$m" | jq -r ".domain.detected_domains[] | select(.name == \"$domain\") | .display")
-
     case "$domain" in
       auth)
         cat > "$TARGET_DIR/tools/review-specialists/auth.md" << 'SPEC'
