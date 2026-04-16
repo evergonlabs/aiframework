@@ -2,343 +2,404 @@
 
 <br>
 
-# `>_ aiframework`
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/%3E__aiframework-ffffff?style=for-the-badge&labelColor=000000&color=000000">
+  <source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/%3E__aiframework-000000?style=for-the-badge&labelColor=ffffff&color=ffffff">
+  <img alt="aiframework" src="https://img.shields.io/badge/%3E__aiframework-000000?style=for-the-badge">
+</picture>
 
-### One command. Any repo. Zero config.
+<br><br>
 
-The open-source autopilot for AI-assisted development with [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+**Your repo already knows everything. Claude Code just can't read it yet.**
 
-<br>
-
-[![version](https://img.shields.io/badge/version-1.1.0-blue?style=for-the-badge)](https://github.com/evergonlabs/aiframework/releases)
-[![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
-[![Made with Bash](https://img.shields.io/badge/Bash-1f425f?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
-[![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Claude Code](https://img.shields.io/badge/Claude_Code-cc785c?style=for-the-badge&logo=anthropic&logoColor=white)](https://docs.anthropic.com/en/docs/claude-code)
-[![tests](https://img.shields.io/badge/36_tests_passing-brightgreen?style=for-the-badge)]()
-[![gstack](https://img.shields.io/badge/gstack-37_skills-blueviolet?style=for-the-badge)](https://github.com/garrytan/gstack)
+*aiframework fixes that. One command. 23+ generated files. 47 skills. Zero config.*
 
 <br>
 
-[Quick Start](#-quick-start) &bull; [What It Generates](#-what-it-generates) &bull; [Skills](#-skills-reference) &bull; [gstack](#-supercharged-with-gstack) &bull; [Languages](#-supported-languages) &bull; [How It Works](#-how-it-works) &bull; [Self-Evolution](#-self-evolution)
+[![version](https://img.shields.io/badge/v1.1.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
+[![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
+[![tests](https://img.shields.io/badge/36_passing-brightgreen?style=flat-square&label=tests)]()
+[![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
+[![gstack](https://img.shields.io/badge/37_skills-blueviolet?style=flat-square&label=gstack)](https://github.com/garrytan/gstack)
 
 <br>
 
-```
-   ┌──────────────────────────────────────────────────────────────────┐
-   │                                                                  │
-   │   aiframework run --target .                                     │
-   │                                                                  │
-   │   > Scanning 847 files across 12 scanners...                     │
-   │   > Indexed 209 symbols in 13 languages                          │
-   │   > Detected: typescript / nextjs / api-service                  │
-   │   > Domains: auth, database, ai-llm, graphql                     │
-   │                                                                  │
-   │   > Generated 23 files:                                          │
-   │     CLAUDE.md, .claude/rules/, .claude/skills/,                  │
-   │     .githooks/, .github/workflows/, vault/, docs/                │
-   │                                                                  │
-   │   > Verification: 46 checks — ALL PASSED                        │
-   │                                                                  │
-   │   Claude Code now knows your entire project.                     │
-   │                                                                  │
-   └──────────────────────────────────────────────────────────────────┘
-```
+[Quick Start](#quick-start) · [What You Get](#what-you-get) · [47 Skills](#47-skills) · [Languages](#13-languages--20-frameworks) · [Architecture](#architecture) · [gstack](#gstack-included)
 
 </div>
 
 <br>
 
-## The Problem
+---
 
-You open Claude Code on a new repo. Claude doesn't know your stack, your conventions, your invariants, your test commands, or where anything lives. You spend the first 10 minutes of every session explaining context. Multiply that by every developer on the team.
+<br>
 
-**aiframework fixes this in one command.**
+## Quick Start
 
-It scans your repo &mdash; every file, every symbol, every dependency &mdash; and generates a complete Claude Code configuration that makes Claude an expert on *your* project from the first prompt.
+```bash
+# Install aiframework + gstack (< 60 seconds)
+git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
+git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup --no-prefix
+
+# Point it at any repo
+aiframework run --target ~/your-project
+
+# Done. Open Claude Code.
+cd ~/your-project && claude
+```
+
+That's it. Claude now knows your stack, your commands, your invariants, your architecture, and has 47 skills loaded. From the first prompt.
+
+<br>
+
+---
+
+<br>
 
 ## What You Get
 
+aiframework reads your repo the way a senior engineer would on their first day &mdash; except it takes 60 seconds instead of a week, and it writes everything down.
+
 ```
-Before aiframework             After aiframework
-─────────────────────          ──────────────────────────────────────
-Claude: "What framework        Claude: "This is a FastAPI app with
- do you use?"                   auth middleware, PostgreSQL via
-                                SQLAlchemy, 47 endpoints, and a
-You: *explains for              custom permission system. I have
- 10 minutes*                    47 skills ready — /review, /ship,
-                                /qa, /cso, /investigate...
-Claude: "Can you show           Let me check the pre-push gate
- me the test command?"          before we start."
+  $ aiframework run --target .
+
+  DISCOVER  ████████████████████ 12 scanners
+    typescript / nextjs / api-service
+    47 endpoints, 209 symbols, 4 domains detected
+
+  GENERATE  ████████████████████ 23 files written
+    CLAUDE.md · .claude/rules/ · .claude/skills/ · vault/
+    .githooks/ · .github/workflows/ · docs/ · AGENTS.md
+
+  VERIFY    ████████████████████ 46 checks — ALL PASSED
+
+  Claude Code now knows your entire project.
 ```
 
 <br>
 
-## &#9889; Quick Start
-
-```bash
-# 1. Install aiframework
-git clone https://github.com/evergonlabs/aiframework.git
-cd aiframework && make install
-
-# 2. Install gstack (browser automation, QA, security, design — 37 skills)
-git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
-cd ~/.claude/skills/gstack && ./setup --no-prefix
-
-# 3. Run on any project
-aiframework run --target /path/to/your-project
-
-# 4. Open Claude Code — it just works
-cd /path/to/your-project && claude
-```
-
-> aiframework generates your project configuration (10 skills, 23+ files). gstack adds 37 more skills for browser QA, security audits, design systems, and deploy automation. Together they give Claude Code the full picture &mdash; from your first prompt.
-
-<br>
-
-## &#128230; What It Generates
-
-**23+ files** across 7 generators. Everything is deterministic &mdash; same repo always produces same output.
+### The files
 
 <table>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
-**Claude Code Configuration**
-| File | Purpose |
-|:-----|:--------|
-| `CLAUDE.md` | Project brain &mdash; commands, invariants, architecture |
-| `.claude/rules/` | Path-scoped rules (workflow, testing, security) |
-| `.claude/settings.json` | Permissions &amp; tool config |
-| `.claude/skills/` | Slash commands (`/review`, `/ship`, `/learn`) |
-| `AGENTS.md` | Cross-tool agent configuration |
+**For Claude Code** &mdash; *auto-loaded every session*
+
+```
+CLAUDE.md               → project brain
+.claude/rules/
+  ├── workflow.md        → dev process, git safety
+  ├── testing.md         → test conventions
+  └── security.md        → auth/api guardrails
+.claude/settings.json    → safe permissions
+.claude/skills/          → 10 slash commands
+AGENTS.md                → cross-tool config
+```
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
-**DevOps & Knowledge**
-| File | Purpose |
-|:-----|:--------|
-| `.githooks/` | Pre-commit lint + pre-push quality gates |
-| `.github/workflows/ci.yml` | CI pipeline for your language |
-| `vault/` | Persistent knowledge base (31 files) |
-| `docs/` | Documentation scaffold (Diataxis) |
-| `CHANGELOG.md` + `VERSION` | Release tracking |
+**For your team** &mdash; *devops, docs, knowledge*
+
+```
+.githooks/
+  ├── pre-commit         → lint on every commit
+  └── pre-push           → full quality gate + auto-refresh
+.github/workflows/ci.yml → CI for your language
+vault/                   → knowledge base (31 files)
+docs/                    → documentation scaffold
+CHANGELOG.md + VERSION   → release tracking
+```
 
 </td>
 </tr>
 </table>
 
+Everything is deterministic. Same repo, same output. Every time.
+
+<br>
+
+---
+
+<br>
+
+## 47 Skills
+
+aiframework generates **10 project-specific skills**. [gstack](https://github.com/garrytan/gstack) adds **37 more**. Together, Claude Code goes from a chatbot to a full engineering team.
+
+### aiframework skills (generated per-project)
+
+| | Skill | What it does |
+|:--|:------|:-------------|
+| :mag: | `/aif-review` | Code review against your project's invariants |
+| :rocket: | `/aif-ship` | lint &rarr; review &rarr; docs &rarr; changelog &rarr; commit |
+| :brain: | `/aif-learn` | Capture gotchas to persistent JSONL storage |
+| :telescope: | `/aif-enhance` | Research gaps, find framework conventions, enrich vault |
+| :books: | `/aif-research` | Search official docs for conventions and invariants |
+| :bar_chart: | `/aif-analyze` | Find missing tests, circular deps, god modules |
+| :dna: | `/aif-evolve` | Synthesize learnings into CLAUDE.md improvements |
+| :satellite: | `/aif-pulse` | Discover latest Claude Code features |
+| :speech_balloon: | `/aif-feedback` | Structured feedback for `/aif-evolve` |
+| :inbox_tray: | `/aif-ingest` | Deposit documents into vault knowledge base |
+
+<br>
+
+### gstack skills (37 &mdash; included with install)
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Ship & Debug**
+
+| Skill | |
+|:------|:--|
+| `/ship` | test, review, bump, PR &mdash; one command |
+| `/review` | pre-landing diff review |
+| `/land-and-deploy` | merge, wait for CI, verify prod |
+| `/investigate` | 4-phase root cause debugging |
+| `/health` | 0-10 code quality score |
+| `/retro` | weekly eng retrospective |
+| `/codex` | second opinion from OpenAI Codex |
+
+</td>
+<td width="50%" valign="top">
+
+**QA & Browser**
+
+| Skill | |
+|:------|:--|
+| `/qa` | find bugs + fix them + verify |
+| `/browse` | headless Chromium, ~100ms/cmd |
+| `/design-review` | visual QA + auto-fix |
+| `/benchmark` | Core Web Vitals per PR |
+| `/canary` | post-deploy monitoring |
+| `/cso` | security audit (OWASP + STRIDE) |
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**Plan & Design**
+
+| Skill | |
+|:------|:--|
+| `/plan-ceo-review` | founder-mode scope review |
+| `/plan-eng-review` | architecture + edge cases |
+| `/plan-design-review` | rate each dimension 0-10 |
+| `/autoplan` | run all reviews, auto-decide |
+| `/design-shotgun` | generate design variants |
+| `/design-html` | production HTML/CSS output |
+| `/design-consultation` | full design system creation |
+
+</td>
+<td width="50%" valign="top">
+
+**Utilities**
+
+| Skill | |
+|:------|:--|
+| `/office-hours` | YC-style idea validation |
+| `/checkpoint` | save/resume working state |
+| `/guard` | safety mode for prod |
+| `/freeze` | restrict edits to one dir |
+| `/pair-agent` | share browser with remote AI |
+| `/open-gstack-browser` | launch visible Chromium |
+| `/gstack-upgrade` | one-command self-update |
+
+</td>
+</tr>
+</table>
+
+<br>
+
+---
+
+<br>
+
+## 13 Languages · 20+ Frameworks
+
+aiframework's code indexer parses symbols, imports, and dependency edges. It's not guessing &mdash; it's reading your actual AST.
+
+| Language | What it extracts | Frameworks it knows |
+|:---------|:-----------------|:--------------------|
+| **TypeScript / JavaScript** | functions, classes, types, imports, exports | Next.js, NestJS, React, Vue, Express, Hono, Svelte |
+| **Python** | functions, classes, methods, decorators, imports | FastAPI, Django, Flask, Starlette |
+| **Go** | functions, types, interfaces, imports | Gin, Echo, Chi, Fiber |
+| **Rust** | functions, structs, enums, traits, imports | Actix, Axum, Rocket, Warp |
+| **Ruby** | methods, classes, modules | Rails, Sinatra |
+| **Java** | classes, methods, interfaces, annotations | Spring Boot, Quarkus |
+| **C#** | classes, methods, properties | ASP.NET, Blazor |
+| **PHP, Kotlin, Swift, Elixir, Bash** | full symbol extraction | major frameworks |
+| **+ 20 more in registry** | detection via marker files | extensible via JSON |
+
 <details>
-<summary><strong>Generated <code>.claude/</code> directory structure</strong></summary>
+<summary><b>18 domain detectors</b> &mdash; each adds invariants and security rules to your CLAUDE.md</summary>
+
+<br>
+
+`Auth` · `Database` · `API` · `AI/LLM` · `Frontend` · `Workers` · `File Upload` · `Financial` · `GraphQL` · `Messaging` · `Caching` · `Search` · `Observability` · `Realtime` · `Email` · `Storage` · `Sandbox` · `External APIs`
+
+</details>
+
+<details>
+<summary><b>11 project archetypes</b> &mdash; controls CLAUDE.md depth and structure</summary>
+
+<br>
+
+`library` · `cli-tool` · `web-app` · `api-service` · `full-stack` · `monorepo` · `data-pipeline` · `ml-project` · `mobile-app` · `infrastructure` · `documentation-site`
+
+</details>
+
+<br>
+
+---
+
+<br>
+
+## Architecture
 
 ```
-.claude/
-├── rules/
-│   ├── workflow.md       # Always loaded — dev process, git safety, verification
-│   ├── testing.md        # Loaded for **/*.test.*, **/tests/** — test conventions
-│   └── security.md       # Loaded for **/auth/**, **/api/** — security rules
-├── settings.json         # Pre-approves: Read, Glob, Grep, WebSearch
-└── skills/
-    ├── <name>-review/    # /name-review → invariant checks
-    ├── <name>-ship/      # /name-ship → lint → review → commit
-    └── <name>-learn/     # /name-learn → persist learnings
+aiframework run --target /path/to/repo
+│
+│   DISCOVER ─────────────────────── scan everything, assume nothing
+│   │
+│   ├── identity        name, version, short name
+│   ├── stack           language, framework, monorepo?
+│   ├── commands        package manager, lint, test, build
+│   ├── structure       files, dirs, source roots, test files
+│   ├── ci + deploy     GitHub Actions, Docker, Fly.io, Vercel...
+│   ├── env             variables from .env, config files
+│   ├── quality         linter, formatter, type checker, test runner
+│   ├── domain          18 types (auth, db, ai, graphql...)
+│   ├── code_index      symbols + imports + edges (13 languages)
+│   ├── archetype       what kind of project is this?
+│   └── skill_suggest   what workflows would help?
+│   │
+│   ╰──→  manifest.json + code-index.json
+│
+│   GENERATE ─────────────────────── deterministic, reproducible
+│   │
+│   ├── CLAUDE.md           80-150 lines, lean, high-signal
+│   ├── .claude/rules/      auto-loaded by path pattern
+│   ├── .claude/skills/     10 slash commands
+│   ├── .githooks/          pre-commit + pre-push with auto-refresh
+│   ├── .github/workflows/  CI pipeline for your language
+│   ├── vault/              31-file knowledge base
+│   └── docs/               Diataxis scaffold
+│
+│   VERIFY ───────────────────────── trust, but verify
+│   │
+│   ├── files           do all expected files exist?
+│   ├── consistency     do commands match across CLAUDE.md, hooks, CI?
+│   ├── security        any secrets in source? .gitignore coverage?
+│   ├── quality_gate    are lint/test commands actually working?
+│   └── freshness       is the manifest stale? did files drift?
+│
+╰──→  PASS / FAIL / WARN  (46+ checks)
+```
+
+<br>
+
+---
+
+<br>
+
+## Self-Evolution
+
+Your project configuration gets smarter without you doing anything.
+
+| What happens | How | When |
+|:-------------|:----|:-----|
+| **Auto-refresh** | Pre-push hook detects drift in deps/config, re-runs `aiframework refresh`, auto-commits | Every `git push` |
+| **Update check** | `aiframework-update-check` compares local vs remote version, caches results, escalating snooze | Every Claude Code session |
+| **Learning capture** | `/aif-learn` persists gotchas and patterns to JSONL | When you discover something |
+| **Rule evolution** | `/aif-evolve` reads learnings + feedback, proposes CLAUDE.md updates | Weekly |
+| **Ecosystem pulse** | `/aif-pulse` discovers new Claude Code features, suggests adoption | Weekly |
+| **Feedback loop** | `/aif-feedback` collects structured quality ratings for `/aif-evolve` | After major runs |
+
+```
+  You write code
+       │
+       ▼
+  git push ──── hook detects drift ──── auto-refresh ──── auto-commit
+       │
+       ├── /aif-learn ──→ captures gotcha to JSONL
+       ├── /aif-evolve ──→ reads learnings, improves CLAUDE.md
+       └── /aif-pulse ──→ discovers new Claude Code features
+```
+
+<br>
+
+---
+
+<br>
+
+## gstack Included
+
+[gstack](https://github.com/garrytan/gstack) is installed as part of the [Quick Start](#quick-start). aiframework auto-detects it at `~/.claude/skills/gstack/` and injects the full browser command reference and skill routing into your generated `CLAUDE.md`.
+
+**What it adds**: a persistent Chromium daemon that Claude Code controls directly. ~100ms per command. 20x faster than Playwright MCP. Cookies, tabs, and login sessions persist across commands.
+
+<details>
+<summary><b>The <code>$B</code> browser protocol</b></summary>
+
+<br>
+
+```bash
+$B goto https://myapp.com                          # navigate
+$B snapshot                                         # get page structure with element refs
+$B click @e3                                        # click by ref (not CSS selector)
+$B fill @e5 "hello@test.com"                       # fill input
+$B screenshot                                       # capture
+$B chain "click @e1" "fill @e2 text" "screenshot"  # chain multiple commands
+$B console                                          # read browser logs
+$B network                                          # read network requests
+$B responsive 375                                   # mobile viewport
+$B diff                                             # compare with previous snapshot
 ```
 
 </details>
 
 <br>
 
-## &#128295; Skills Reference
-
-10 slash commands generated per project. Use them inside Claude Code:
-
-| Skill | Trigger | What it does |
-|:------|:--------|:-------------|
-| `/aif-review` | Before merging | Code review against project invariants |
-| `/aif-ship` | Ready to push | Full pipeline: lint &rarr; review &rarr; docs &rarr; changelog &rarr; commit |
-| `/aif-learn` | Found a gotcha | Capture pattern/gotcha to persistent JSONL storage |
-| `/aif-enhance` | After first scan | Research gaps, find framework conventions, enrich vault |
-| `/aif-research` | Unknown patterns | Search official docs for conventions and invariants |
-| `/aif-analyze` | Code quality | Find missing tests, circular deps, god modules |
-| `/aif-evolve` | Weekly | Synthesize learnings into CLAUDE.md improvements |
-| `/aif-pulse` | Weekly | Research latest Claude Code features, suggest adoption |
-| `/aif-feedback` | After runs | Collect structured feedback for `/aif-evolve` |
-| `/aif-ingest` | New docs | Deposit documents into vault knowledge base |
+---
 
 <br>
 
-## &#127760; Supported Languages
-
-<table>
-<tr>
-<td>
-
-| Language | Symbols | Frameworks |
-|:---------|:--------|:-----------|
-| **TypeScript/JS** | Functions, classes, types, imports | Next.js, NestJS, React, Vue, Express, Hono, Svelte |
-| **Python** | Functions, classes, methods, imports | FastAPI, Django, Flask, Starlette |
-| **Go** | Functions, types, imports | Gin, Echo, Chi, Fiber |
-| **Rust** | Functions, structs, enums, imports | Actix, Axum, Rocket, Warp |
-
-</td>
-</tr>
-<tr>
-<td>
-
-| Language | Symbols | Frameworks |
-|:---------|:--------|:-----------|
-| **Ruby** | Methods, classes, modules | Rails, Sinatra |
-| **Java** | Classes, methods, interfaces | Spring Boot, Quarkus |
-| **C#, PHP, Kotlin, Swift, Elixir** | Full symbol extraction | Major frameworks |
-| **+ 20 more** | Detection via marker files | Extensible via JSON registry |
-
-</td>
-</tr>
-</table>
-
-**18 domain detectors**: Auth, Database, API, AI/LLM, Frontend, Workers, File Upload, Financial, GraphQL, Messaging, Caching, Search, Observability, Realtime, Email, Storage, Sandbox, External APIs
-
-**11 archetypes**: `library` &middot; `cli-tool` &middot; `web-app` &middot; `api-service` &middot; `full-stack` &middot; `monorepo` &middot; `data-pipeline` &middot; `ml-project` &middot; `mobile-app` &middot; `infrastructure` &middot; `documentation-site`
-
-<br>
-
-## &#9881; How It Works
+## CLI Reference
 
 ```
-aiframework run --target /path/to/repo
-│
-├── DISCOVER ─────────────────────────────────── 12 scanners, deterministic
-│   ├── identity      → name, version, short name
-│   ├── stack         → language, framework, monorepo detection
-│   ├── commands      → package manager, install, lint, test, build
-│   ├── structure     → files, dirs, source roots, test files
-│   ├── ci/deploy     → GitHub Actions, Docker, Vercel, Fly.io...
-│   ├── env           → environment variables from .env, config
-│   ├── quality       → linter, formatter, type checker, test runner
-│   ├── domain        → auth, database, AI/LLM, GraphQL... (18 types)
-│   ├── code_index    → symbols, imports, edges (13 languages)
-│   ├── archetype     → library / api-service / monorepo / ... (11 types)
-│   └── skill_suggest → deploy, migrations, Docker, E2E...
-│   ╰─→ manifest.json + code-index.json
-│
-├── GENERATE ─────────────────────────────────── 7 generators, 23+ files
-│   ├── CLAUDE.md          (lean 80-150 lines, high-signal)
-│   ├── .claude/rules/     (path-scoped, auto-loaded)
-│   ├── .claude/skills/    (10 slash commands)
-│   ├── .githooks/         (pre-commit + pre-push gates)
-│   ├── .github/workflows/ (CI pipeline)
-│   ├── vault/             (31 files, wiki, memory, learnings)
-│   └── docs/              (Diataxis scaffold)
-│
-└── VERIFY ───────────────────────────────────── 5 validators, 46+ checks
-    ├── files         → all expected files exist
-    ├── consistency   → commands match across CLAUDE.md, hooks, CI
-    ├── security      → no secrets in source, .gitignore coverage
-    ├── quality_gate  → lint/test commands configured and working
-    └── freshness     → manifest age, file drift, index staleness
-    ╰─→ PASS / FAIL / WARN report
+$ aiframework <command> [options]
+
+  run            full pipeline: discover → generate → verify → report
+  discover       scan repo → manifest.json + code-index.json
+  generate       read manifest → generate all files
+  verify         validate generated files (46+ checks)
+  refresh        re-discover + generate only if drift detected
+  report         human-readable report
+  index          build code index only
+  stats          cross-repo learning patterns
+
+  --target <path>       target repo (default: cwd)
+  --non-interactive     skip user context questions
+  --no-index            skip code indexing
+  --dry-run             preview without writing
+  --verbose             detailed output
 ```
 
 <br>
 
-## &#9889; Self-Evolution
+## Extensible
 
-aiframework-generated projects get smarter over time:
+All detection is data-driven. Add a language, domain, or archetype by editing one JSON file:
 
-```
-                    ┌─────────────┐
-                    │  Developer   │
-                    │  writes code │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  git push   │◄──── pre-push hook detects drift
-                    └──────┬──────┘      auto-refreshes if needed
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │ /aif-    │ │ /aif-    │ │ /aif-    │
-        │  learn   │ │  evolve  │ │  pulse   │
-        │          │ │          │ │          │
-        │ captures │ │ reads    │ │ discovers│
-        │ gotchas  │ │ learnings│ │ new CC   │
-        │ to JSONL │ │ → updates│ │ features │
-        └──────────┘ │ CLAUDE.md│ └──────────┘
-                     └──────────┘
-```
-
-| Mechanism | What it does | Trigger |
-|:----------|:-------------|:--------|
-| **Drift detection** | Detects changed deps/config, re-generates | `aiframework refresh` or auto on push |
-| **Update notifications** | Checks for new aiframework versions, notifies in Claude Code session | Every session start |
-| **Learning capture** | Persists gotchas/patterns to JSONL | `/aif-learn` |
-| **Feedback loop** | Structured quality/accuracy feedback | `/aif-feedback` |
-| **Rule evolution** | Synthesizes learnings into CLAUDE.md updates | `/aif-evolve` |
-| **Ecosystem pulse** | Discovers latest Claude Code capabilities | `/aif-pulse` |
-
-<br>
-
-## &#128218; Your Workflow
-
-### Day 1 &mdash; One-time setup (5 minutes)
-
-```bash
-aiframework run --target .          # Scan + generate + verify
-claude                               # Open Claude Code — it just works
-/aif-enhance                         # (Optional) Research gaps, add conventions
-```
-
-### Daily Development
-
-```bash
-/aif-review                          # Code review with invariant checks
-/aif-ship                            # Lint → review → docs → changelog → commit
-/aif-learn "gotcha description"      # Capture to persistent storage
-```
-
-### Weekly Maintenance
-
-```bash
-/aif-evolve                          # Analyze learnings → improve CLAUDE.md
-/aif-pulse                           # Check for new Claude Code features
-aiframework refresh                  # Re-generate if deps changed
-```
-
-<br>
-
-## &#128187; CLI Reference
-
-```
-aiframework <command> [options]
-
-Commands:
-  run              Full pipeline: discover → generate → verify → report
-  discover         Scan repo → manifest.json + code-index.json
-  generate         Read manifest → generate all files
-  verify           Validate generated files (46+ checks)
-  refresh          Re-discover + generate only if drift detected
-  report           Human-readable report of everything detected
-  index            Build code index only
-  stats            Cross-repo learning patterns
-
-Options:
-  --target <path>       Target repo (default: current directory)
-  --non-interactive     Skip user context questions
-  --no-index            Skip code indexing
-  --dry-run             Preview without writing
-  --verbose             Detailed output
-```
-
-<br>
-
-## &#128736; Data-Driven & Extensible
-
-All detection logic reads from JSON registries. Add a language, domain, or archetype by editing one file:
-
-| Registry | Entries | Location |
-|:---------|:--------|:---------|
+| Registry | Entries | File |
+|:---------|:--------|:-----|
 | Languages | 20 | `lib/data/languages.json` |
 | Domains | 18 | `lib/data/domains.json` |
 | Deploy targets | 24 | `lib/data/deploy_targets.json` |
@@ -346,123 +407,9 @@ All detection logic reads from JSON registries. Add a language, domain, or arche
 
 <br>
 
-## &#128196; Requirements
+## Requirements
 
-| Dependency | Version | Required | Install |
-|:-----------|:--------|:---------|:--------|
-| `bash` | 3.2+ (4+ recommended) | Yes | Pre-installed on macOS/Linux |
-| `jq` | 1.6+ | Yes | `brew install jq` / `apt install jq` |
-| `git` | 2.0+ | Yes | Pre-installed |
-| `python3` | 3.10+ | Recommended | For code indexer (bash fallback available) |
-
-<br>
-
-## &#127918; Included: gstack (37 Skills)
-
-aiframework ships with [gstack](https://github.com/garrytan/gstack) integration out of the box. When you install both (see [Quick Start](#-quick-start)), you get **47 total skills** &mdash; 10 project-specific from aiframework + 37 from gstack covering browser automation, security, design, QA, and deploy.
-
-aiframework auto-detects gstack at `~/.claude/skills/gstack/` during generation and injects the full `$B` browser command reference and all skill routing into your `CLAUDE.md`.
-
-<table>
-<tr>
-<td width="50%">
-
-**Development & Shipping**
-| Skill | What it does |
-|:------|:-------------|
-| `/review` | Pre-landing PR review (SQL safety, trust boundaries) |
-| `/ship` | Detect base, test, review, bump, PR &mdash; one command |
-| `/land-and-deploy` | Merge PR, wait for CI, verify production health |
-| `/investigate` | 4-phase root cause debugging (no fixes without cause) |
-| `/health` | Composite 0-10 code quality dashboard |
-| `/retro` | Weekly engineering retrospective with trends |
-
-</td>
-<td width="50%">
-
-**QA & Browser Automation**
-| Skill | What it does |
-|:------|:-------------|
-| `/qa` | Test site + iteratively fix bugs with before/after evidence |
-| `/browse` | Headless Chromium (~100ms/cmd, ref-based selection) |
-| `/design-review` | Visual QA: spacing, hierarchy, AI slop detection |
-| `/benchmark` | Core Web Vitals regression detection per PR |
-| `/canary` | Post-deploy monitoring with screenshot diffing |
-| `/cso` | Infrastructure-first security audit (OWASP + STRIDE) |
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-**Planning & Design**
-| Skill | What it does |
-|:------|:-------------|
-| `/plan-ceo-review` | Founder-mode: challenge premises, find 10-star product |
-| `/plan-eng-review` | Architecture, data flow, edge cases, test coverage |
-| `/plan-design-review` | Rate each design dimension 0-10, fix to get there |
-| `/autoplan` | Run all reviews sequentially with auto-decisions |
-| `/design-shotgun` | Generate multiple AI design variants, compare |
-| `/design-html` | Production-quality HTML/CSS from approved designs |
-
-</td>
-<td width="50%">
-
-**Utilities**
-| Skill | What it does |
-|:------|:-------------|
-| `/codex` | Second opinion via OpenAI Codex (review, challenge, consult) |
-| `/office-hours` | YC-style forcing questions for new ideas |
-| `/checkpoint` | Save/resume working state across sessions |
-| `/guard` | Full safety mode for production environments |
-| `/pair-agent` | Share browser access with remote AI agents |
-| `/gstack-upgrade` | One-command self-update |
-
-</td>
-</tr>
-</table>
-
-<details>
-<summary><strong>The <code>$B</code> browser protocol (20x faster than Playwright MCP)</strong></summary>
-
-gstack runs a persistent Chromium daemon. Commands use ref-based element selection (`@e1`, `@e2`) instead of CSS selectors. Cookies, tabs, and login sessions persist between commands.
-
-```bash
-$B goto https://myapp.com        # Navigate
-$B snapshot                       # Get page structure with element refs
-$B click @e3                      # Click element by ref
-$B fill @e5 "hello@test.com"     # Fill input
-$B screenshot                     # Capture screenshot
-$B chain "click @e1" "fill @e2 text" "screenshot"  # Chain commands
-```
-
-</details>
-
-> **Already installed?** Run `aiframework run` again and your `CLAUDE.md` will automatically include the gstack integration. New to gstack? See [Quick Start](#-quick-start) step 2.
-
-<br>
-
-## &#128193; Project Structure
-
-```
-aiframework/
-├── bin/
-│   ├── aiframework                # CLI entry point
-│   └── aiframework-update-check   # Version + drift detector
-├── lib/
-│   ├── scanners/                  # 12 deterministic scanners
-│   ├── indexers/                  # Code indexer (Python, 13 languages)
-│   ├── generators/                # 7 file generators
-│   ├── validators/                # 5 verification modules
-│   ├── freshness/                 # Drift detection
-│   ├── knowledge/                 # Cross-repo learning store
-│   └── data/                      # JSON registries
-├── .claude/skills/                # 10 aif-* skill definitions
-├── tests/                         # 36 tests (unit + integration)
-├── docs/                          # Onboarding, guides, reference
-├── vault/                         # Knowledge vault (wiki, memory, rules)
-└── Makefile                       # install, uninstall, lint, test
-```
+`bash` 3.2+ &nbsp;·&nbsp; `jq` 1.6+ &nbsp;·&nbsp; `git` 2.0+ &nbsp;·&nbsp; `python3` 3.10+ *(recommended, bash fallback available)*
 
 <br>
 
@@ -470,10 +417,14 @@ aiframework/
 
 <div align="center">
 
-**Built by [Evergon Labs](https://github.com/evergonlabs)** &bull; [MIT License](LICENSE)
+<br>
 
-*Because AI agents are only as good as the context you give them.*
+**[Evergon Labs](https://github.com/evergonlabs)** · [MIT License](LICENSE)
 
-[![Star History](https://img.shields.io/github/stars/evergonlabs/aiframework?style=social)](https://github.com/evergonlabs/aiframework)
+*Your repo already knows everything.<br>Now Claude does too.*
+
+<br>
+
+[![GitHub stars](https://img.shields.io/github/stars/evergonlabs/aiframework?style=social)](https://github.com/evergonlabs/aiframework)
 
 </div>
