@@ -422,31 +422,13 @@ FOOTER
   log_ok "CLAUDE.md (lean) written to $out"
 }
 
-# --- Full CLAUDE.md generator (verbose, for complex/enterprise projects) ---
-generate_claude_md_full() {
-  _extract_claude_md_vars
+# --- Sub-functions for generate_claude_md_full() decomposition ---
+# Each _emit_* function writes its section to $_cm_out using $_cm_* variables.
+# They must be called after _extract_claude_md_vars().
 
-  # Map shared vars to local names used by the existing code
+_emit_header_and_doc_table() {
   local m="$_cm_m" out="$_cm_out"
-  local name="$_cm_name" desc="$_cm_desc" version="$_cm_version" short="$_cm_short"
-  local lang="$_cm_lang" fw="$_cm_fw" is_mono="$_cm_is_mono"
-  local gh_url="$_cm_gh_url" local_path="$_cm_local_path"
-  local install="$_cm_install" dev_cmd="$_cm_dev_cmd" build_cmd="$_cm_build_cmd"
-  local lint_cmd="$_cm_lint_cmd" format_cmd="$_cm_format_cmd" typecheck="$_cm_typecheck"
-  local test_cmd="$_cm_test_cmd" dev_port="$_cm_dev_port"
-  local deploy="$_cm_deploy" ci_provider="$_cm_ci_provider" today="$_cm_today"
-  local complexity="$_cm_complexity"
-  local emit_full=true
-  local domain_count="$_cm_domain_count"
-  local key_deps="$_cm_key_deps"
-
-  if [[ "$DRY_RUN" == true ]]; then
-    log_info "[DRY RUN] Would write CLAUDE.md to $out"
-    return 0
-  fi
-
-  # Also generate workflow rules for full mode
-  _generate_workflow_rules
+  local name="$_cm_name" today="$_cm_today"
 
   cat > "$out" << CLAUDEMD
 # CLAUDE.md — ${name}
@@ -496,6 +478,10 @@ CLAUDEMD
   echo "" >> "$out"
   echo "---" >> "$out"
   echo "" >> "$out"
+}
+
+_emit_decision_priority_and_workflow() {
+  local out="$_cm_out"
 
   cat >> "$out" << 'CLAUDEMD'
 ## Decision Priority
@@ -552,6 +538,10 @@ When QA discovers issues, ALL must be automatically fixed:
 4. Run tests again — all must pass
 5. Commit
 CLAUDEMD
+}
+
+_emit_qa_autofix() {
+  local out="$_cm_out" lang="$_cm_lang"
 
   # Language-specific QA rules — data-driven from languages.json
   local qa_data_file="$ROOT_DIR/lib/data/languages.json"
@@ -645,6 +635,14 @@ Before marking any new feature complete, verify ALL applicable items:
 ## Core Principles
 
 CLAUDEMD
+}
+
+_emit_project_identity() {
+  local m="$_cm_m" out="$_cm_out"
+  local name="$_cm_name" desc="$_cm_desc" lang="$_cm_lang" fw="$_cm_fw"
+  local is_mono="$_cm_is_mono" gh_url="$_cm_gh_url" local_path="$_cm_local_path"
+  local deploy="$_cm_deploy" dev_port="$_cm_dev_port" key_deps="$_cm_key_deps"
+  local domain_count="$_cm_domain_count"
 
   # Check manifest for core_principles
   local core_principles
@@ -849,6 +847,23 @@ CLAUDEMD
     fi
   fi
 
+}
+
+_emit_project_structure() {
+  local m="$_cm_m" out="$_cm_out"
+  local is_mono="$_cm_is_mono" domain_count="$_cm_domain_count"
+  # Note: project structure section is already emitted by _emit_project_identity
+  # This function is a placeholder for future expansion
+  :
+}
+
+_emit_key_commands() {
+  local m="$_cm_m" out="$_cm_out"
+  local name="$_cm_name" install="$_cm_install" dev_cmd="$_cm_dev_cmd"
+  local build_cmd="$_cm_build_cmd" lint_cmd="$_cm_lint_cmd"
+  local format_cmd="$_cm_format_cmd" typecheck="$_cm_typecheck"
+  local test_cmd="$_cm_test_cmd"
+
   # --- Key Commands ---
   echo "---" >> "$out"
   echo "" >> "$out"
@@ -929,6 +944,11 @@ CLAUDEMD
   fi
 
   echo "" >> "$out"
+
+}
+
+_emit_ci_and_key_locations() {
+  local m="$_cm_m" out="$_cm_out" domain_count="$_cm_domain_count"
 
   # --- CI Workflows Table (F12) ---
   local ci_workflow_count
@@ -1222,6 +1242,14 @@ CLAUDEMD
     echo "" >> "$out"
   fi
 
+}
+
+_emit_pipeline_and_routing() {
+  local m="$_cm_m" out="$_cm_out"
+  local lint_cmd="$_cm_lint_cmd" typecheck="$_cm_typecheck"
+  local test_cmd="$_cm_test_cmd" build_cmd="$_cm_build_cmd"
+  local dev_port="$_cm_dev_port"
+
   # --- Autonomous Pipeline ---
   cat >> "$out" << 'PIPELINE'
 ---
@@ -1390,6 +1418,13 @@ Before ending ANY session where code was changed, Claude MUST complete:
 | Refactor | build → verify → `/review` → `/cso` → docs → `/qa` → `/ship` |
 
 PIPELINE2
+
+}
+
+_emit_invariants_and_config() {
+  local m="$_cm_m" out="$_cm_out"
+  local domain_count="$_cm_domain_count" deploy="$_cm_deploy"
+  local dev_cmd="$_cm_dev_cmd" test_cmd="$_cm_test_cmd"
 
   # --- Invariants ---
   echo "---" >> "$out"
@@ -1621,6 +1656,13 @@ PIPELINE2
   fi
 
   echo "" >> "$out"
+}
+
+_emit_skills_vault_and_footer() {
+  local m="$_cm_m" out="$_cm_out"
+  local short="$_cm_short" today="$_cm_today"
+  local domain_count="$_cm_domain_count" dev_port="$_cm_dev_port"
+  local emit_full=true
 
   # --- Custom Skills ---
   cat >> "$out" << SKILLS
@@ -1989,8 +2031,34 @@ FOOTER
 
 MATRICES
   fi
+}
 
-  log_ok "CLAUDE.md (full) written to $out"
+# --- Full CLAUDE.md generator (verbose, for complex/enterprise projects) ---
+# Orchestrator: calls each _emit_* sub-function in sequence.
+generate_claude_md_full() {
+  _extract_claude_md_vars
+
+  if [[ "$DRY_RUN" == true ]]; then
+    log_info "[DRY RUN] Would write CLAUDE.md to $_cm_out"
+    return 0
+  fi
+
+  # Generate workflow rules for full mode
+  _generate_workflow_rules
+
+  # Emit each section in order
+  _emit_header_and_doc_table
+  _emit_decision_priority_and_workflow
+  _emit_qa_autofix
+  _emit_project_identity
+  _emit_project_structure
+  _emit_key_commands
+  _emit_ci_and_key_locations
+  _emit_pipeline_and_routing
+  _emit_invariants_and_config
+  _emit_skills_vault_and_footer
+
+  log_ok "CLAUDE.md (full) written to $_cm_out"
 }
 
 # --- Dispatcher: picks lean vs full based on project complexity ---
