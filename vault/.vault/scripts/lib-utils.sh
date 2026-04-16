@@ -48,9 +48,25 @@ get_frontmatter_field() {
 }
 
 # Extract all tags from frontmatter as newline-separated list.
+# Handles both block-style (  - tag) and inline-style (tags: [a, b, c]).
 get_frontmatter_tags() {
   local file="$1"
-  extract_frontmatter "$file" | awk '/^tags:/{found=1; next} found && /^  - /{gsub(/^  - /,""); print} found && !/^  - /&&!/^$/{exit}'
+  local fm
+  fm=$(extract_frontmatter "$file")
+
+  # Check for inline tags: tags: [a, b, c]
+  local inline
+  inline=$(echo "$fm" | grep '^tags:.*\[' | sed 's/^tags:[[:space:]]*\[//; s/\][[:space:]]*//' | tr ',' '\n')
+  if [[ -n "$inline" ]]; then
+    echo "$inline" | while IFS= read -r tag; do
+      tag=$(echo "$tag" | xargs | sed 's/^["'"'"']//;s/["'"'"']$//')
+      [[ -n "$tag" ]] && echo "$tag"
+    done
+    return
+  fi
+
+  # Block-style tags
+  echo "$fm" | awk '/^tags:/{found=1; next} found && /^  - /{gsub(/^  - /,""); print} found && !/^  - /&&!/^$/{exit}'
 }
 
 # ── Wikilink Parsing ──
@@ -58,7 +74,7 @@ get_frontmatter_tags() {
 # Usage: extract_wikilinks /path/to/file.md
 extract_wikilinks() {
   local file="$1"
-  grep -oE '\[\[[a-z0-9-]+\]\]' "$file" 2>/dev/null | sed 's/\[\[//g; s/\]\]//g' | sort -u
+  grep -oE '\[\[[a-zA-Z0-9/_-]+\]\]' "$file" 2>/dev/null | sed 's/\[\[//g; s/\]\]//g' | sort -u
 }
 
 # Count wikilinks in a file.
