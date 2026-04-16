@@ -60,16 +60,16 @@ It scans your repo &mdash; every file, every symbol, every dependency &mdash; an
 ## What You Get
 
 ```
-Before aiframework          After aiframework
-───────────────────         ─────────────────────────────────
-Claude: "What framework     Claude: "This is a FastAPI app with
- do you use?"                auth middleware, PostgreSQL via
-                             SQLAlchemy, 47 endpoints, and a
-You: *explains for           custom permission system. I see
- 10 minutes*                 the deploy script expects
-                             DATABASE_URL and REDIS_URL.
-Claude: "Can you show        Let me check the pre-push gate
- me the test command?"       before we start..."
+Before aiframework             After aiframework
+─────────────────────          ──────────────────────────────────────
+Claude: "What framework        Claude: "This is a FastAPI app with
+ do you use?"                   auth middleware, PostgreSQL via
+                                SQLAlchemy, 47 endpoints, and a
+You: *explains for              custom permission system. I have
+ 10 minutes*                    47 skills ready — /review, /ship,
+                                /qa, /cso, /investigate...
+Claude: "Can you show           Let me check the pre-push gate
+ me the test command?"          before we start."
 ```
 
 <br>
@@ -77,18 +77,22 @@ Claude: "Can you show        Let me check the pre-push gate
 ## &#9889; Quick Start
 
 ```bash
-# Install (30 seconds)
+# 1. Install aiframework
 git clone https://github.com/evergonlabs/aiframework.git
 cd aiframework && make install
 
-# Run on any project (60 seconds)
+# 2. Install gstack (browser automation, QA, security, design — 37 skills)
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup --no-prefix
+
+# 3. Run on any project
 aiframework run --target /path/to/your-project
 
-# That's it. Open Claude Code.
+# 4. Open Claude Code — it just works
 cd /path/to/your-project && claude
 ```
 
-> Claude now reads your generated `CLAUDE.md` automatically and has full project context &mdash; commands, invariants, architecture, skills, and a persistent knowledge vault.
+> aiframework generates your project configuration (10 skills, 23+ files). gstack adds 37 more skills for browser QA, security audits, design systems, and deploy automation. Together they give Claude Code the full picture &mdash; from your first prompt.
 
 <br>
 
@@ -353,11 +357,11 @@ All detection logic reads from JSON registries. Add a language, domain, or arche
 
 <br>
 
-## &#127918; Supercharged with gstack
+## &#127918; Included: gstack (37 Skills)
 
-aiframework auto-detects [gstack](https://github.com/garrytan/gstack) when installed and integrates **37 additional skills** into the generated `CLAUDE.md`. gstack gives Claude Code a real browser, a security auditor, a design system, deploy automation, and more &mdash; all at ~100ms per command.
+aiframework ships with [gstack](https://github.com/garrytan/gstack) integration out of the box. When you install both (see [Quick Start](#-quick-start)), you get **47 total skills** &mdash; 10 project-specific from aiframework + 37 from gstack covering browser automation, security, design, QA, and deploy.
 
-**How it works**: During `GENERATE`, aiframework checks for `~/.claude/skills/gstack/`. If found, it injects the `$B` browser command reference and enables all gstack skills alongside the 10 `aif-*` skills.
+aiframework auto-detects gstack at `~/.claude/skills/gstack/` during generation and injects the full `$B` browser command reference and all skill routing into your `CLAUDE.md`.
 
 <table>
 <tr>
@@ -434,13 +438,7 @@ $B chain "click @e1" "fill @e2 text" "screenshot"  # Chain commands
 
 </details>
 
-**Install gstack (optional)**:
-```bash
-git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
-cd ~/.claude/skills/gstack && ./setup --no-prefix
-```
-
-> Next time you run `aiframework run`, the generated `CLAUDE.md` will automatically include the gstack integration section.
+> **Already installed?** Run `aiframework run` again and your `CLAUDE.md` will automatically include the gstack integration. New to gstack? See [Quick Start](#-quick-start) step 2.
 
 <br>
 
