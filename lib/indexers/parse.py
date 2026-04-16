@@ -789,14 +789,61 @@ def _lang_elixir(text: str, rel_path: str) -> tuple[list[_Symbol], list[str], li
 # Dispatcher
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Standalone parser adapters — wrap the improved lang_*.py parsers to match
+# the inline parser interface: (text, rel_path) -> (symbols, imports, exports)
+# ---------------------------------------------------------------------------
+
+def _try_import_standalone():
+    """Import standalone parsers if available, return dict of adapters."""
+    adapters = {}
+    try:
+        from .lang_bash import parse_bash
+        adapters["bash"] = lambda text, path: _adapt(parse_bash(path, text))
+    except ImportError:
+        pass
+    try:
+        from .lang_python import parse_python
+        adapters["python"] = lambda text, path: _adapt(parse_python(path, text))
+    except ImportError:
+        pass
+    try:
+        from .lang_typescript import parse_typescript
+        adapters["typescript"] = lambda text, path: _adapt(parse_typescript(path, text))
+    except ImportError:
+        pass
+    try:
+        from .lang_go import parse_go
+        adapters["go"] = lambda text, path: _adapt(parse_go(path, text))
+    except ImportError:
+        pass
+    try:
+        from .lang_rust import parse_rust
+        adapters["rust"] = lambda text, path: _adapt(parse_rust(path, text))
+    except ImportError:
+        pass
+    try:
+        from .lang_ruby import parse_ruby
+        adapters["ruby"] = lambda text, path: _adapt(parse_ruby(path, text))
+    except ImportError:
+        pass
+    return adapters
+
+def _adapt(result: dict) -> tuple:
+    """Adapt standalone parser dict result to inline tuple format."""
+    return (result.get("symbols", []), result.get("imports", []), result.get("exports", []))
+
+# Use standalone parsers where available, fall back to inline
+_STANDALONE = _try_import_standalone()
+
 _PARSERS: dict[str, Any] = {
-    "bash": _lang_bash,
-    "python": _lang_python,
-    "typescript": _lang_typescript,
-    "javascript": _lang_typescript,  # reuse TS parser
-    "go": _lang_go,
-    "rust": _lang_rust,
-    "ruby": _lang_ruby,
+    "bash": _STANDALONE.get("bash", _lang_bash),
+    "python": _STANDALONE.get("python", _lang_python),
+    "typescript": _STANDALONE.get("typescript", _lang_typescript),
+    "javascript": _STANDALONE.get("typescript", _lang_typescript),  # reuse TS parser
+    "go": _STANDALONE.get("go", _lang_go),
+    "rust": _STANDALONE.get("rust", _lang_rust),
+    "ruby": _STANDALONE.get("ruby", _lang_ruby),
     "java": _lang_java,
     "csharp": _lang_csharp,
     "php": _lang_php,
@@ -936,8 +983,10 @@ def index_repo(target_dir: str, output_path: str | None = None) -> dict[str, Any
             rel_p = futures[future]
             try:
                 result = future.result()
-            except Exception:
+            except Exception as exc:
                 # Don't let one bad file crash the entire index.
+                import logging
+                logging.warning("indexer: failed to parse %s: %s", rel_p, exc)
                 continue
             files_data[rel_p] = result["file_entry"]
             all_symbols.extend(result["symbols"])
