@@ -1,30 +1,53 @@
 <div align="center">
 
+<br>
+
+# `>_ aiframework`
+
+### One command. Any repo. Zero config.
+
+The open-source autopilot for AI-assisted development with [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+
+<br>
+
+[![version](https://img.shields.io/badge/version-1.1.0-blue?style=for-the-badge)](https://github.com/evergonlabs/aiframework/releases)
+[![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
+[![Made with Bash](https://img.shields.io/badge/Bash-1f425f?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-cc785c?style=for-the-badge&logo=anthropic&logoColor=white)](https://docs.anthropic.com/en/docs/claude-code)
+[![tests](https://img.shields.io/badge/36_tests_passing-brightgreen?style=for-the-badge)]()
+[![gstack](https://img.shields.io/badge/gstack-37_skills-blueviolet?style=for-the-badge)](https://github.com/garrytan/gstack)
+
+<br>
+
+[Quick Start](#-quick-start) &bull; [What It Generates](#-what-it-generates) &bull; [Skills](#-skills-reference) &bull; [gstack](#-supercharged-with-gstack) &bull; [Languages](#-supported-languages) &bull; [How It Works](#-how-it-works) &bull; [Self-Evolution](#-self-evolution)
+
+<br>
+
 ```
-     ██████╗ ██╗███████╗██████╗  █████╗ ███╗   ███╗███████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
-    ██╔══██╗██║██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
-    ███████║██║█████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝
-    ██╔══██║██║██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗
-    ██║  ██║██║██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
-    ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+   ┌──────────────────────────────────────────────────────────────────┐
+   │                                                                  │
+   │   aiframework run --target .                                     │
+   │                                                                  │
+   │   > Scanning 847 files across 12 scanners...                     │
+   │   > Indexed 209 symbols in 13 languages                          │
+   │   > Detected: typescript / nextjs / api-service                  │
+   │   > Domains: auth, database, ai-llm, graphql                     │
+   │                                                                  │
+   │   > Generated 23 files:                                          │
+   │     CLAUDE.md, .claude/rules/, .claude/skills/,                  │
+   │     .githooks/, .github/workflows/, vault/, docs/                │
+   │                                                                  │
+   │   > Verification: 46 checks — ALL PASSED                        │
+   │                                                                  │
+   │   Claude Code now knows your entire project.                     │
+   │                                                                  │
+   └──────────────────────────────────────────────────────────────────┘
 ```
-
-**One command. Any repo. Zero config.**
-
-*The open-source autopilot for AI-assisted development with Claude Code.*
-
-[![version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://github.com/evergonlabs/aiframework/releases)
-[![license](https://img.shields.io/badge/license-proprietary-red?style=flat-square)](LICENSE)
-[![Made with Bash](https://img.shields.io/badge/Made%20with-Bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white)](https://claude.ai/claude-code)
-[![tests](https://img.shields.io/badge/tests-36%20passing-brightgreen?style=flat-square)]()
-
-[Quick Start](#-quick-start) &bull; [What It Generates](#-what-it-generates) &bull; [Skills](#-skills-reference) &bull; [Languages](#-supported-languages) &bull; [How It Works](#-how-it-works) &bull; [Self-Evolution](#-self-evolution)
-
----
 
 </div>
+
+<br>
 
 ## The Problem
 
@@ -330,6 +353,97 @@ All detection logic reads from JSON registries. Add a language, domain, or arche
 
 <br>
 
+## &#127918; Supercharged with gstack
+
+aiframework auto-detects [gstack](https://github.com/garrytan/gstack) when installed and integrates **37 additional skills** into the generated `CLAUDE.md`. gstack gives Claude Code a real browser, a security auditor, a design system, deploy automation, and more &mdash; all at ~100ms per command.
+
+**How it works**: During `GENERATE`, aiframework checks for `~/.claude/skills/gstack/`. If found, it injects the `$B` browser command reference and enables all gstack skills alongside the 10 `aif-*` skills.
+
+<table>
+<tr>
+<td width="50%">
+
+**Development & Shipping**
+| Skill | What it does |
+|:------|:-------------|
+| `/review` | Pre-landing PR review (SQL safety, trust boundaries) |
+| `/ship` | Detect base, test, review, bump, PR &mdash; one command |
+| `/land-and-deploy` | Merge PR, wait for CI, verify production health |
+| `/investigate` | 4-phase root cause debugging (no fixes without cause) |
+| `/health` | Composite 0-10 code quality dashboard |
+| `/retro` | Weekly engineering retrospective with trends |
+
+</td>
+<td width="50%">
+
+**QA & Browser Automation**
+| Skill | What it does |
+|:------|:-------------|
+| `/qa` | Test site + iteratively fix bugs with before/after evidence |
+| `/browse` | Headless Chromium (~100ms/cmd, ref-based selection) |
+| `/design-review` | Visual QA: spacing, hierarchy, AI slop detection |
+| `/benchmark` | Core Web Vitals regression detection per PR |
+| `/canary` | Post-deploy monitoring with screenshot diffing |
+| `/cso` | Infrastructure-first security audit (OWASP + STRIDE) |
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**Planning & Design**
+| Skill | What it does |
+|:------|:-------------|
+| `/plan-ceo-review` | Founder-mode: challenge premises, find 10-star product |
+| `/plan-eng-review` | Architecture, data flow, edge cases, test coverage |
+| `/plan-design-review` | Rate each design dimension 0-10, fix to get there |
+| `/autoplan` | Run all reviews sequentially with auto-decisions |
+| `/design-shotgun` | Generate multiple AI design variants, compare |
+| `/design-html` | Production-quality HTML/CSS from approved designs |
+
+</td>
+<td width="50%">
+
+**Utilities**
+| Skill | What it does |
+|:------|:-------------|
+| `/codex` | Second opinion via OpenAI Codex (review, challenge, consult) |
+| `/office-hours` | YC-style forcing questions for new ideas |
+| `/checkpoint` | Save/resume working state across sessions |
+| `/guard` | Full safety mode for production environments |
+| `/pair-agent` | Share browser access with remote AI agents |
+| `/gstack-upgrade` | One-command self-update |
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><strong>The <code>$B</code> browser protocol (20x faster than Playwright MCP)</strong></summary>
+
+gstack runs a persistent Chromium daemon. Commands use ref-based element selection (`@e1`, `@e2`) instead of CSS selectors. Cookies, tabs, and login sessions persist between commands.
+
+```bash
+$B goto https://myapp.com        # Navigate
+$B snapshot                       # Get page structure with element refs
+$B click @e3                      # Click element by ref
+$B fill @e5 "hello@test.com"     # Fill input
+$B screenshot                     # Capture screenshot
+$B chain "click @e1" "fill @e2 text" "screenshot"  # Chain commands
+```
+
+</details>
+
+**Install gstack (optional)**:
+```bash
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup --no-prefix
+```
+
+> Next time you run `aiframework run`, the generated `CLAUDE.md` will automatically include the gstack integration section.
+
+<br>
+
 ## &#128193; Project Structure
 
 ```
@@ -358,8 +472,10 @@ aiframework/
 
 <div align="center">
 
-**Built by [Evergon Labs](https://github.com/evergonlabs)**
+**Built by [Evergon Labs](https://github.com/evergonlabs)** &bull; [MIT License](LICENSE)
 
 *Because AI agents are only as good as the context you give them.*
+
+[![Star History](https://img.shields.io/github/stars/evergonlabs/aiframework?style=social)](https://github.com/evergonlabs/aiframework)
 
 </div>
