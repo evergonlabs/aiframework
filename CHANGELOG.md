@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [1.1.0] — 2026-04-16
 ### Added
+- **`aiframework report` command** — generates a 12-section human-readable report (`.aiframework/report.md`) so devs can verify detection accuracy and give feedback
+- **Report auto-runs after `aiframework run`** — pipeline is now discover → generate → verify → report
+- **LLM agent integration reference** — `docs/reference/llm-agent-integration.md` covering manifest schema, CLAUDE.md contract, skill authoring, vault protocol
 - **Dependency check** — `check_dependencies()` validates `jq` and `git` at startup with platform-specific install instructions
 - **Cleanup trap** — `trap cleanup EXIT` removes temp directories on exit
 - **Extended secret detection** — 12 new patterns: Stripe, Slack, SendGrid, private keys, DB connection strings, GCP, Azure
@@ -26,6 +29,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 - **`/aif-evolve` fallback** — gracefully handles missing `~/.claude/usage-data/` directory (learnings-only mode)
 - **`generate_claude_md_full()` refactored** — decomposed 1562-line function into 10 `_emit_*` sub-functions
+
+### Removed
+- **`AUTOMATION-PLAYBOOK-TEMPLATE.md`** — obsolete 2060-line manual playbook replaced by `aiframework run`
 
 ## [1.0.0] — 2026-04-16
 ### Added

@@ -189,10 +189,11 @@ aiframework-generated projects improve over time:
 aiframework <command> [options]
 
 Commands:
-  run         Full pipeline: discover → generate → verify
+  run         Full pipeline: discover → generate → verify → report
   discover    Scan repo → manifest.json + code-index.json
   generate    Read manifest → generate all files
   verify      Validate generated files (36 checks + freshness)
+  report      Generate human-readable report of everything detected/generated
   refresh     Lightweight: re-discover + generate only if drift detected
   index       Build code index only
   stats       Show cross-repo learning patterns

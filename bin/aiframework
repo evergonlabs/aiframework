@@ -89,9 +89,10 @@ Commands:
   discover    Scan a repo and produce manifest.json (deterministic, 100% coverage)
   generate    Read manifest.json and generate CLAUDE.md + all supporting files
   verify      Validate generated files against manifest (zero drift check)
+  report      Generate a human-readable report of everything detected and generated
   refresh     Lightweight update: re-discover + regenerate only if drift detected
   index       Build code index for the target repo (standalone)
-  run         Full pipeline: discover → generate → verify
+  run         Full pipeline: discover → generate → verify → report
   stats       Show cross-repo knowledge store statistics
 
 Options:
@@ -398,6 +399,33 @@ cmd_stats() {
   echo ""
 }
 
+cmd_report() {
+  banner
+  log_step "REPORT — Generating human-readable summary"
+  echo ""
+
+  if [[ ! -f "$MANIFEST_PATH" ]]; then
+    log_error "Manifest not found at $MANIFEST_PATH"
+    log_info "Run 'aiframework discover' first"
+    exit 1
+  fi
+
+  MANIFEST=$(cat "$MANIFEST_PATH")
+  export MANIFEST
+
+  source "$LIB_DIR/validators/files.sh"
+  source "$LIB_DIR/validators/consistency.sh"
+  source "$LIB_DIR/validators/security.sh"
+  source "$LIB_DIR/validators/quality_gate.sh"
+  source "$LIB_DIR/validators/freshness.sh"
+  source "$LIB_DIR/generators/report.sh"
+
+  generate_report
+  echo ""
+  log_info "Open .aiframework/report.md to review what was detected and generated"
+  log_info "If anything is wrong, run /aif-feedback in Claude Code"
+}
+
 cmd_refresh() {
   banner
   log_step "REFRESH — Checking for drift and updating if needed"
@@ -456,6 +484,10 @@ cmd_run() {
   echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""
   cmd_verify
+  echo ""
+  echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo ""
+  cmd_report
 }
 
 # Main
@@ -465,6 +497,7 @@ case "$COMMAND" in
   discover)  cmd_discover ;;
   generate)  cmd_generate ;;
   verify)    cmd_verify ;;
+  report)    cmd_report ;;
   refresh)   cmd_refresh ;;
   index)     cmd_index ;;
   stats)     cmd_stats ;;
