@@ -21,10 +21,11 @@ confidence: medium
 |----------|-------|
 | Path | `vault/.vault/scripts` |
 | Language | bash |
-| Files | 3 |
+| Files | 4 |
 
 ## Files
 
+- `lib-commands.sh`
 - `lib-lint.sh`
 - `lib-utils.sh`
 - `vault-tools.sh`

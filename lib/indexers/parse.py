@@ -37,7 +37,7 @@ _EXCLUDED_DIRS: set[str] = {
     ".aiframework",
 }
 
-_MAX_FILE_SIZE = 100 * 1024  # 100 KB
+_MAX_FILE_SIZE = 512 * 1024  # 512 KB — covers large generated files like vault.sh
 
 _EXT_LANGUAGE: dict[str, str] = {
     ".sh": "bash",

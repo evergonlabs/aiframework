@@ -21,7 +21,7 @@ confidence: medium
 | Name | Kind | File | Description |
 |------|------|------|-------------|
 | `_adapt` | function | `lib/indexers/parse.py` | Adapt standalone parser dict result to inline tuple format. |
-| `_extract_doc_comment` | function | `lib/indexers/lang_go.py` | Extract the // comment block immediately before *pos*. |
+| `_extract_doc_comment` | function | `lib/indexers/lang_go.py` | Extract the /// doc-comment block immediately before *pos*. |
 | `_extract_docstring` | function | `lib/indexers/lang_bash.py` | Collect the # comment block immediately before a function definition. |
 | `_extract_jsdoc` | function | `lib/indexers/lang_typescript.py` | Extract the JSDoc comment (/** ... */) immediately before *pos*. |
 | `_extract_rdoc_comment` | function | `lib/indexers/lang_ruby.py` | Extract the # comment block immediately before *pos*. |

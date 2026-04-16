@@ -22,8 +22,8 @@ confidence: medium
 |------|------|------|-------------|
 | `cmd_content_audit` | function | `vault/.vault/scripts/vault-tools.sh` | — |
 | `cmd_doctor` | function | `vault/.vault/scripts/vault-tools.sh` | — |
-| `cmd_index_rebuild` | function | `vault/.vault/scripts/vault-tools.sh` | — |
-| `cmd_init_hooks` | function | `vault/.vault/scripts/vault-tools.sh` | — |
+| `cmd_index_rebuild` | function | `vault/.vault/scripts/lib-commands.sh` | — |
+| `cmd_init_hooks` | function | `vault/.vault/scripts/lib-commands.sh` | — |
 | `cmd_lint` | function | `vault/.vault/scripts/vault-tools.sh` | — |
 | `cmd_orphans` | function | `vault/.vault/scripts/vault-tools.sh` | — |
 | `cmd_stale` | function | `vault/.vault/scripts/vault-tools.sh` | — |
@@ -59,9 +59,9 @@ confidence: medium
 | `lint_hr014_no_deletion` | function | `vault/.vault/scripts/lib-lint.sh` | HR-014: No file deletion (check staged deletions) |
 | `lint_hr015_append_only_logs` | function | `vault/.vault/scripts/lib-lint.sh` | HR-015: Append-only logs (log.md line count must not decrease) |
 | `load_approved_tags` | function | `vault/.vault/scripts/lib-utils.sh` | ── Tag Validation ── |
-| `log_fail` | function | `vault/.vault/scripts/lib-utils.sh` | Minimal fallback |
+| `log_fail` | function | `vault/.vault/scripts/lib-utils.sh` | — |
 | `log_info` | function | `vault/.vault/scripts/lib-utils.sh` | --- Logging stubs for generator modules --- |
-| `log_pass` | function | `vault/.vault/scripts/lib-utils.sh` | — |
+| `log_pass` | function | `vault/.vault/scripts/lib-utils.sh` | ── Logging ── |
 | `log_warn` | function | `vault/.vault/scripts/lib-utils.sh` | — |
 | `rel_path` | function | `vault/.vault/scripts/lib-utils.sh` | Get relative path from vault root. |
 | `resolve_vault_root` | function | `vault/.vault/scripts/lib-utils.sh` | ── Path Resolution ── |

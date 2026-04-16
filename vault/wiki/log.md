@@ -44,3 +44,16 @@ confidence: high
 | 2026-04-16T19:58:08Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
 | 2026-04-16T19:58:08Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
 | 2026-04-16T19:58:08Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-generators.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-validators.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/tests.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts.md | success | Auto-generated from code index |
+| 2026-04-16T20:35:13Z | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-generators-api.md | success | API reference from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-api.md | success | API reference from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
+| 2026-04-16T20:35:13Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |
