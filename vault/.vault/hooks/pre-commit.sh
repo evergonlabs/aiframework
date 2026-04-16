@@ -98,6 +98,7 @@ fi
 # HR-008: Check new wiki files are indexed
 new_wiki=$(git diff --cached --name-only --diff-filter=A -- "vault/wiki/**/*.md" 2>/dev/null || true)
 if [[ -n "$new_wiki" ]]; then
+  hr008_errors=0
   index_file="$VAULT_ROOT/wiki/index.md"
   if [[ -f "$index_file" ]]; then
     while IFS= read -r file; do
@@ -108,14 +109,15 @@ if [[ -n "$new_wiki" ]]; then
         # Also check staged version of index
         if ! git diff --cached -- "$index_file" 2>/dev/null | grep -qF "$rel"; then
           log_fail "HR-008: New file not in index: $rel"
-          ((errors++))
+          ((hr008_errors++))
         fi
       fi
     done <<< "$new_wiki"
   fi
-  if [[ $errors -eq 0 ]]; then
+  if [[ $hr008_errors -eq 0 ]]; then
     log_pass "HR-008: New files registered in index"
   fi
+  errors=$((errors + hr008_errors))
 fi
 
 # HR-011: .vault/ protection

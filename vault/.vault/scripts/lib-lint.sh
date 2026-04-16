@@ -328,6 +328,7 @@ lint_hr007_updated_accuracy() {
     local updated
     updated=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^updated:' | head -1 | sed 's/updated:[[:space:]]*//' | tr -d '"' | tr -d "'" | xargs)
     [[ -z "$updated" ]] && continue
+    [[ "$updated" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { log_warn "HR-007: Unparseable date '$updated' in $rel"; continue; }
 
     # Get git last-modified date
     if git -C "$vault_root" rev-parse --is-inside-work-tree &>/dev/null; then
@@ -379,6 +380,7 @@ lint_hr009_flat_tags() {
           tag_list=$(echo "$line" | sed 's/.*\[//;s/\].*//' | tr ',' '\n')
           while IFS= read -r tag; do
             tag=$(echo "$tag" | xargs)
+            tag=$(echo "$tag" | sed 's/^["'"'"']//;s/["'"'"']$//')
             [[ -z "$tag" ]] && continue
             if [[ ! "$tag" =~ / ]]; then
               log_fail "HR-009: Tag '$tag' missing prefix/value format in $rel (expected: prefix/value)"
@@ -403,7 +405,7 @@ lint_hr009_flat_tags() {
           in_tags=0
         fi
       fi
-    done < <(sed -n '/^---$/,/^---$/p' "$file")
+    done < <(awk 'NR==1 && /^---$/{f=1;next} f && /^---$/{exit} f' "$file")
   done < <(find "$vault_root" -path "$vault_root/.vault" -prune -o -name '*.md' -print0 2>/dev/null)
 
   if [[ $errors -eq 0 ]]; then

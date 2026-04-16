@@ -88,6 +88,23 @@ Each step should:
 | `/aif-evolve` | Self-improvement | Reads data sources, generates report, applies with approval |
 | `/aif-feedback` | Collect feedback | Asks questions, saves to feedback.jsonl |
 
+## Testing Skills
+
+Test your skill by running `/<skill-name>` in Claude Code. Check:
+1. Does Claude find and invoke the skill from natural language?
+2. Does each step execute correctly?
+3. Are error cases handled (missing files, failed commands)?
+4. Does the output match expectations?
+
+## Skill Chaining
+
+Skills can reference other skills in their instructions:
+```
+## Step 3: Review
+Run `/aif-review` to check the changes before committing.
+```
+Claude will invoke the referenced skill as a sub-step. Use this for multi-stage workflows (e.g., build → test → review → commit).
+
 ## Tips
 
 - Keep skills focused on one workflow — split complex workflows into multiple skills

@@ -26,12 +26,19 @@ _file_exists() {
 # Backup a file before overwriting
 _backup_file() {
   local file="$1"
+  if [[ -L "$file" ]]; then
+    log_warn "Skipping backup of symlink: $file"
+    return
+  fi
   if _file_exists "$file"; then
     if [[ -z "$_PRESERVE_BACKUP_DIR" ]]; then
       _init_preserve
     fi
     mkdir -p "$_PRESERVE_BACKUP_DIR"
-    local rel="${file#$TARGET_DIR/}"
+    local norm_file norm_target
+    norm_file=$(cd "$(dirname "$file")" 2>/dev/null && echo "$(pwd)/$(basename "$file")" || echo "$file")
+    norm_target=$(cd "$TARGET_DIR" 2>/dev/null && pwd || echo "$TARGET_DIR")
+    local rel="${norm_file#$norm_target/}"
     local backup_path="$_PRESERVE_BACKUP_DIR/$rel"
     mkdir -p "$(dirname "$backup_path")"
     cp "$file" "$backup_path"

@@ -134,6 +134,7 @@ Before marking any new feature complete, verify ALL applicable items:
 │   ├── reference/
 ├── lib/
 │   ├── data/
+│   ├── freshness/
 │   ├── generators/
 │   ├── indexers/
 │   ├── knowledge/
@@ -219,6 +220,9 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Source**: `lib/scanners/skill_suggest.sh` — Skill suggestion scanner (11 patterns)
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
+- **Source**: `lib/validators/consistency.sh` — Verification module
+- **Source**: `lib/validators/security.sh` — Security scanner
+- **Source**: `lib/freshness/track.sh` — Drift detection module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
 - **Components**: 2 models
 

@@ -35,9 +35,14 @@ fi
 
 ```bash
 # Session metadata — duration, tools, tokens, friction, satisfaction
-ls ~/.claude/usage-data/session-meta/*.json | wc -l
+# NOTE: Only run these inside the guard block above (after confirming directory exists)
+if [[ -d ~/.claude/usage-data/session-meta ]] && ls ~/.claude/usage-data/session-meta/*.json &>/dev/null; then
+  ls ~/.claude/usage-data/session-meta/*.json | wc -l
+fi
 # Facets — goals, outcomes, friction patterns, satisfaction
-ls ~/.claude/usage-data/facets/*.json | wc -l
+if [[ -d ~/.claude/usage-data/facets ]] && ls ~/.claude/usage-data/facets/*.json &>/dev/null; then
+  ls ~/.claude/usage-data/facets/*.json | wc -l
+fi
 ```
 
 For each session JSON in `~/.claude/usage-data/session-meta/`, extract:
@@ -79,9 +84,9 @@ sessions = []
 for f in meta_dir.glob('*.json'):
     try:
         d = json.loads(f.read_text())
-        if project in d.get('project_path', ''):
+        if d.get('project_path', '') == project:
             sessions.append(d)
-    except: pass
+    except (json.JSONDecodeError, KeyError, TypeError, OSError): pass
 
 if not sessions:
     print('No sessions found for this project.')
@@ -110,7 +115,7 @@ for f in facets_dir.glob('*.json'):
         if d.get('session_id') in [s['session_id'] for s in sessions]:
             for k, v in d.get('friction_counts', {}).items():
                 frictions[k] += v
-    except: pass
+    except (json.JSONDecodeError, KeyError, TypeError, OSError): pass
 if frictions:
     print(f'Top friction: {frictions.most_common(5)}')
 "

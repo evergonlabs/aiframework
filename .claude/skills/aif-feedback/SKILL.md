@@ -1,7 +1,7 @@
 ---
 name: aif-feedback
 description: Collect structured user feedback on aiframework-generated output. Saves to tools/learnings/feedback.jsonl for integration with /aif-evolve.
-allowed-tools: [Read, Write, Edit, Bash]
+allowed-tools: [Read, Bash]
 ---
 
 # Collect Feedback
@@ -29,7 +29,8 @@ Present these questions one at a time, waiting for each answer:
 Append a JSON line to `tools/learnings/feedback.jsonl`:
 
 ```bash
-echo '{"date":"'"$(date +%Y-%m-%d)"'","claude_md_quality":SCORE,"accuracy":SCORE,"missing_context":"ANSWER","noise":"ANSWER","top_wish":"ANSWER","project":"'"$(basename "$(pwd)")"'"}' >> tools/learnings/feedback.jsonl
+jq -n --arg d "$(date +%Y-%m-%d)" --arg q SCORE --arg a SCORE --arg mc "ANSWER" --arg n "ANSWER" --arg tw "ANSWER" --arg p "$(basename "$(pwd)")" \
+  '{date:$d, claude_md_quality:($q|tonumber), accuracy:($a|tonumber), missing_context:$mc, noise:$n, top_wish:$tw, project:$p}' >> tools/learnings/feedback.jsonl
 ```
 
 ## Step 3: Acknowledge

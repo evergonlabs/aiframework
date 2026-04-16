@@ -24,7 +24,7 @@ TEMPLATES_DIR="$ROOT_DIR/templates"
 
 # Cleanup trap — remove temp files on exit
 _aiframework_cleanup() {
-  if [[ -n "${_AIF_TMPDIR:-}" && -d "$_AIF_TMPDIR" ]]; then
+  if [[ -n "${_AIF_TMPDIR:-}" && -d "$_AIF_TMPDIR" && "$_AIF_TMPDIR" == /tmp/* ]]; then
     rm -rf "$_AIF_TMPDIR"
   fi
 }

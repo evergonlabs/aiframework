@@ -156,6 +156,15 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 ```
 
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Skill identifier, matches directory name |
+| `description` | Yes | One-line summary — agent uses this to decide when to invoke |
+| `allowed-tools` | Yes | Tools pre-approved without per-use prompts |
+| `disable-model-invocation` | No | Prevent auto-invocation (use for side-effect skills) |
+| `context` | No | Set to `fork` for isolated subagent execution |
+| `model` | No | Override model for this skill |
+
 ### Step Structure
 
 Each `## Step N: Title` section should contain:
@@ -197,19 +206,21 @@ raw/ → wiki/ → memory/   (strictly unidirectional, never reverse)
 4. **Session end**: Update `vault/memory/status.md` with progress
 5. **New knowledge**: Create wiki pages in `vault/wiki/concepts/` or `vault/wiki/entities/`
 
-### Integrity Rules (enforced by pre-commit)
+### Integrity Rules
 
-| Rule | Enforcement |
-|------|-------------|
-| HR-001 | `raw/` is immutable — no staged changes allowed |
-| HR-002 | All wiki/memory `.md` files must have YAML frontmatter |
-| HR-003 | Tags must be from approved taxonomy |
-| HR-007 | Frontmatter `updated` date must be within 30 days of git date |
-| HR-009 | Tags must use `prefix/value` format |
-| HR-011 | `.vault/` infrastructure is protected |
-| HR-013 | CI/template changes require review |
-| HR-014 | No file deletions — use `status: archived` instead |
-| HR-015 | `log.md` is append-only — line count must not decrease |
+| Rule | Enforcement | Description |
+|------|-------------|-------------|
+| HR-001 | pre-commit | `raw/` is immutable — no staged changes allowed |
+| HR-002 | pre-commit | All wiki/memory `.md` files must have YAML frontmatter |
+| HR-003 | pre-commit | Tags must be from approved taxonomy |
+| HR-007 | vault-lint | Frontmatter `updated` date must be within 30 days of git date |
+| HR-008 | pre-commit | New wiki files must be registered in index |
+| HR-009 | vault-lint | Tags must use `prefix/value` format |
+| HR-011 | pre-commit | `.vault/` infrastructure is protected |
+| HR-012 | pre-commit | Agent config changes require human review |
+| HR-013 | vault-lint | CI/template changes require review |
+| HR-014 | pre-commit | No file deletions — use `status: archived` instead |
+| HR-015 | vault-lint | `log.md` is append-only — line count must not decrease |
 
 ### Frontmatter Schema
 
