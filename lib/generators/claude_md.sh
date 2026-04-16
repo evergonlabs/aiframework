@@ -1353,6 +1353,12 @@ PIPELINE2
 | "deploy", "push", "ship it", "create PR" | Full pipeline: verify → `/review` → `/cso` → `/qa` → `/ship` |
 | "what do we know about X", "previous decisions" | Check vault: `vault/wiki/index.md` and `vault/memory/decisions/` |
 | "vault health", "check vault" | Run `vault/.vault/scripts/vault-tools.sh doctor` |
+| "refactor", "clean up", "simplify" | Build → verify → `/review` → `/cso` → docs → `/qa` → `/ship` |
+| "update docs", "fix docs" | Update docs directly, then verify + `/review` |
+| "performance", "optimize", "too slow" | `/investigate` → profile → fix → verify → `/review` |
+| "CI", "tests failing", "pipeline broken" | `/investigate` the CI/test failure, fix, verify locally |
+| "what changed recently", "catch me up" | Check `git log --oneline -20` + `vault/memory/status.md` |
+| "give feedback", "rate the output" | Run `/aif-feedback` to collect structured feedback |
 
 ---
 

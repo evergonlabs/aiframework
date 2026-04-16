@@ -210,6 +210,9 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Data**: `lib/data/archetypes.json` — Archetype registry (11 types)
 - **Data**: `lib/data/deploy_targets.json` — Deploy target registry (24 targets)
 - **Tests**: `tests/test_indexer.py` — Indexer unit tests
+- **Tests**: `tests/test_validators.sh` — Validator test suite (9 tests)
+- **Skills**: `.claude/skills/aif-feedback/SKILL.md` — User feedback collection
+- **Data**: `tools/learnings/feedback.jsonl` — Feedback storage
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
@@ -388,6 +391,9 @@ Full shipping workflow: verify → review → docs → changelog → commit.
 
 ### `/aif-learn`
 Capture project learnings to persistent storage (JSONL + vault).
+
+### `/aif-feedback`
+Collect structured user feedback (5 questions) saving to `tools/learnings/feedback.jsonl`. Integrates with `/aif-evolve`.
 
 ### `/aif-evolve`
 Analyze accumulated learnings and patterns. Synthesizes JSONL learnings into CLAUDE.md updates, new rules, and vault entries. Run periodically.

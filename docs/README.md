@@ -21,6 +21,9 @@
 | Document | Description |
 |----------|-------------|
 | [`guides/adding-a-scanner.md`](guides/adding-a-scanner.md) | Extend aiframework with a new scanner module: architecture, function signature, registration, testing |
+| [`guides/adding-a-domain.md`](guides/adding-a-domain.md) | Add a new domain detection: edit domains.json, create review specialist, test |
+| [`guides/creating-custom-skills.md`](guides/creating-custom-skills.md) | Create Claude Code skills: SKILL.md format, frontmatter, step structure, allowed-tools |
+| [`guides/prompting-effectively.md`](guides/prompting-effectively.md) | AI dev philosophy: skill routing, good vs bad prompts, vault usage, skill chaining |
 
 ## Explanation
 

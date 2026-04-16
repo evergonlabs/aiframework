@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-04-16
+### Added
+- **Dependency check** — `check_dependencies()` validates `jq` and `git` at startup with platform-specific install instructions
+- **Cleanup trap** — `trap cleanup EXIT` removes temp directories on exit
+- **Extended secret detection** — 12 new patterns: Stripe, Slack, SendGrid, private keys, DB connection strings, GCP, Azure
+- **4 vault lint functions** — HR-007 (updated date accuracy), HR-009 (flat tag format), HR-013 (CI/template protection), HR-015 (append-only logs)
+- **`/aif-feedback` skill** — 5-question structured feedback collection saving to `feedback.jsonl`
+- **Learnings seeded** — 8 audit-derived learnings in `aiframework-learnings.jsonl`
+- **macOS CI matrix** — lint and integration jobs run on both ubuntu-latest and macos-latest
+- **Validator test suite** — `tests/test_validators.sh` with 9 test cases across all 5 validators
+- **3 new guides** — Adding a Domain, Creating Custom Skills, Prompting Effectively
+- **6 routing table entries** — refactor, docs, performance, CI/tests, recent work, feedback
+
+### Fixed
+- **CI action pinned** — `ludeeus/action-shellcheck@master` → `@2.0.0` (supply chain safety)
+- **Python version** — docs corrected from 3.9+ to 3.10+ (match/case syntax requires 3.10)
+- **Pre-commit escaping** — HR-013 section had escaped `\$ci_changes` preventing variable expansion
+
+### Changed
+- **`/aif-evolve` fallback** — gracefully handles missing `~/.claude/usage-data/` directory (learnings-only mode)
+- **`generate_claude_md_full()` refactored** — decomposed 1562-line function into 10 `_emit_*` sub-functions
+
 ## [1.0.0] — 2026-04-16
 ### Added
 - **Skill-based enhancement** — `/aif-enhance`, `/aif-research`, `/aif-analyze`, `/aif-ingest` replace Agent SDK entirely. Zero API key, zero Python SDK dependency.
