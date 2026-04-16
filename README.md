@@ -134,7 +134,7 @@ aiframework run --target /path/to/repo
   │   └── skill_suggest (deploy, migrations, Docker, E2E...)
   │   → manifest.json + code-index.json
   │
-  ├── GENERATE (8 generators)
+  ├── GENERATE (7 generators)
   │   ├── CLAUDE.md (lean ~80-150 lines)
   │   ├── .claude/rules/ (path-scoped)
   │   ├── .claude/settings.json + skills/
@@ -142,7 +142,7 @@ aiframework run --target /path/to/repo
   │   └── vault/ (31 files, auto-ingest)
   │   → 23+ files
   │
-  └── VERIFY (5 validators, 36+ checks)
+  └── VERIFY (5 validators, 46+ checks)
       ├── files, consistency, security, quality_gate
       ├── freshness (manifest age, file drift, index staleness)
       └── → PASS / FAIL / WARN report
@@ -193,7 +193,7 @@ Commands:
   run         Full pipeline: discover → generate → verify → report
   discover    Scan repo → manifest.json + code-index.json
   generate    Read manifest → generate all files
-  verify      Validate generated files (36 checks + freshness)
+  verify      Validate generated files (46+ checks including freshness)
   report      Generate human-readable report of everything detected/generated
   refresh     Lightweight: re-discover + generate only if drift detected
   index       Build code index only
@@ -226,7 +226,7 @@ aiframework/
 ├── lib/
 │   ├── scanners/             # 12 deterministic scanners
 │   ├── indexers/             # Code indexer (Python, 13 languages)
-│   ├── generators/           # 8 file generators
+│   ├── generators/           # 7 file generators
 │   ├── validators/           # 5 verification modules + freshness
 │   ├── freshness/            # Drift detection
 │   ├── knowledge/            # Cross-repo learning store

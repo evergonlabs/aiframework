@@ -314,6 +314,263 @@ test_freshness_happy() {
   teardown_fixture
 }
 
+# --- Logging stubs for generator modules ---
+log_info()  { :; }
+log_ok()    { :; }
+log_warn()  { :; }
+
+# ============================================================
+# TEST: preserve_tracking — skip when file exists
+# ============================================================
+test_preserve_tracking_skip() {
+  echo -e "\n${BOLD}test_preserve_tracking_skip${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/preserve.sh"
+  # CHANGELOG.md already exists in fixture
+  if preserve_tracking "$FIXTURE_DIR/CHANGELOG.md"; then
+    fail "Expected return 1 (skip)" "got 0"
+  else
+    pass "preserve_tracking returns 1 when file exists"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: preserve_tracking — create when file missing
+# ============================================================
+test_preserve_tracking_create() {
+  echo -e "\n${BOLD}test_preserve_tracking_create${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/preserve.sh"
+  rm -f "$FIXTURE_DIR/CHANGELOG.md"
+  if preserve_tracking "$FIXTURE_DIR/CHANGELOG.md"; then
+    pass "preserve_tracking returns 0 when file missing"
+  else
+    fail "Expected return 0 (proceed)" "got 1"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: preserve_doc — skip when file exists
+# ============================================================
+test_preserve_doc_skip() {
+  echo -e "\n${BOLD}test_preserve_doc_skip${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/preserve.sh"
+  # CONTRIBUTING.md already exists in fixture
+  if preserve_doc "$FIXTURE_DIR/CONTRIBUTING.md"; then
+    fail "Expected return 1 (skip)" "got 0"
+  else
+    pass "preserve_doc returns 1 when file exists"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: preserve_hook — skip when file exists
+# ============================================================
+test_preserve_hook_skip() {
+  echo -e "\n${BOLD}test_preserve_hook_skip${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/preserve.sh"
+  # .githooks/pre-push already exists in fixture
+  if preserve_hook "$FIXTURE_DIR/.githooks/pre-push"; then
+    fail "Expected return 1 (skip)" "got 0"
+  else
+    pass "preserve_hook returns 1 when hook exists"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: _backup_file — creates backup copy
+# ============================================================
+test_backup_file_creates_backup() {
+  echo -e "\n${BOLD}test_backup_file_creates_backup${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/preserve.sh"
+  export TARGET_DIR="$FIXTURE_DIR"
+  _PRESERVE_BACKUP_DIR="$FIXTURE_DIR/.aiframework/backups/test-run"
+
+  echo "backup me" > "$FIXTURE_DIR/testfile.txt"
+  _backup_file "$FIXTURE_DIR/testfile.txt"
+
+  if find "$_PRESERVE_BACKUP_DIR" -name "testfile.txt" -type f 2>/dev/null | grep -q .; then
+    pass "_backup_file creates backup of existing file"
+  else
+    fail "Expected backup file to exist" "not found in $_PRESERVE_BACKUP_DIR"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: _backup_file — skips symlinks
+# ============================================================
+test_backup_file_skips_symlink() {
+  echo -e "\n${BOLD}test_backup_file_skips_symlink${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/preserve.sh"
+  export TARGET_DIR="$FIXTURE_DIR"
+  _PRESERVE_BACKUP_DIR="$FIXTURE_DIR/.aiframework/backups/test-symlink"
+
+  echo "real" > "$FIXTURE_DIR/real.txt"
+  ln -s "$FIXTURE_DIR/real.txt" "$FIXTURE_DIR/link.txt"
+  _backup_file "$FIXTURE_DIR/link.txt"
+
+  if [[ -d "$_PRESERVE_BACKUP_DIR" ]] && find "$_PRESERVE_BACKUP_DIR" -name "link.txt" -type f 2>/dev/null | grep -q .; then
+    fail "Expected no backup for symlink" "backup was created"
+  else
+    pass "_backup_file skips symlinks"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: _sanitize_manifest_val — strips backticks
+# ============================================================
+test_sanitize_strips_backticks() {
+  echo -e "\n${BOLD}test_sanitize_strips_backticks${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/skills.sh"
+  local result
+  result=$(_sanitize_manifest_val 'hello `world`')
+
+  if [[ "$result" == "hello world" ]]; then
+    pass "_sanitize_manifest_val strips backticks"
+  else
+    fail "Expected 'hello world'" "got '$result'"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: _sanitize_manifest_val — strips $()
+# ============================================================
+test_sanitize_strips_dollar_parens() {
+  echo -e "\n${BOLD}test_sanitize_strips_dollar_parens${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/skills.sh"
+  local result
+  result=$(_sanitize_manifest_val 'hello $(rm -rf /)')
+
+  if echo "$result" | grep -q 'REMOVED'; then
+    pass "_sanitize_manifest_val replaces \$() with REMOVED"
+  else
+    fail "Expected REMOVED in output" "got '$result'"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: _sanitize_manifest_val — strips ${}
+# ============================================================
+test_sanitize_strips_dollar_braces() {
+  echo -e "\n${BOLD}test_sanitize_strips_dollar_braces${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/skills.sh"
+  local result
+  result=$(_sanitize_manifest_val 'hello ${HOME}')
+
+  if echo "$result" | grep -q 'REMOVED'; then
+    pass "_sanitize_manifest_val replaces \${} with REMOVED"
+  else
+    fail "Expected REMOVED in output" "got '$result'"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: _sanitize_manifest_val — preserves normal text
+# ============================================================
+test_sanitize_preserves_normal() {
+  echo -e "\n${BOLD}test_sanitize_preserves_normal${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/generators/skills.sh"
+  local result
+  result=$(_sanitize_manifest_val 'my-app v1.0')
+
+  if [[ "$result" == "my-app v1.0" ]]; then
+    pass "_sanitize_manifest_val preserves normal text"
+  else
+    fail "Expected 'my-app v1.0'" "got '$result'"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: scan_skill_suggestions — detects deploy script
+# ============================================================
+test_skill_suggest_deploy() {
+  echo -e "\n${BOLD}test_skill_suggest_deploy${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/scanners/skill_suggest.sh"
+  echo "#!/bin/bash" > "$FIXTURE_DIR/deploy.sh"
+
+  scan_skill_suggestions
+
+  if echo "$MANIFEST" | jq -e '.skill_suggestions[] | select(.name == "deploy")' >/dev/null 2>&1; then
+    pass "scan_skill_suggestions detects deploy.sh"
+  else
+    fail "Expected deploy suggestion in MANIFEST" "not found"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: scan_skill_suggestions — empty fixture yields no suggestions
+# ============================================================
+test_skill_suggest_empty() {
+  echo -e "\n${BOLD}test_skill_suggest_empty${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/scanners/skill_suggest.sh"
+  # Fixture has no deploy.sh, docker-compose.yml, etc.
+
+  scan_skill_suggestions
+
+  local count
+  count=$(echo "$MANIFEST" | jq '.skill_suggestions | length' 2>/dev/null || echo "-1")
+
+  if [[ "$count" -eq 0 ]]; then
+    pass "scan_skill_suggestions returns 0 suggestions on empty fixture"
+  else
+    fail "Expected 0 suggestions" "got $count"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
+# TEST: scan_skill_suggestions — detects docker-compose
+# ============================================================
+test_skill_suggest_docker() {
+  echo -e "\n${BOLD}test_skill_suggest_docker${NC}"
+  setup_fixture
+
+  source "$LIB_DIR/scanners/skill_suggest.sh"
+  echo "version: '3'" > "$FIXTURE_DIR/docker-compose.yml"
+
+  scan_skill_suggestions
+
+  if echo "$MANIFEST" | jq -e '.skill_suggestions[] | select(.name == "infra")' >/dev/null 2>&1; then
+    pass "scan_skill_suggestions detects docker-compose.yml"
+  else
+    fail "Expected infra suggestion in MANIFEST" "not found"
+  fi
+  teardown_fixture
+}
+
 # ============================================================
 # Run all tests
 # ============================================================
@@ -328,6 +585,19 @@ test_consistency_happy
 test_consistency_placeholders
 test_quality_gate_happy
 test_freshness_happy
+test_preserve_tracking_skip
+test_preserve_tracking_create
+test_preserve_doc_skip
+test_preserve_hook_skip
+test_backup_file_creates_backup
+test_backup_file_skips_symlink
+test_sanitize_strips_backticks
+test_sanitize_strips_dollar_parens
+test_sanitize_strips_dollar_braces
+test_sanitize_preserves_normal
+test_skill_suggest_deploy
+test_skill_suggest_empty
+test_skill_suggest_docker
 
 echo ""
 echo -e "${BOLD}=== Results ===${NC}"

@@ -53,7 +53,7 @@ _generate_workflow_rules() {
     qa_rules=$(jq -r --arg l "$_cm_lang" '.languages[$l].qa_rules[]? // empty' "$qa_data_file" 2>/dev/null)
     if [[ -n "$qa_rules" ]]; then
       local lang_display
-      lang_display=$(echo "$_cm_lang" | sed 's/^./\U&/; s/csharp/C#/; s/cpp/C++/')
+      lang_display=$(echo "$_cm_lang" | awk '{print toupper(substr($0,1,1)) substr($0,2)}' | sed 's/Csharp/C#/; s/Cpp/C++/')
       qa_rules_block=$'\n'"### ${lang_display} QA Rules"$'\n'
       while IFS= read -r rule; do
         [[ -z "$rule" ]] && continue
@@ -556,7 +556,7 @@ _emit_qa_autofix() {
     qa_rules=$(jq -r --arg l "$lang" '.languages[$l].qa_rules[]? // empty' "$qa_data_file" 2>/dev/null)
     if [[ -n "$qa_rules" ]]; then
       local lang_display
-      lang_display=$(echo "$lang" | sed 's/^./\U&/; s/csharp/C#/; s/cpp/C++/')
+      lang_display=$(echo "$lang" | awk '{print toupper(substr($0,1,1)) substr($0,2)}' | sed 's/Csharp/C#/; s/Cpp/C++/')
       echo "" >> "$out"
       echo "**${lang_display} QA Rules:**" >> "$out"
       while IFS= read -r rule; do

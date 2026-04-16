@@ -50,7 +50,7 @@ raw_changes=$(git diff --cached --name-only -- "vault/raw/" 2>/dev/null || true)
 if [[ -n "$raw_changes" ]]; then
   log_fail "HR-001: Cannot modify files in raw/ (immutable)"
   echo "$raw_changes" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-001: raw/ immutability"
 fi
@@ -64,7 +64,7 @@ if [[ -n "$staged_md" ]]; then
       first_line=$(head -1 "$file")
       if [[ "$first_line" != "---" ]]; then
         log_fail "HR-002: Missing YAML frontmatter in: $file"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     fi
   done <<< "$staged_md"
@@ -84,7 +84,7 @@ if type -t lint_hr003_approved_tags &>/dev/null && [[ -n "$staged_md" ]]; then
         [[ -z "$tag" ]] && continue
         if ! validate_tag "$tag" "$approved"; then
           log_fail "HR-003: Unapproved tag '$tag' in: $file"
-          ((tag_errors++))
+          tag_errors=$((tag_errors + 1))
         fi
       done < <(get_frontmatter_tags "$file")
     done <<< "$staged_md"
@@ -109,7 +109,7 @@ if [[ -n "$new_wiki" ]]; then
         # Also check staged version of index
         if ! git diff --cached -- "$index_file" 2>/dev/null | grep -qF "$rel"; then
           log_fail "HR-008: New file not in index: $rel"
-          ((hr008_errors++))
+          hr008_errors=$((hr008_errors + 1))
         fi
       fi
     done <<< "$new_wiki"
@@ -125,7 +125,7 @@ vault_changes=$(git diff --cached --name-only -- "vault/.vault/rules/" "vault/.v
 if [[ -n "$vault_changes" ]]; then
   log_fail "HR-011: Changes to protected .vault/ paths require human review:"
   echo "$vault_changes" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-011: .vault/ protection intact"
 fi
@@ -135,7 +135,7 @@ config_changes=$(git diff --cached --name-only -- "CLAUDE.md" "AGENTS.md" ".clau
 if [[ -n "$config_changes" ]]; then
   log_fail "HR-012: Changes to agent config files require human review:"
   echo "$config_changes" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-012: Agent config protection intact"
 fi
@@ -152,7 +152,7 @@ vault_deletions=$(git diff --cached --diff-filter=D --name-only -- "vault/" 2>/d
 if [[ -n "$vault_deletions" ]]; then
   log_fail "HR-014: File deletions not allowed (use status: archived instead):"
   echo "$vault_deletions" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-014: No file deletions"
 fi

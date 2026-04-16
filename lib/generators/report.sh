@@ -375,19 +375,10 @@ CMDS_HEADER
   echo "## 11. Verification" >> "$report"
   echo "" >> "$report"
 
-  # Re-run verify and capture output
-  local verify_output
-  verify_output=$(cmd_verify 2>&1) || true
-  local pass_count fail_count warn_count
-  pass_count=$(echo "$verify_output" | grep -oE 'Passed: [0-9]+' | grep -oE '[0-9]+' || echo "0")
-  fail_count=$(echo "$verify_output" | grep -oE 'Failed: [0-9]+' | grep -oE '[0-9]+' || echo "0")
-  warn_count=$(echo "$verify_output" | grep -oE 'Warnings: [0-9]+' | grep -oE '[0-9]+' || echo "0")
-
-  echo "| Result | Count |" >> "$report"
-  echo "|--------|-------|" >> "$report"
-  echo "| Passed | ${pass_count} |" >> "$report"
-  echo "| Failed | ${fail_count} |" >> "$report"
-  echo "| Warnings | ${warn_count} |" >> "$report"
+  # Note: verification results are displayed by cmd_verify in the pipeline.
+  # We do not re-run cmd_verify here to avoid duplicate output and wasted time.
+  echo "Verification is performed as a separate pipeline step." >> "$report"
+  echo "See the **verify** output above (or run \`aiframework verify\` standalone)." >> "$report"
 
   echo "" >> "$report"
   echo "---" >> "$report"

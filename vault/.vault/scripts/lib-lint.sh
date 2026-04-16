@@ -45,7 +45,7 @@ lint_hr002_frontmatter() {
 
     if ! has_frontmatter "$file"; then
       log_fail "HR-002: Missing frontmatter: $rel"
-      ((errors++))
+      errors=$((errors + 1))
       continue
     fi
 
@@ -54,7 +54,7 @@ lint_hr002_frontmatter() {
       val=$(get_frontmatter_field "$file" "$field")
       if [[ -z "$val" && "$field" != "tags" ]]; then
         log_fail "HR-002: Missing field '$field' in: $rel"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     done
 
@@ -63,7 +63,7 @@ lint_hr002_frontmatter() {
     tag_count=$(get_frontmatter_tags "$file" | grep -c . || true)
     if [[ "$tag_count" -eq 0 ]]; then
       log_fail "HR-002: No tags found in: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find "$vault_root/wiki" "$vault_root/memory" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -92,11 +92,11 @@ lint_hr003_approved_tags() {
       [[ -z "$tag" ]] && continue
       if ! validate_tag "$tag" "$approved"; then
         log_fail "HR-003: Unapproved tag '$tag' in: $rel"
-        ((errors++))
+        errors=$((errors + 1))
       fi
       if ! validate_tag_format "$tag"; then
         log_fail "HR-003: Invalid tag format '$tag' in: $rel (must be prefix/value)"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     done < <(get_frontmatter_tags "$file")
   done < <(find "$vault_root/wiki" "$vault_root/memory" -name "*.md" -type f -print0 2>/dev/null)
@@ -121,10 +121,10 @@ lint_hr004_wiki_length() {
 
     if [[ $lines -gt 400 ]]; then
       log_fail "HR-004: BLOCK — $rel has $lines lines (max 400)"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ $lines -gt 200 ]]; then
       log_warn "HR-004: WARN — $rel has $lines lines (target < 200)"
-      ((warnings++))
+      warnings=$((warnings + 1))
     fi
   done < <(find "$vault_root/wiki" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -149,7 +149,7 @@ lint_hr005_code_length() {
 
     if [[ $lines -gt 600 ]]; then
       log_fail "HR-005: BLOCK — $rel has $lines lines (max 600)"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ $lines -gt 400 ]]; then
       log_warn "HR-005: WARN — $rel has $lines lines (target < 400)"
     fi
@@ -177,7 +177,7 @@ lint_hr006_unique_titles() {
 
     if echo "$seen_titles" | grep -qF "|$title|"; then
       log_fail "HR-006: Duplicate title '$title' in: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     else
       seen_titles="${seen_titles}|${title}|"
     fi
@@ -208,7 +208,7 @@ lint_hr008_index_registration() {
 
     if ! is_indexed "$rel" "$index_file"; then
       log_fail "HR-008: Unregistered page: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find "$vault_root/wiki" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -229,7 +229,7 @@ lint_hr010_binary_quarantine() {
       local rel
       rel=$(rel_path "$file" "$vault_root")
       log_fail "HR-010: Non-md/json file in wiki/memory: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find "$vault_root/wiki" "$vault_root/memory" -type f -print0 2>/dev/null)
 
@@ -238,7 +238,7 @@ lint_hr010_binary_quarantine() {
     local rel
     rel=$(rel_path "$link" "$vault_root")
     log_fail "HR-010: Symlink detected in wiki/memory: $rel"
-    ((errors++))
+    errors=$((errors + 1))
   done < <(find "$vault_root/wiki" "$vault_root/memory" -type l -print0 2>/dev/null)
 
   if [[ $errors -eq 0 ]]; then
@@ -345,7 +345,7 @@ lint_hr007_updated_accuracy() {
         local diff_days=$(( (git_epoch - updated_epoch) / 86400 ))
         if [[ $diff_days -gt 30 ]]; then
           log_fail "HR-007: Stale 'updated' date in $rel (frontmatter: $updated, git: $git_date, ${diff_days}d behind)"
-          ((errors++))
+          errors=$((errors + 1))
         fi
       fi
     fi
@@ -384,7 +384,7 @@ lint_hr009_flat_tags() {
             [[ -z "$tag" ]] && continue
             if [[ ! "$tag" =~ / ]]; then
               log_fail "HR-009: Tag '$tag' missing prefix/value format in $rel (expected: prefix/value)"
-              ((errors++))
+              errors=$((errors + 1))
             fi
           done <<< "$tag_list"
           continue
@@ -399,7 +399,7 @@ lint_hr009_flat_tags() {
           [[ -z "$tag" ]] && continue
           if [[ ! "$tag" =~ / ]]; then
             log_fail "HR-009: Tag '$tag' missing prefix/value format in $rel (expected: prefix/value)"
-            ((errors++))
+            errors=$((errors + 1))
           fi
         else
           in_tags=0
@@ -471,21 +471,21 @@ lint_all() {
   local vault_root="$1"
   local total_errors=0
 
-  lint_hr001_raw_immutability "$vault_root" || ((total_errors++))
-  lint_hr002_frontmatter "$vault_root"      || ((total_errors++))
-  lint_hr003_approved_tags "$vault_root"     || ((total_errors++))
-  lint_hr004_wiki_length "$vault_root"       || ((total_errors++))
-  lint_hr005_code_length "$vault_root"       || ((total_errors++))
-  lint_hr006_unique_titles "$vault_root"     || ((total_errors++))
-  lint_hr007_updated_accuracy "$vault_root"  || ((total_errors++))
-  lint_hr008_index_registration "$vault_root"|| ((total_errors++))
-  lint_hr009_flat_tags "$vault_root"         || ((total_errors++))
-  lint_hr010_binary_quarantine "$vault_root" || ((total_errors++))
-  lint_hr011_vault_protection "$vault_root"  || ((total_errors++))
-  lint_hr012_config_protection "$vault_root" || ((total_errors++))
-  lint_hr013_ci_template_protection "$vault_root" || ((total_errors++))
-  lint_hr014_no_deletion "$vault_root"       || ((total_errors++))
-  lint_hr015_append_only_logs "$vault_root"  || ((total_errors++))
+  lint_hr001_raw_immutability "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr002_frontmatter "$vault_root"      || total_errors=$((total_errors + 1))
+  lint_hr003_approved_tags "$vault_root"     || total_errors=$((total_errors + 1))
+  lint_hr004_wiki_length "$vault_root"       || total_errors=$((total_errors + 1))
+  lint_hr005_code_length "$vault_root"       || total_errors=$((total_errors + 1))
+  lint_hr006_unique_titles "$vault_root"     || total_errors=$((total_errors + 1))
+  lint_hr007_updated_accuracy "$vault_root"  || total_errors=$((total_errors + 1))
+  lint_hr008_index_registration "$vault_root"|| total_errors=$((total_errors + 1))
+  lint_hr009_flat_tags "$vault_root"         || total_errors=$((total_errors + 1))
+  lint_hr010_binary_quarantine "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr011_vault_protection "$vault_root"  || total_errors=$((total_errors + 1))
+  lint_hr012_config_protection "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr013_ci_template_protection "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr014_no_deletion "$vault_root"       || total_errors=$((total_errors + 1))
+  lint_hr015_append_only_logs "$vault_root"  || total_errors=$((total_errors + 1))
 
   return $total_errors
 }

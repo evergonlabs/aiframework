@@ -3,10 +3,24 @@
 # Creates project-specific review and ship skills
 
 # Sanitize manifest values for safe use in heredocs and echo statements.
-# Strips backticks, $(), ${}, and backslashes to prevent command injection
+# Allowlist: keep only safe characters for use in heredocs and echo statements.
+# Strips shell metacharacters that could enable injection
 # from malicious package.json names or descriptions.
 _sanitize_manifest_val() {
-  echo "$1" | tr -d '`' | sed 's/\$([^)]*)/REMOVED/g; s/\${[^}]*}/REMOVED/g; s/\\//g'
+  local val="$1"
+  # Remove backticks
+  val="${val//\`/}"
+  # Remove $(...) patterns (including nested)
+  val=$(echo "$val" | sed -E 's/\$\([^)]*\)/REMOVED/g')
+  # Remove ${...} patterns
+  val=$(echo "$val" | sed -E 's/\$\{[^}]*\}/REMOVED/g')
+  # Remove $((...)) arithmetic
+  val=$(echo "$val" | sed -E 's/\$\(\([^)]*\)\)/REMOVED/g')
+  # Remove backslashes (escape sequences)
+  val="${val//\\/}"
+  # Remove newlines and carriage returns
+  val=$(echo "$val" | tr -d '\n\r')
+  echo "$val"
 }
 
 generate_skills() {

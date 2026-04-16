@@ -157,39 +157,39 @@ SETUPMD
 ## Code Style
 CONTRIBMD
 
-  # Language-aware code style and testing sections
-  if [[ "$lint" != "NOT_CONFIGURED" ]]; then
-    echo "- Linter: \`${lint}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
-  else
-    echo "- Enforced by linter: $(echo "$m" | jq -r '.quality.linter.tool // "not configured"')" >> "$TARGET_DIR/CONTRIBUTING.md"
-  fi
-  if [[ "$format_cmd" != "NOT_CONFIGURED" ]]; then
-    echo "- Formatter: \`${format_cmd}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
-  else
-    echo "- Formatted by: $(echo "$m" | jq -r '.quality.formatter.tool // "not configured"')" >> "$TARGET_DIR/CONTRIBUTING.md"
-  fi
-
-  echo "" >> "$TARGET_DIR/CONTRIBUTING.md"
-  echo "## Testing" >> "$TARGET_DIR/CONTRIBUTING.md"
-
-  if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
-    echo "- Framework: $(echo "$m" | jq -r '.quality.test_framework.tool // "not configured"')" >> "$TARGET_DIR/CONTRIBUTING.md"
-    echo "- Run: \`${test_cmd}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
-    echo "- Write tests for all new functionality" >> "$TARGET_DIR/CONTRIBUTING.md"
-  else
-    local typecheck_cmd_val
-    typecheck_cmd_val=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
-    echo "" >> "$TARGET_DIR/CONTRIBUTING.md"
-    echo "No test framework is configured yet. Testing is done via:" >> "$TARGET_DIR/CONTRIBUTING.md"
-    echo "" >> "$TARGET_DIR/CONTRIBUTING.md"
-    if [[ "$typecheck_cmd_val" != "NOT_CONFIGURED" ]]; then
-      echo "1. **Syntax check**: \`${typecheck_cmd_val}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
-    fi
+    # Language-aware code style and testing sections
     if [[ "$lint" != "NOT_CONFIGURED" ]]; then
-      echo "2. **Lint**: \`${lint}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
+      echo "- Linter: \`${lint}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
+    else
+      echo "- Enforced by linter: $(echo "$m" | jq -r '.quality.linter.tool // "not configured"')" >> "$TARGET_DIR/CONTRIBUTING.md"
     fi
-    echo "3. **CI**: GitHub Actions runs quality checks on all PRs" >> "$TARGET_DIR/CONTRIBUTING.md"
-  fi
+    if [[ "$format_cmd" != "NOT_CONFIGURED" ]]; then
+      echo "- Formatter: \`${format_cmd}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
+    else
+      echo "- Formatted by: $(echo "$m" | jq -r '.quality.formatter.tool // "not configured"')" >> "$TARGET_DIR/CONTRIBUTING.md"
+    fi
+
+    echo "" >> "$TARGET_DIR/CONTRIBUTING.md"
+    echo "## Testing" >> "$TARGET_DIR/CONTRIBUTING.md"
+
+    if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
+      echo "- Framework: $(echo "$m" | jq -r '.quality.test_framework.tool // "not configured"')" >> "$TARGET_DIR/CONTRIBUTING.md"
+      echo "- Run: \`${test_cmd}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
+      echo "- Write tests for all new functionality" >> "$TARGET_DIR/CONTRIBUTING.md"
+    else
+      local typecheck_cmd_val
+      typecheck_cmd_val=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
+      echo "" >> "$TARGET_DIR/CONTRIBUTING.md"
+      echo "No test framework is configured yet. Testing is done via:" >> "$TARGET_DIR/CONTRIBUTING.md"
+      echo "" >> "$TARGET_DIR/CONTRIBUTING.md"
+      if [[ "$typecheck_cmd_val" != "NOT_CONFIGURED" ]]; then
+        echo "1. **Syntax check**: \`${typecheck_cmd_val}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
+      fi
+      if [[ "$lint" != "NOT_CONFIGURED" ]]; then
+        echo "2. **Lint**: \`${lint}\`" >> "$TARGET_DIR/CONTRIBUTING.md"
+      fi
+      echo "3. **CI**: GitHub Actions runs quality checks on all PRs" >> "$TARGET_DIR/CONTRIBUTING.md"
+    fi
 
     log_ok "Created CONTRIBUTING.md"
   fi

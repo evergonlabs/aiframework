@@ -1,6 +1,7 @@
 ---
 name: aif-evolve
-description: Analyze Claude Code native insights + project learnings to evolve CLAUDE.md, rules, and skills. Reads session data (friction, goals, tool usage, satisfaction) and learnings JSONL to propose targeted improvements. Run periodically.
+description: Evolve CLAUDE.md and rules from session data and learnings. Run weekly.
+disable-model-invocation: true
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
@@ -209,7 +210,7 @@ For each approved change, use Edit tool to update:
 Record what changed:
 
 ```bash
-echo '{"date":"'$(date +%Y-%m-%d)'","category":"pattern","summary":"Evolution session","detail":"Analyzed N sessions + N learnings. Applied N changes to CLAUDE.md and N new rules.","files":["CLAUDE.md",".claude/rules/"]}' >> tools/learnings/*-learnings.jsonl
+echo '{"date":"'$(date +%Y-%m-%d)'","category":"pattern","summary":"Evolution session","detail":"Analyzed N sessions + N learnings. Applied N changes to CLAUDE.md and N new rules.","files":["CLAUDE.md",".claude/rules/"]}' >> tools/learnings/"$(jq -r '.identity.short_name' .aiframework/manifest.json 2>/dev/null || echo project)"-learnings.jsonl
 ```
 
 Append to vault log:

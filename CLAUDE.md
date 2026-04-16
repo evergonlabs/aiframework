@@ -224,7 +224,6 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Source**: `lib/validators/security.sh` — Security scanner
 - **Source**: `lib/freshness/track.sh` — Drift detection module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
-- **Components**: 2 models
 
 ---
 

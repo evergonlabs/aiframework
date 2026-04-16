@@ -56,8 +56,6 @@ check_dependencies() {
   fi
 }
 
-check_dependencies
-
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -136,6 +134,12 @@ parse_args() {
   # Handle --help/-h as first argument
   if [[ "$1" == "--help" || "$1" == "-h" || "$1" == "help" ]]; then
     usage
+    exit 0
+  fi
+
+  # Handle --version/-v
+  if [[ "$1" == "--version" || "$1" == "-v" ]]; then
+    cat "$ROOT_DIR/VERSION"
     exit 0
   fi
 
@@ -501,6 +505,9 @@ cmd_run() {
 
 # Main
 parse_args "$@"
+
+# Check dependencies only when actually running a command (not for --help/--version)
+check_dependencies
 
 case "$COMMAND" in
   discover)  cmd_discover ;;
