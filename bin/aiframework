@@ -62,20 +62,103 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+WHITE='\033[1;37m'
+DIM='\033[2m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-log_info()  { echo -e "${BLUE}[INFO]${NC}  $*"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
-log_step()  { echo -e "${CYAN}[STEP]${NC}  ${BOLD}$*${NC}"; }
+# Timing
+_AIF_PHASE_START=0
+_aif_timer_start() { _AIF_PHASE_START=$SECONDS; }
+_aif_timer_elapsed() {
+  local elapsed=$(( SECONDS - _AIF_PHASE_START ))
+  if [[ $elapsed -lt 1 ]]; then
+    printf "0.%ss" "$(( (SECONDS * 10 - _AIF_PHASE_START * 10) % 10 ))"
+  else
+    printf "%s.%ss" "$elapsed" "$(( (SECONDS * 10 - _AIF_PHASE_START * 10) % 10 ))"
+  fi
+}
+
+# Step counter for progress tracking
+_AIF_STEP=0
+_AIF_STEP_TOTAL=0
+
+log_info()  { echo -e "  ${BLUE}ℹ${NC}  $*"; }
+log_ok()    { echo -e "  ${GREEN}✓${NC}  $*"; }
+log_warn()  { echo -e "  ${YELLOW}⚠${NC}  $*"; }
+log_error() { echo -e "  ${RED}✗${NC}  $*"; }
+
+log_step() {
+  _AIF_STEP=$((_AIF_STEP + 1))
+  if [[ $_AIF_STEP_TOTAL -gt 0 ]]; then
+    local pct=$(( _AIF_STEP * 100 / _AIF_STEP_TOTAL ))
+    local filled=$(( pct / 5 ))
+    local empty=$(( 20 - filled ))
+    local bar=""
+    local i
+    for ((i=0; i<filled; i++)); do bar+="█"; done
+    for ((i=0; i<empty; i++)); do bar+="░"; done
+    echo -e "  ${CYAN}├─${NC} ${DIM}[${_AIF_STEP}/${_AIF_STEP_TOTAL}]${NC} ${BOLD}$*${NC} ${DIM}${bar}${NC}"
+  else
+    echo -e "  ${CYAN}├─${NC} ${BOLD}$*${NC}"
+  fi
+}
+
+log_phase() {
+  local name="$1"
+  local count="${2:-}"
+  _AIF_STEP=0
+  _AIF_STEP_TOTAL=0
+  _aif_timer_start
+  echo ""
+  if [[ -n "$count" ]]; then
+    _AIF_STEP_TOTAL=$count
+    echo -e "  ${CYAN}┌─${NC} ${WHITE}${BOLD}${name}${NC} ${DIM}(${count} steps)${NC}"
+  else
+    echo -e "  ${CYAN}┌─${NC} ${WHITE}${BOLD}${name}${NC}"
+  fi
+  echo -e "  ${CYAN}│${NC}"
+}
+
+log_phase_done() {
+  local elapsed
+  elapsed=$(_aif_timer_elapsed)
+  echo -e "  ${CYAN}│${NC}"
+  echo -e "  ${CYAN}└─${NC} ${GREEN}done${NC} ${DIM}${elapsed}${NC}"
+}
 
 banner() {
+  local version
+  version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
   echo ""
-  echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "${BOLD}  aiframework — Universal Automation Bootstrap${NC}"
-  echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "  ${CYAN}╔═══════════════════════════════════════════════╗${NC}"
+  echo -e "  ${CYAN}║${NC}  ${WHITE}${BOLD}▄▀█ █ █▀▀ █▀█ ▄▀█ █▀▄▀█ █▀▀${NC}              ${CYAN}║${NC}"
+  echo -e "  ${CYAN}║${NC}  ${WHITE}${BOLD}█▀█ █ █▀  █▀▄ █▀█ █ ▀ █ ██▄${NC}              ${CYAN}║${NC}"
+  echo -e "  ${CYAN}║${NC}  ${DIM}Universal Automation Bootstrap${NC}  ${MAGENTA}v${version}${NC}   ${CYAN}║${NC}"
+  echo -e "  ${CYAN}╚═══════════════════════════════════════════════╝${NC}"
+  echo ""
+}
+
+# Completion summary box
+_aif_summary() {
+  local project="$1" stack="$2" files="$3" checks="$4" failed="$5" report="$6"
+  local status_icon status_text status_color
+  if [[ "$failed" -eq 0 ]]; then
+    status_icon="✓"; status_text="Pipeline Complete"; status_color="$GREEN"
+  else
+    status_icon="⚠"; status_text="Pipeline Complete (with warnings)"; status_color="$YELLOW"
+  fi
+  echo ""
+  echo -e "  ${CYAN}╔═══════════════════════════════════════════════╗${NC}"
+  echo -e "  ${CYAN}║${NC}  ${status_color}${BOLD}${status_icon} ${status_text}${NC}$(printf '%*s' $((27 - ${#status_text})) '')${CYAN}║${NC}"
+  echo -e "  ${CYAN}╠═══════════════════════════════════════════════╣${NC}"
+  echo -e "  ${CYAN}║${NC}  ${DIM}Project:${NC}  ${BOLD}${project}${NC}$(printf '%*s' $((36 - ${#project})) '')${CYAN}║${NC}"
+  echo -e "  ${CYAN}║${NC}  ${DIM}Stack:${NC}    ${stack}$(printf '%*s' $((36 - ${#stack})) '')${CYAN}║${NC}"
+  echo -e "  ${CYAN}║${NC}  ${DIM}Files:${NC}    ${files} generated$(printf '%*s' $((26 - ${#files})) '')${CYAN}║${NC}"
+  echo -e "  ${CYAN}║${NC}  ${DIM}Checks:${NC}   ${GREEN}${checks} passed${NC}, ${RED}${failed} failed${NC}$(printf '%*s' $((22 - ${#checks} - ${#failed})) '')${CYAN}║${NC}"
+  echo -e "  ${CYAN}║${NC}  ${DIM}Report:${NC}   ${report}$(printf '%*s' $((36 - ${#report})) '')${CYAN}║${NC}"
+  echo -e "  ${CYAN}╚═══════════════════════════════════════════════╝${NC}"
   echo ""
 }
 
@@ -188,8 +271,9 @@ source "$LIB_DIR/freshness/track.sh"
 
 cmd_discover() {
   banner
-  log_step "DISCOVER — Scanning repo at $TARGET_DIR"
-  echo ""
+  log_phase "DISCOVER" 12
+  log_info "Scanning repo at ${BOLD}$TARGET_DIR${NC}"
+  echo -e "  ${CYAN}│${NC}"
 
   mkdir -p "$OUTPUT_DIR"
 
@@ -211,43 +295,48 @@ cmd_discover() {
   MANIFEST="{}"
 
   # Run each scanner — each appends to MANIFEST
-  log_step "1/12 Project Identity"
+  log_step "Project Identity"
   scan_identity
 
-  log_step "2/12 Stack Detection"
+  log_step "Stack Detection"
   scan_stack
 
-  log_step "3/12 Commands & Package Manager"
+  log_step "Commands & Package Manager"
   scan_commands
 
-  log_step "4/12 Directory Structure"
+  log_step "Directory Structure"
   scan_structure
 
-  log_step "5/12 CI/CD & Deploy"
+  log_step "CI/CD & Deploy"
   scan_ci
 
-  log_step "6/12 Environment Variables"
+  log_step "Environment Variables"
   scan_env
 
-  log_step "7/12 Quality Tools"
+  log_step "Quality Tools"
   scan_quality
 
-  log_step "8/12 Domain-Specific Concerns"
+  log_step "Domain-Specific Concerns"
   scan_domain
 
-  log_step "9/12 User Context"
+  log_step "User Context"
   scan_user_context
 
   if [[ "$NO_INDEX" != "true" ]]; then
-    log_step "10/12 Code Index"
+    log_step "Code Index"
     scan_code_index
+  else
+    _AIF_STEP=$((_AIF_STEP + 1))
+    echo -e "  ${CYAN}├─${NC} ${DIM}[${_AIF_STEP}/${_AIF_STEP_TOTAL}]${NC} ${DIM}Code Index (skipped)${NC}"
   fi
 
-  log_step "11/12 Archetype Detection"
+  log_step "Archetype Detection"
   scan_archetype
 
-  log_step "12/12 Skill Suggestions"
+  log_step "Skill Suggestions"
   scan_skill_suggestions
+
+  log_phase_done
 
   # Add metadata
   MANIFEST=$(echo "$MANIFEST" | jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
@@ -272,27 +361,13 @@ cmd_discover() {
   knowledge_record_profile "$MANIFEST"
 
   echo ""
-  log_ok "Manifest written to $MANIFEST_PATH"
-  log_info "$(echo "$MANIFEST" | jq '._meta' 2>/dev/null)"
-  echo ""
-
-  # Print summary
-  echo -e "${BOLD}Discovery Summary:${NC}"
-  echo "  Project:    $(echo "$MANIFEST" | jq -r '.identity.name // "unknown"')"
-  echo "  Language:   $(echo "$MANIFEST" | jq -r '.stack.language // "unknown"')"
-  echo "  Framework:  $(echo "$MANIFEST" | jq -r '.stack.framework // "none"')"
-  echo "  Monorepo:   $(echo "$MANIFEST" | jq -r '.stack.is_monorepo // false')"
-  echo "  Files:      $(echo "$MANIFEST" | jq -r '.structure.file_counts | to_entries | map("\(.key): \(.value)") | join(", ") // "none"' 2>/dev/null || echo "none")"
-  echo "  CI:         $(echo "$MANIFEST" | jq -r '.ci.provider // "none"')"
-  echo "  Env vars:   $(echo "$MANIFEST" | jq -r '.env.variables | length // 0' 2>/dev/null || echo "0")"
-  echo "  Quality:    $(echo "$MANIFEST" | jq -r '[.quality | to_entries[] | select(.value.configured == true) | .key] | join(", ") // "none"' 2>/dev/null || echo "none")"
+  log_ok "Manifest written to ${BOLD}$MANIFEST_PATH${NC}"
   echo ""
 }
 
 cmd_generate() {
   banner
-  log_step "GENERATE — Building files from manifest"
-  echo ""
+  log_phase "GENERATE" 7
 
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
@@ -318,37 +393,38 @@ cmd_generate() {
 
   local generated=0
 
-  log_step "1/7 Generating CLAUDE.md"
+  log_step "Generating CLAUDE.md"
   generate_claude_md && generated=$((generated + 1)) || true
 
-  log_step "2/7 Generating git hooks"
+  log_step "Generating git hooks"
   generate_hooks && generated=$((generated + 1)) || true
 
-  log_step "3/7 Generating CI workflow"
+  log_step "Generating CI workflow"
   generate_ci && generated=$((generated + 1)) || true
 
-  log_step "4/7 Generating custom skills"
+  log_step "Generating custom skills"
   generate_skills && generated=$((generated + 1)) || true
 
-  log_step "5/7 Generating documentation scaffold"
+  log_step "Generating documentation scaffold"
   generate_docs && generated=$((generated + 1)) || true
 
-  log_step "6/7 Generating tracking files"
+  log_step "Generating tracking files"
   generate_tracking && generated=$((generated + 1)) || true
 
-  log_step "7/7 Generating agentic memory vault"
+  log_step "Generating agentic memory vault"
   generate_vault && generated=$((generated + 1)) || true
 
+  log_phase_done
+
   echo ""
-  log_ok "Generated $generated/7 file groups"
+  log_ok "Generated ${BOLD}$generated/7${NC} file groups"
   print_preserve_summary
   echo ""
 }
 
 cmd_verify() {
   banner
-  log_step "VERIFY — Validating generated files"
-  echo ""
+  log_phase "VERIFY"
 
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
@@ -369,9 +445,10 @@ cmd_verify() {
   local failed=0
   local warnings=0
 
-  echo -e "${BOLD}┌──────────────────────────────┬──────────┬─────────────────────────────┐${NC}"
-  echo -e "${BOLD}│ Check                        │ Status   │ Details                     │${NC}"
-  echo -e "${BOLD}├──────────────────────────────┼──────────┼─────────────────────────────┤${NC}"
+  echo -e "  ${CYAN}│${NC}"
+  echo -e "  ${CYAN}│${NC}  ${BOLD}┌──────────────────────────────┬──────────┬─────────────────────────────┐${NC}"
+  echo -e "  ${CYAN}│${NC}  ${BOLD}│ Check                        │ Status   │ Details                     │${NC}"
+  echo -e "  ${CYAN}│${NC}  ${BOLD}├──────────────────────────────┼──────────┼─────────────────────────────┤${NC}"
 
   # Run each validator
   validate_files
@@ -380,42 +457,44 @@ cmd_verify() {
   validate_quality_gate
   validate_freshness
 
-  echo -e "${BOLD}└──────────────────────────────┴──────────┴─────────────────────────────┘${NC}"
-  echo ""
-  echo -e "  ${GREEN}Passed:${NC} $passed  ${RED}Failed:${NC} $failed  ${YELLOW}Warnings:${NC} $warnings  Total: $total_checks"
-  echo ""
+  echo -e "  ${CYAN}│${NC}  ${BOLD}└──────────────────────────────┴──────────┴─────────────────────────────┘${NC}"
+  echo -e "  ${CYAN}│${NC}"
+  echo -e "  ${CYAN}│${NC}  ${GREEN}Passed:${NC} $passed  ${RED}Failed:${NC} $failed  ${YELLOW}Warnings:${NC} $warnings  ${DIM}Total: $total_checks${NC}"
 
+  log_phase_done
+
+  echo ""
   if [[ $failed -gt 0 ]]; then
     log_error "Verification FAILED — $failed issue(s) need fixing"
     exit 1
   else
-    log_ok "Verification PASSED"
+    log_ok "Verification ${BOLD}PASSED${NC}"
   fi
 }
 
 cmd_index() {
   banner
-  log_step "INDEX — Building code index for $TARGET_DIR"
-  echo ""
+  log_phase "INDEX"
+  log_info "Building code index for ${BOLD}$TARGET_DIR${NC}"
   mkdir -p "$OUTPUT_DIR"
   source "$LIB_DIR/scanners/code_index.sh"
   scan_code_index
+  log_phase_done
   echo ""
-  log_ok "Code index written to $OUTPUT_DIR/code-index.json"
+  log_ok "Code index written to ${BOLD}$OUTPUT_DIR/code-index.json${NC}"
 }
 
 cmd_stats() {
   banner
-  log_step "STATS — Cross-repo knowledge store"
-  echo ""
+  log_phase "STATS"
   knowledge_stats
+  log_phase_done
   echo ""
 }
 
 cmd_report() {
   banner
-  log_step "REPORT — Generating human-readable summary"
-  echo ""
+  log_phase "REPORT"
 
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
@@ -434,24 +513,28 @@ cmd_report() {
   source "$LIB_DIR/generators/report.sh"
 
   generate_report
+  log_phase_done
   echo ""
-  log_info "Open .aiframework/report.md to review what was detected and generated"
-  log_info "If anything is wrong, run /aif-feedback in Claude Code"
+  log_info "Open ${BOLD}.aiframework/report.md${NC} to review what was detected and generated"
+  log_info "If anything is wrong, run ${BOLD}/aif-feedback${NC} in Claude Code"
 }
 
 cmd_refresh() {
   banner
-  log_step "REFRESH — Checking for drift and updating if needed"
-  echo ""
+  log_phase "REFRESH"
+  log_info "Checking for drift..."
 
   local drift_result
   drift_result=$(freshness_check_drift "$TARGET_DIR")
 
   if [[ "$drift_result" == "clean" ]]; then
+    log_phase_done
+    echo ""
     log_ok "No drift detected — files are up to date"
     return 0
   elif [[ "$drift_result" == "no-baseline" ]]; then
     log_warn "No baseline found — running full discover"
+    log_phase_done
     cmd_discover
     cmd_generate
     return 0
@@ -459,6 +542,7 @@ cmd_refresh() {
     local drifted_files="${drift_result#drifted:}"
     log_warn "Drift detected in:$drifted_files"
     log_info "Re-running discover + generate..."
+    log_phase_done
     echo ""
     cmd_discover
     echo ""
@@ -468,17 +552,22 @@ cmd_refresh() {
 }
 
 cmd_run() {
+  local _run_start=$SECONDS
+
   cmd_discover
 
   # Analysis summary (A20)
   echo ""
-  log_step "Analysis Summary"
-  echo "  Project: $(echo "$MANIFEST" | jq -r '.identity.name')"
-  echo "  Language: $(echo "$MANIFEST" | jq -r '.stack.language')"
-  echo "  Framework: $(echo "$MANIFEST" | jq -r '.stack.framework // "none"')"
-  echo "  Domains: $(echo "$MANIFEST" | jq -r '.domain.detected_domains | length' 2>/dev/null || echo 0)"
-  echo "  Env vars: $(echo "$MANIFEST" | jq '.env.variables | length' 2>/dev/null || echo 0)"
-  echo "  CI: $(echo "$MANIFEST" | jq -r '.ci.provider // "none"')"
+  echo -e "  ${CYAN}┌─${NC} ${WHITE}${BOLD}ANALYSIS SUMMARY${NC}"
+  echo -e "  ${CYAN}│${NC}"
+  echo -e "  ${CYAN}│${NC}  ${DIM}Project:${NC}    ${BOLD}$(echo "$MANIFEST" | jq -r '.identity.name')${NC}"
+  echo -e "  ${CYAN}│${NC}  ${DIM}Language:${NC}   $(echo "$MANIFEST" | jq -r '.stack.language')"
+  echo -e "  ${CYAN}│${NC}  ${DIM}Framework:${NC} $(echo "$MANIFEST" | jq -r '.stack.framework // "none"')"
+  echo -e "  ${CYAN}│${NC}  ${DIM}Domains:${NC}   $(echo "$MANIFEST" | jq -r '.domain.detected_domains | length' 2>/dev/null || echo 0)"
+  echo -e "  ${CYAN}│${NC}  ${DIM}Env vars:${NC}  $(echo "$MANIFEST" | jq '.env.variables | length' 2>/dev/null || echo 0)"
+  echo -e "  ${CYAN}│${NC}  ${DIM}CI:${NC}        $(echo "$MANIFEST" | jq -r '.ci.provider // "none"')"
+  echo -e "  ${CYAN}│${NC}"
+  echo -e "  ${CYAN}└─${NC}"
   echo ""
 
   if [[ "$NON_INTERACTIVE" != "true" ]] && [[ -t 0 ]]; then
@@ -489,18 +578,28 @@ cmd_run() {
     fi
   fi
 
-  echo ""
-  echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo ""
   cmd_generate
-  echo ""
-  echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo ""
   cmd_verify
-  echo ""
-  echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo ""
   cmd_report
+
+  # Completion summary
+  local _run_elapsed=$(( SECONDS - _run_start ))
+  local _proj _stack _lang _fw _files_gen _checks_passed _checks_failed
+  _proj=$(echo "$MANIFEST" | jq -r '.identity.name // "unknown"')
+  _lang=$(echo "$MANIFEST" | jq -r '.stack.language // "unknown"')
+  _fw=$(echo "$MANIFEST" | jq -r '.stack.framework // ""')
+  if [[ -n "$_fw" && "$_fw" != "null" && "$_fw" != "none" ]]; then
+    _stack="${_lang} / ${_fw}"
+  else
+    _stack="${_lang}"
+  fi
+  _files_gen="7"
+  _checks_passed="${passed:-0}"
+  _checks_failed="${failed:-0}"
+
+  _aif_summary "$_proj" "$_stack" "$_files_gen" "$_checks_passed" "$_checks_failed" ".aiframework/report.md"
+  echo -e "  ${DIM}Total time: ${_run_elapsed}s${NC}"
+  echo ""
 }
 
 # Main
