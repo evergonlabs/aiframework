@@ -10,7 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Preserve existing files** — generators now detect and preserve existing CLAUDE.md, CHANGELOG.md, VERSION, STATUS.md, SETUP-DEV.md, CONTRIBUTING.md, docs/README.md, CI workflows, and git hooks. User content is never silently overwritten. Backups saved to `.aiframework/backups/`
 - **CLAUDE.md merge** — when an existing CLAUDE.md is found, user-added custom sections are extracted, backed up, and re-appended after regeneration
 - **AGENTS.md rewritten** — follows the open standard (Linux Foundation spec): 6 core sections (Commands, Testing, Code Style, Git Workflow, Boundaries), <60 lines, tool-agnostic, read by Claude Code + Cursor + Codex + Copilot
-- **`aiframework report` command** — generates a 12-section human-readable report (`.aiframework/report.md`) so devs can verify detection accuracy and give feedback
+- **Skill suggestion scanner** — detects 11 patterns (deploy scripts, migrations, Docker, OpenAPI, Storybook, Terraform, monorepo, E2E tests, doc sites, benchmarks, seed data) and suggests custom skills in the report. Suggestions only — never auto-creates without user approval
+- **`aiframework report` command** — generates a 13-section human-readable report (`.aiframework/report.md`) so devs can verify detection accuracy and give feedback
 - **Report auto-runs after `aiframework run`** — pipeline is now discover → generate → verify → report
 - **LLM agent integration reference** — `docs/reference/llm-agent-integration.md` covering manifest schema, CLAUDE.md contract, skill authoring, vault protocol
 - **Dependency check** — `check_dependencies()` validates `jq` and `git` at startup with platform-specific install instructions

@@ -393,9 +393,33 @@ CMDS_HEADER
   echo "---" >> "$report"
   echo "" >> "$report"
 
-  # --- 12. What To Do Next ---
+  # --- 12. Skill Suggestions ---
+  local suggestion_count
+  suggestion_count=$(echo "$m" | jq '.skill_suggestions | length' 2>/dev/null || echo "0")
+
+  echo "## 12. Skill Suggestions (${suggestion_count})" >> "$report"
+  echo "" >> "$report"
+
+  if [[ "$suggestion_count" -gt 0 ]]; then
+    echo "Based on your repo structure, these custom skills could be useful:" >> "$report"
+    echo "" >> "$report"
+    echo "| Skill | Why | What it would do |" >> "$report"
+    echo "|-------|-----|-----------------|" >> "$report"
+    echo "$m" | jq -r '.skill_suggestions[] | "| `/\(.name)` | \(.reason) | \(.description) |"' 2>/dev/null >> "$report" || true
+    echo "" >> "$report"
+    echo "> These are suggestions only. To create a skill, add a SKILL.md file to \`.claude/skills/<name>/\`." >> "$report"
+    echo "> See \`docs/guides/creating-custom-skills.md\` for the format." >> "$report"
+  else
+    echo "*No additional skill suggestions. Your project setup is clean.*" >> "$report"
+  fi
+
+  echo "" >> "$report"
+  echo "---" >> "$report"
+  echo "" >> "$report"
+
+  # --- 13. What To Do Next ---
   cat >> "$report" << 'NEXT'
-## 12. What To Do Next
+## 13. What To Do Next
 
 ### Verify This Report
 

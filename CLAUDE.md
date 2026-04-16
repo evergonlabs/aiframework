@@ -216,6 +216,7 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Docs**: `docs/reference/llm-agent-integration.md` — LLM agent integration reference
 - **Source**: `lib/generators/report.sh` — Post-run report generator
 - **Source**: `lib/generators/preserve.sh` — Existing file detection, backup, and merge
+- **Source**: `lib/scanners/skill_suggest.sh` — Skill suggestion scanner (12 patterns)
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
