@@ -216,7 +216,7 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Docs**: `docs/reference/llm-agent-integration.md` — LLM agent integration reference
 - **Source**: `lib/generators/report.sh` — Post-run report generator
 - **Source**: `lib/generators/preserve.sh` — Existing file detection, backup, and merge
-- **Source**: `lib/scanners/skill_suggest.sh` — Skill suggestion scanner (12 patterns)
+- **Source**: `lib/scanners/skill_suggest.sh` — Skill suggestion scanner (11 patterns)
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
@@ -401,6 +401,18 @@ Collect structured user feedback (5 questions) saving to `tools/learnings/feedba
 
 ### `/aif-evolve`
 Analyze accumulated learnings and patterns. Synthesizes JSONL learnings into CLAUDE.md updates, new rules, and vault entries. Run periodically.
+
+### `/aif-enhance`
+Enhance manifest with deeper analysis. Identifies gaps in heuristic scan, researches unknown infrastructure, analyzes code patterns, enriches vault.
+
+### `/aif-research`
+Research framework conventions, invariants, and best practices from official documentation via WebSearch.
+
+### `/aif-analyze`
+Deep code analysis using the code index. Finds missing tests, circular deps, god modules, and architectural issues.
+
+### `/aif-ingest`
+Ingest a document into the vault knowledge base. Deposits into `vault/raw/` with source summary.
 
 ### `/aif-pulse`
 Check for latest Claude Code features, best practices, and ecosystem updates. Discovers new capabilities and suggests project improvements. Run weekly.

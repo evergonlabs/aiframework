@@ -2,17 +2,33 @@
 # Generator: Custom Skills
 # Creates project-specific review and ship skills
 
+# Sanitize manifest values for safe use in heredocs and echo statements.
+# Strips backticks, $(), ${}, and backslashes to prevent command injection
+# from malicious package.json names or descriptions.
+_sanitize_manifest_val() {
+  echo "$1" | tr -d '`' | sed 's/\$([^)]*)/REMOVED/g; s/\${[^}]*}/REMOVED/g; s/\\//g'
+}
+
 generate_skills() {
   local m="$MANIFEST"
-  local short=$(echo "$m" | jq -r '.identity.short_name')
-  local name=$(echo "$m" | jq -r '.identity.name')
-  local lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
-  local fw=$(echo "$m" | jq -r '.stack.framework // "none"')
-  local install=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
-  local lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
-  local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
-  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
-  local build=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  local short
+  short=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.identity.short_name')")
+  local name
+  name=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.identity.name')")
+  local lang
+  lang=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.stack.language // "unknown"')")
+  local fw
+  fw=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.stack.framework // "none"')")
+  local install
+  install=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')")
+  local lint
+  lint=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')")
+  local typecheck
+  typecheck=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')")
+  local test_cmd
+  test_cmd=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')")
+  local build
+  build=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')")
 
   if [[ "$DRY_RUN" == true ]]; then
     log_info "[DRY RUN] Would create .claude/skills/${short}-review/ and ${short}-ship/"

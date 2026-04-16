@@ -51,22 +51,17 @@ preserve_claude_md() {
 
   _backup_file "$target"
 
-  # Extract user-added invariants (those not matching our INV- pattern from domains)
-  local user_invariants=""
-  user_invariants=$(sed -n '/^## Invariants/,/^## /{/^### INV-/p}' "$target" 2>/dev/null || true)
+  # Extract user-added content after the aiframework footer (user's own sections)
+  local user_custom_sections=""
+  user_custom_sections=$(sed -n '/^\*Generated:.*aiframework/,$ p' "$target" 2>/dev/null | tail -n +2 || true)
 
-  # Extract user-added session learnings comments
+  # Extract user-added session summary comments
   local user_sessions=""
   user_sessions=$(sed -n '/^<!-- Previous Session Summary:/,/^-->$/p' "$target" 2>/dev/null || true)
 
-  # Extract any sections the user added after the footer
-  local user_custom_sections=""
-  user_custom_sections=$(sed -n '/^\*Generated:.*aiframework/,$ p' "$target" | tail -n +2 2>/dev/null || true)
-
-  # Store extracted content for merge after generation
-  export _PRESERVE_USER_INVARIANTS="$user_invariants"
-  export _PRESERVE_USER_SESSIONS="$user_sessions"
-  export _PRESERVE_USER_CUSTOM="$user_custom_sections"
+  # Store extracted content for merge after generation (no export — same process)
+  _PRESERVE_USER_SESSIONS="$user_sessions"
+  _PRESERVE_USER_CUSTOM="$user_custom_sections"
 
   log_info "Existing CLAUDE.md backed up — merging user content into new generation"
   return 0  # proceed with write, merge happens after
@@ -218,8 +213,12 @@ preserve_rule() {
       return 0
       ;;
     *)
-      # User's custom rule — never touch
-      return 1
+      # Unknown rule — if file exists, it's user's (never touch)
+      # If file doesn't exist, allow creation
+      if _file_exists "$file"; then
+        return 1  # skip — user's custom rule
+      fi
+      return 0  # proceed — new file
       ;;
   esac
 }

@@ -126,11 +126,12 @@ That's it. Claude Code now reads your generated CLAUDE.md and has full project c
 ```
 aiframework run --target /path/to/repo
   │
-  ├── DISCOVER (11 scanners)
+  ├── DISCOVER (12 scanners)
   │   ├── identity, stack, commands, structure
   │   ├── ci, env, quality, domain, user_context
   │   ├── code_index (13 languages, symbols, imports, edges)
-  │   └── archetype (library/web-app/api/monorepo/...)
+  │   ├── archetype (library/web-app/api/monorepo/...)
+  │   └── skill_suggest (deploy, migrations, Docker, E2E...)
   │   → manifest.json + code-index.json
   │
   ├── GENERATE (8 generators)
@@ -223,7 +224,7 @@ All detection logic reads from JSON registries. Add a language, domain, or arche
 aiframework/
 ├── bin/aiframework           # CLI entry point
 ├── lib/
-│   ├── scanners/             # 11 deterministic scanners
+│   ├── scanners/             # 12 deterministic scanners
 │   ├── indexers/             # Code indexer (Python, 13 languages)
 │   ├── generators/           # 8 file generators
 │   ├── validators/           # 5 verification modules + freshness

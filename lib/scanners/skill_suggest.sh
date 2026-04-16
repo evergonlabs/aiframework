@@ -121,11 +121,13 @@ scan_skill_suggestions() {
     }]')
   fi
 
-  # Store suggestions in manifest
+  # Store suggestions in manifest (guard against jq failure)
   local suggestion_count
-  suggestion_count=$(echo "$suggestions" | jq 'length')
+  suggestion_count=$(echo "$suggestions" | jq 'length' 2>/dev/null || echo "0")
 
-  MANIFEST=$(echo "$MANIFEST" | jq --argjson s "$suggestions" '. + {"skill_suggestions": $s}')
+  if echo "$suggestions" | jq empty 2>/dev/null; then
+    MANIFEST=$(echo "$MANIFEST" | jq --argjson s "$suggestions" '. + {"skill_suggestions": $s}' 2>/dev/null) || true
+  fi
 
   if [[ "$suggestion_count" -gt 0 ]]; then
     log_ok "Found $suggestion_count skill suggestion(s)"

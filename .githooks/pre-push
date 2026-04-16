@@ -73,8 +73,11 @@ for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json|lock)$'); do
 done
 if [ "$INVARIANT_FAIL" = true ]; then
   echo ""
-  echo "  Invariant warnings detected. Review before pushing."
-  echo "  To bypass: git push --no-verify"
+  echo "  BLOCKED: Invariant violations detected."
+  echo "  Fix the issues above before pushing."
+  echo "  To bypass (not recommended): git push --no-verify"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  exit 1
 fi
 echo ""
 echo "  All gates passed — push allowed"

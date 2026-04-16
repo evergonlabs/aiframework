@@ -228,8 +228,9 @@ GATE
     cat >> "$TARGET_DIR/.githooks/pre-push" << GATE
 # Gate ${gate_num}: Test
 echo "  [${gate_num}/${total_gates}] Testing..."
-${test_cmd} 2>&1 | tail -5
-if [ \$? -ne 0 ]; then
+_test_output=\$(${test_cmd} 2>&1) || _test_exit=\$?
+echo "\$_test_output" | tail -5
+if [ "\${_test_exit:-0}" -ne 0 ]; then
   echo "  BLOCKED: Test failures. Fix before pushing."
   exit 1
 fi
@@ -243,8 +244,9 @@ GATE
     cat >> "$TARGET_DIR/.githooks/pre-push" << GATE
 # Gate ${gate_num}: Build
 echo "  [${gate_num}/${total_gates}] Building..."
-${build_cmd} 2>&1 | tail -3
-if [ \$? -ne 0 ]; then
+_build_output=\$(${build_cmd} 2>&1) || _build_exit=\$?
+echo "\$_build_output" | tail -3
+if [ "\${_build_exit:-0}" -ne 0 ]; then
   echo "  BLOCKED: Build failed. Fix before pushing."
   exit 1
 fi
@@ -316,8 +318,10 @@ INV_SECRETS
     cat >> "$TARGET_DIR/.githooks/pre-push" << 'INV_TAIL'
 if [ "$INVARIANT_FAIL" = true ]; then
   echo ""
-  echo "  Invariant warnings detected. Review before pushing."
-  echo "  To bypass: git push --no-verify"
+  echo "  BLOCKED: Invariant violations detected."
+  echo "  Fix the issues above before pushing."
+  echo "  To bypass (not recommended): git push --no-verify"
+  exit 1
 fi
 INV_TAIL
   fi

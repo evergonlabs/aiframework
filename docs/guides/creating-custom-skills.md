@@ -47,15 +47,28 @@ What the skill produces and where it saves results.
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Skill identifier, matches directory name |
-| `description` | Yes | One-line summary for Claude Code to decide when to use |
-| `allowed-tools` | Yes | Array of tools the skill can use |
+| `name` | Yes | Skill identifier, matches directory name (lowercase, hyphens, max 64 chars) |
+| `description` | Yes | One-line summary — Claude uses this to decide when to invoke. Front-load the key use case. |
+| `allowed-tools` | Yes | Tools pre-approved without per-use prompts when skill is active |
+| `disable-model-invocation` | No | Set `true` to prevent Claude from auto-invoking (manual `/name` only). Use for skills with side effects (deploy, commit, send messages). |
+| `context` | No | Set `fork` to run in an isolated subagent conversation. Use for research or verbose output to protect main context. |
+| `model` | No | Override model for this skill execution |
+| `user-invocable` | No | Set `false` to hide from `/` menu. Claude can still invoke internally. |
+| `argument-hint` | No | Hint shown during autocomplete (e.g., `[issue-number]`) |
 
 ### Common Tool Sets
 
 - **Read-only**: `[Read, Glob, Grep]` — for analysis and research skills
 - **Standard**: `[Read, Write, Edit, Bash, Glob, Grep]` — for most skills
 - **Web-enabled**: `[Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch]` — for research skills
+- **Isolated research**: Use `context: fork` + `agent: Explore` to run in a subagent
+
+### Important: Description Quality
+
+The `description` field is how Claude decides whether to auto-invoke your skill. Include:
+- The primary use case (what it does)
+- Trigger phrases (what the user might say)
+- When NOT to use it (disambiguation from similar skills)
 
 ## Step Structure
 

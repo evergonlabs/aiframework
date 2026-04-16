@@ -6,10 +6,11 @@ validate_security() {
   local scan_files=("CLAUDE.md" "SETUP-DEV.md" "CONTRIBUTING.md" "STATUS.md")
   local scan_dirs=(".githooks" ".claude" "tools")
 
-  # Secret patterns to check
+  # Secret patterns to check (POSIX ERE — compatible with macOS grep -E)
   local patterns=(
     'ghp_[a-zA-Z0-9]{36}'
-    'sk-[a-zA-Z0-9]{48}'
+    'github_pat_[a-zA-Z0-9_]{82}'
+    'sk-[a-zA-Z0-9_-]{20,}'
     'sk-ant-[a-zA-Z0-9-]{93}'
     'AKIA[0-9A-Z]{16}'
     'sk_live_[a-zA-Z0-9]{24,}'
@@ -23,7 +24,10 @@ validate_security() {
     'mongodb(\+srv)?://[^ ]+:[^ ]+@'
     'AIza[0-9A-Za-z_-]{35}'
     'ya29\.[0-9A-Za-z_-]+'
-    'azure[_-]?(?:storage|account)[_-]?key["\s:=]+[A-Za-z0-9+/=]{20,}'
+    'azure[_-]?(storage|account)[_-]?key[^a-zA-Z0-9][A-Za-z0-9+/=]{20,}'
+    'npm_[a-zA-Z0-9]{36}'
+    'pypi-[A-Za-z0-9_-]{16,}'
+    'SK[a-f0-9]{32}'
   )
 
   local found_secrets=0
