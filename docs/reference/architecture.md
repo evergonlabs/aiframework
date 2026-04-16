@@ -43,30 +43,43 @@
 
 | Module | Role | Files | Key Symbols | Depends On |
 |--------|------|-------|-------------|------------|
+| lib | library | 1 | - | lib/indexers |
+| lib/freshness | general | 1 | - | - |
+| lib/generators | generation | 12 | - | - |
+| lib/indexers | general | 10 | - | lib/indexers |
+| lib/indexers/contrib | general | 1 | - | - |
+| lib/indexers/parsers | general | 7 | - | - |
+| lib/knowledge | general | 1 | - | - |
+| lib/mcp | general | 2 | - | - |
+| lib/scanners | discovery | 12 | - | - |
+| lib/validators | verification | 5 | - | - |
+| tests | testing | 4 | - | - |
+| vault/.vault/hooks | general | 1 | - | - |
+| vault/.vault/scripts | tooling | 4 | - | - |
 
 ### Architecture Hot Spots
 
-- **Most complex**: `lib/generators` (89 symbols across 12 files)
+- **Most complex**: `lib/generators` (78 symbols across 12 files)
 
 ## Repo Map (Most Important Files)
 
 > Files ranked by architectural importance (how many other files depend on them).
 
-- `lib/indexers/__init__.py` (score: 0.0029615384615384616)
-- `lib/indexers/registry.py` (score: 0.0029615384615384616)
-- `lib/indexers/graph.py` (score: 0.0029615384615384616)
-- `tests/test_indexer.py` (score: 0.002307692307692308)
-- `lib/scanners/archetype.sh` (score: 0.002307692307692308)
-- `lib/indexers/lang_python.py` (score: 0.002307692307692308)
-- `lib/scanners/structure.sh` (score: 0.002307692307692308)
-- `lib/validators/quality_gate.sh` (score: 0.002307692307692308)
-- `lib/indexers/parsers/python.py` (score: 0.002307692307692308)
-- `lib/scanners/domain.sh` (score: 0.002307692307692308)
-- `lib/generators/skills.sh` (score: 0.002307692307692308)
-- `lib/generators/preserve.sh` (score: 0.002307692307692308)
-- `run.sh` (score: 0.002307692307692308)
-- `lib/indexers/lang_go.py` (score: 0.002307692307692308)
-- `lib/indexers/parsers/ruby.py` (score: 0.002307692307692308)
+- `lib/indexers/registry.py`
+- `lib/indexers/graph.py`
+- `lib/scanners/code_index.sh`
+- `lib/indexers/lang_go.py`
+- `lib/scanners/structure.sh`
+- `lib/indexers/lang_bash.py`
+- `lib/scanners/env.sh`
+- `lib/indexers/parsers/ruby.py`
+- `lib/generators/hooks.sh`
+- `lib/indexers/parsers/python.py`
+- `lib/indexers/parsers/go.py`
+- `lib/generators/vault_ingest.sh`
+- `lib/generators/tracking.sh`
+- `lib/generators/skills.sh`
+- `lib/indexers/lang_ruby.py`
 
 ## Core Principles
 
@@ -78,14 +91,7 @@
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
-| `ci.yml` | - | - |
-
-## API Contract Rules
-
-- All API endpoints MUST validate input before processing
-- Response shapes must be consistent — use typed response wrappers
-- Never expose internal errors to clients — use error codes
-- Breaking API changes require version bump and migration plan
+| `ci.yml` | lint | push + PR |
 
 ---
 

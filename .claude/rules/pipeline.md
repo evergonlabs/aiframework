@@ -121,6 +121,5 @@ When any file in a domain's key files changes, update the corresponding docs.
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| Authentication & Authorization | tools/review-specialists/auth.md | CLAUDE.md, docs/ |
-| API Layer | tools/review-specialists/api.md | CLAUDE.md, docs/ |
+| AI/LLM Integration | bin/aiframework-update-check, bin/aiframework-mcp | CLAUDE.md, docs/ |
 

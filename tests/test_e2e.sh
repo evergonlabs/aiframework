@@ -156,6 +156,34 @@ echo '{"formats":["agents"],"tier":"minimal"}' > "$dir/.aiframework/config.json"
 [[ ! -f "$dir/CLAUDE.md" ]] && pass "CLAUDE.md not generated (config)" || fail "CLAUDE.md exists (should be gated)"
 [[ ! -d "$dir/vault" ]] && pass "vault not generated (minimal tier)" || fail "vault exists (should be gated)"
 
+# Test 7: Standard tier — hooks + skills but no vault
+echo "Test 7: Standard tier config"
+dir=$(setup_fixture "standard-tier")
+echo '{"name":"stdapp","scripts":{"build":"make","test":"make test"}}' > "$dir/package.json"
+"$ROOT_DIR/bin/aiframework" discover --target "$dir" --non-interactive --no-index 2>/dev/null || true
+mkdir -p "$dir/.aiframework"
+echo '{"tier":"standard"}' > "$dir/.aiframework/config.json"
+"$ROOT_DIR/bin/aiframework" generate --target "$dir" 2>/dev/null || true
+[[ -f "$dir/CLAUDE.md" ]] && pass "CLAUDE.md generated (standard)" || fail "CLAUDE.md missing"
+[[ -f "$dir/AGENTS.md" ]] && pass "AGENTS.md generated (standard)" || fail "AGENTS.md missing"
+[[ -f "$dir/.cursorrules" ]] && pass ".cursorrules generated (standard)" || fail ".cursorrules missing"
+
+echo ""
+
+# Test 8: AGENTS.md should not show NOT_CONFIGURED
+echo "Test 8: AGENTS.md quality"
+dir=$(setup_fixture "agents-quality")
+echo '{"name":"aqapp","scripts":{"test":"jest"}}' > "$dir/package.json"
+"$ROOT_DIR/bin/aiframework" discover --target "$dir" --non-interactive --no-index 2>/dev/null || true
+"$ROOT_DIR/bin/aiframework" generate --target "$dir" 2>/dev/null || true
+if [[ -f "$dir/AGENTS.md" ]]; then
+  if grep -q 'NOT_CONFIGURED' "$dir/AGENTS.md"; then
+    fail "AGENTS.md contains NOT_CONFIGURED"
+  else
+    pass "AGENTS.md clean (no NOT_CONFIGURED)"
+  fi
+fi
+
 echo ""
 
 # Summary

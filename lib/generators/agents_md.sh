@@ -26,18 +26,23 @@ generate_agents_md() {
   short=$(echo "$m" | jq -r '.identity.short_name')
 
   local build_cmd test_cmd lint_cmd install_cmd typecheck format_cmd
-  build_cmd=$(echo "$m" | jq -r '.commands.build // empty')
-  test_cmd=$(echo "$m" | jq -r '.commands.test // empty')
-  lint_cmd=$(echo "$m" | jq -r '.commands.lint // empty')
-  install_cmd=$(echo "$m" | jq -r '.commands.install // empty')
-  typecheck=$(echo "$m" | jq -r '.commands.typecheck // empty')
-  format_cmd=$(echo "$m" | jq -r '.commands.format // empty')
+  build_cmd=$(echo "$m" | jq -r '.commands.build // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  test_cmd=$(echo "$m" | jq -r '.commands.test // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  lint_cmd=$(echo "$m" | jq -r '.commands.lint // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  install_cmd=$(echo "$m" | jq -r '.commands.install // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  typecheck=$(echo "$m" | jq -r '.commands.typecheck // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  format_cmd=$(echo "$m" | jq -r '.commands.format // empty' | grep -v '^NOT_CONFIGURED$' || true)
 
   # Start writing
+  # Clean description: skip HTML, NOT_FOUND, or empty
+  local clean_desc="$desc"
+  if [[ "$clean_desc" == "<"* || "$clean_desc" == "NOT_FOUND" || "$clean_desc" == "No description" || -z "$clean_desc" ]]; then
+    clean_desc=""
+  fi
+
   cat > "$out" << AGENTS_HEADER
 # AGENTS.md — ${name}
-
-> ${desc}
+$(if [[ -n "$clean_desc" ]]; then echo ""; echo "> ${clean_desc}"; fi)
 
 **Stack:** ${lang} / ${fw}
 

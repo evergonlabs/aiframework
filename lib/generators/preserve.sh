@@ -67,7 +67,20 @@ preserve_claude_md() {
   if [[ -n "$user_custom_sections" ]]; then
     # Remove everything starting from known generated markers
     local cleaned=""
-    cleaned=$(echo "$user_custom_sections" | sed '/^<!-- CLAUDE\.md Guidance:/,/^-->$/d' | sed '/^<!-- Previous Session Summary:/,/^-->$/d' | sed '/^## Execution Matrices$/,/^---$/d' | sed '/^## Execution Matrices$/,$d' || true)
+    cleaned=$(echo "$user_custom_sections" \
+      | sed '/^<!-- CLAUDE\.md Guidance:/,/^-->$/d' \
+      | sed '/^<!-- Previous Session Summary:/,/^-->$/d' \
+      | sed '/^## Execution Matrices$/,/^---$/d' \
+      | sed '/^## Execution Matrices$/,$d' \
+      | sed '/^## Persistent Memory Vault$/,/^---$/d' \
+      | sed '/^## Session Start Protocol$/,/^---$/d' \
+      | sed '/^## Session Learnings$/,/^---$/d' \
+      | sed '/^## gstack Browser Integration$/,/^---$/d' \
+      | sed '/^## Review Specialists$/,/^---$/d' \
+      | sed '/^## Doc-Sync Matrix$/,/^---$/d' \
+      || true)
+    # Strip trailing blank lines and stray ---
+    cleaned=$(echo "$cleaned" | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }' | sed '/^---$/d' || true)
     # If only whitespace remains, discard
     if [[ -z "$(echo "$cleaned" | tr -d '[:space:]')" ]]; then
       user_custom_sections=""

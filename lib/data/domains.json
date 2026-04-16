@@ -99,17 +99,17 @@
       "invariants": [
         {
           "id": "AUTH-1",
-          "rule": "All auth tokens must have expiration \u2014 no infinite-lived tokens",
+          "rule": "All auth tokens must have expiration — no infinite-lived tokens",
           "severity": "critical"
         },
         {
           "id": "AUTH-2",
-          "rule": "Password hashing must use bcrypt/argon2/scrypt \u2014 no MD5/SHA for passwords",
+          "rule": "Password hashing must use bcrypt/argon2/scrypt — no MD5/SHA for passwords",
           "severity": "critical"
         },
         {
           "id": "AUTH-3",
-          "rule": "All protected routes must check authorization \u2014 no auth bypass paths",
+          "rule": "All protected routes must check authorization — no auth bypass paths",
           "severity": "critical"
         }
       ],
@@ -206,7 +206,7 @@
       "invariants": [
         {
           "id": "DB-1",
-          "rule": "All database access through ORM/query builder \u2014 no raw SQL without explicit review",
+          "rule": "All database access through ORM/query builder — no raw SQL without explicit review",
           "severity": "high"
         },
         {
@@ -240,7 +240,8 @@
         "**/openapi*",
         "**/swagger*",
         "**/serializers/**",
-        "**/validators/**"
+        "**/api/validators/**",
+        "**/request_validators/**"
       ],
       "dependency_markers": {
         "python": [
@@ -300,7 +301,7 @@
       "invariants": [
         {
           "id": "API-1",
-          "rule": "All endpoints must validate input \u2014 no unvalidated user data",
+          "rule": "All endpoints must validate input — no unvalidated user data",
           "severity": "critical"
         },
         {
@@ -395,7 +396,7 @@
       "invariants": [
         {
           "id": "AI-1",
-          "rule": "LLM outputs must be sanitized before use \u2014 never trust raw LLM output",
+          "rule": "LLM outputs must be sanitized before use — never trust raw LLM output",
           "severity": "critical"
         },
         {
@@ -457,7 +458,7 @@
       "invariants": [
         {
           "id": "SANDBOX-1",
-          "rule": "All user code execution must be sandboxed \u2014 no direct eval/exec",
+          "rule": "All user code execution must be sandboxed — no direct eval/exec",
           "severity": "critical"
         },
         {
@@ -512,7 +513,7 @@
       "invariants": [
         {
           "id": "FE-1",
-          "rule": "All user-generated content must be sanitized before rendering \u2014 no XSS vectors",
+          "rule": "All user-generated content must be sanitized before rendering — no XSS vectors",
           "severity": "critical"
         },
         {
@@ -679,7 +680,7 @@
       "invariants": [
         {
           "id": "WORKER-1",
-          "rule": "All jobs must be idempotent \u2014 safe to retry without side effects",
+          "rule": "All jobs must be idempotent — safe to retry without side effects",
           "severity": "high"
         },
         {
@@ -742,7 +743,7 @@
       "invariants": [
         {
           "id": "UPLOAD-1",
-          "rule": "All uploads must validate file type via magic bytes \u2014 not just extension",
+          "rule": "All uploads must validate file type via magic bytes — not just extension",
           "severity": "critical"
         },
         {
@@ -817,7 +818,7 @@
       "invariants": [
         {
           "id": "FIN-1",
-          "rule": "All monetary calculations must use decimal types \u2014 no floating point for money",
+          "rule": "All monetary calculations must use decimal types — no floating point for money",
           "severity": "critical"
         },
         {
@@ -901,17 +902,17 @@
       "invariants": [
         {
           "id": "GQL-1",
-          "rule": "Query depth and complexity limits must be enforced \u2014 no unbounded nested queries",
+          "rule": "Query depth and complexity limits must be enforced — no unbounded nested queries",
           "severity": "critical"
         },
         {
           "id": "GQL-2",
-          "rule": "All mutations must have input validation \u2014 no unvalidated GraphQL input types",
+          "rule": "All mutations must have input validation — no unvalidated GraphQL input types",
           "severity": "high"
         },
         {
           "id": "GQL-3",
-          "rule": "Field-level authorization must be implemented \u2014 not just query-level",
+          "rule": "Field-level authorization must be implemented — not just query-level",
           "severity": "high"
         }
       ],
@@ -999,7 +1000,7 @@
       "invariants": [
         {
           "id": "MSG-1",
-          "rule": "All message consumers must be idempotent \u2014 safe to process duplicates",
+          "rule": "All message consumers must be idempotent — safe to process duplicates",
           "severity": "critical"
         },
         {
@@ -1009,7 +1010,7 @@
         },
         {
           "id": "MSG-3",
-          "rule": "Message schemas must be versioned \u2014 no breaking changes to message formats",
+          "rule": "Message schemas must be versioned — no breaking changes to message formats",
           "severity": "high"
         }
       ],
@@ -1086,7 +1087,7 @@
       "invariants": [
         {
           "id": "CACHE-1",
-          "rule": "All cached data must have TTL configured \u2014 no unbounded cache entries",
+          "rule": "All cached data must have TTL configured — no unbounded cache entries",
           "severity": "high"
         },
         {
@@ -1163,12 +1164,12 @@
       "invariants": [
         {
           "id": "SEARCH-1",
-          "rule": "Search queries must be sanitized \u2014 no raw user input in query DSL",
+          "rule": "Search queries must be sanitized — no raw user input in query DSL",
           "severity": "high"
         },
         {
           "id": "SEARCH-2",
-          "rule": "Search results must respect access control \u2014 no data leakage through search",
+          "rule": "Search results must respect access control — no data leakage through search",
           "severity": "critical"
         }
       ],
@@ -1258,7 +1259,7 @@
       "invariants": [
         {
           "id": "OBS-1",
-          "rule": "All services must emit structured logs \u2014 no unstructured print/puts/console.log",
+          "rule": "All services must emit structured logs — no unstructured print/puts/console.log",
           "severity": "medium"
         },
         {
@@ -1343,12 +1344,12 @@
       "invariants": [
         {
           "id": "RT-1",
-          "rule": "All WebSocket connections must be authenticated \u2014 no anonymous persistent connections",
+          "rule": "All WebSocket connections must be authenticated — no anonymous persistent connections",
           "severity": "high"
         },
         {
           "id": "RT-2",
-          "rule": "Connection limits must be enforced per user/IP \u2014 no unbounded connections",
+          "rule": "Connection limits must be enforced per user/IP — no unbounded connections",
           "severity": "high"
         }
       ],
@@ -1424,12 +1425,12 @@
       "invariants": [
         {
           "id": "EMAIL-1",
-          "rule": "Email sending must be async/queued \u2014 no synchronous email in request handlers",
+          "rule": "Email sending must be async/queued — no synchronous email in request handlers",
           "severity": "medium"
         },
         {
           "id": "EMAIL-2",
-          "rule": "All email templates must sanitize user-provided content \u2014 no HTML injection",
+          "rule": "All email templates must sanitize user-provided content — no HTML injection",
           "severity": "high"
         }
       ],
@@ -1505,7 +1506,7 @@
       "invariants": [
         {
           "id": "STOR-1",
-          "rule": "All storage buckets must have access control configured \u2014 no public-read by default",
+          "rule": "All storage buckets must have access control configured — no public-read by default",
           "severity": "critical"
         },
         {

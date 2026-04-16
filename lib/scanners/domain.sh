@@ -38,9 +38,9 @@ scan_domain() {
           # Path pattern: convert **/X/** to */X/*
           local path_pat
           path_pat=$(echo "$pattern" | sed 's|\*\*/|*/|g; s|/\*\*|/*|g')
-          find_result=$(find "$TARGET_DIR" -maxdepth 4 -path "*/$path_pat" -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -print -quit 2>/dev/null)
+          find_result=$(find "$TARGET_DIR" -maxdepth 4 -path "*/$path_pat" -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -not -path '*/review-specialists/*' -not -path '*/templates/*' -not -path '*/.aiframework/*' -not -path '*/.claude/*' -print -quit 2>/dev/null)
         else
-          find_result=$(find "$TARGET_DIR" -maxdepth 4 -name "$pattern" -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -print -quit 2>/dev/null)
+          find_result=$(find "$TARGET_DIR" -maxdepth 4 -name "$pattern" -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -not -path '*/review-specialists/*' -not -path '*/templates/*' -not -path '*/.aiframework/*' -not -path '*/.claude/*' -print -quit 2>/dev/null)
         fi
         if [[ -n "$find_result" ]]; then
           matched_list="$matched_list $dk"
@@ -65,7 +65,7 @@ scan_domain() {
         local dd
         dd=$(jq -r --arg d "$dk" '.domains[$d].display // $d' "$domains_file")
         local paths
-        paths=$(find "$TARGET_DIR" -maxdepth 3 -not -path '*node_modules*' -not -path '*/.git/*' -name "*${dk}*" 2>/dev/null | head -5 | sed "s|^$TARGET_DIR/||" | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+        paths=$(find "$TARGET_DIR" -maxdepth 3 -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -not -path '*/review-specialists/*' -not -path '*/templates/*' -not -path '*/.aiframework/*' -not -path '*/.claude/*' -not -path '*/tools/*' -not -path '*/docs/*' -name "*${dk}*" 2>/dev/null | head -5 | sed "s|^$TARGET_DIR/||" | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
 
         detected_domains=$(echo "$detected_domains" | jq \
           --arg name "$dk" --arg display "$dd" --argjson paths "$paths" \
@@ -95,11 +95,15 @@ scan_domain() {
   local invariants="[]"
   local security_concerns="[]"
 
+  # Shared exclusion list for domain scanning — skip generated/template/tool files
+  local _domain_excludes="-not -path */node_modules/* -not -path */.git/* -not -path */.venv/* -not -path */target/* -not -path */vault/* -not -path */review-specialists/* -not -path */templates/* -not -path */.aiframework/* -not -path */.claude/* -not -path */docs/* -not -path */tools/*"
+
   # --- Auth/AuthZ ---
   local auth_files
   auth_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "auth*" -o -name "guard*" -o -name "middleware*" -o -name "permission*" -o -name "session*" -o -name "jwt*" -o -name "oauth*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
+    -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     2>/dev/null | head -20)
 
   if [[ -n "$auth_files" ]]; then
@@ -118,7 +122,7 @@ scan_domain() {
   local db_files
   db_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "migration*" -o -name "schema*" -o -name "model*" -o -name "entity*" -o -name "repository*" -o -name "prisma*" -o -name "drizzle*" -o -name "*.sql" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     2>/dev/null | head -30)
 
   # Also check for ORM config
@@ -153,7 +157,7 @@ scan_domain() {
   local api_files
   api_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "controller*" -o -name "route*" -o -name "endpoint*" -o -name "api*" -o -name "handler*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" \
     2>/dev/null | head -30)
 
@@ -173,7 +177,7 @@ scan_domain() {
   local ai_files
   ai_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "prompt*" -o -name "llm*" -o -name "agent*" -o -name "ai*" -o -name "openai*" -o -name "anthropic*" -o -name "embedding*" -o -name "rag*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" \
     2>/dev/null | head -20)
 
@@ -201,7 +205,7 @@ scan_domain() {
   local sandbox_files
   sandbox_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "sandbox*" -o -name "executor*" -o -name "runner*" -o -name "e2b*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     2>/dev/null | head -10)
 
   if [[ -n "$sandbox_files" || -f "$TARGET_DIR/e2b.toml" ]]; then
@@ -239,7 +243,7 @@ scan_domain() {
   local ext_api_files
   ext_api_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "provider*" -o -name "client*" -o -name "integration*" -o -name "connector*" -o -name "adapter*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" \
     2>/dev/null | head -20)
 
@@ -257,7 +261,7 @@ scan_domain() {
   local worker_files
   worker_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "worker*" -o -name "job*" -o -name "queue*" -o -name "cron*" -o -name "task*" -o -name "consumer*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" \
     2>/dev/null | head -15)
 
@@ -275,7 +279,7 @@ scan_domain() {
   local upload_files
   upload_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "*upload*" -o -name "*storage*" -o -name "*multer*" -o -name "*busboy*" -o -name "*s3*" -o -name "*gcs*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" \
     2>/dev/null | head -20)
 
@@ -295,7 +299,7 @@ scan_domain() {
   local finance_files
   finance_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "*payroll*" -o -name "*billing*" -o -name "*transaction*" -o -name "*invoice*" -o -name "*payment*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" \
     2>/dev/null | head -20)
 
@@ -316,7 +320,7 @@ scan_domain() {
   local compliance_files
   compliance_files=$(find "$TARGET_DIR" -maxdepth 6 -type f \
     \( -name "*compliance*" -o -name "*audit*" -o -name "*gdpr*" -o -name "*hipaa*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     2>/dev/null | head -20)
 
   if [[ -n "$compliance_files" ]]; then
@@ -395,31 +399,31 @@ scan_domain() {
   local count_controllers count_services count_models count_dtos count_routes count_middlewares count_tests
 
   count_controllers=$(find "$TARGET_DIR" -maxdepth 6 -type f -name "*controller*" \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | wc -l | tr -d '[:space:]')
 
   count_services=$(find "$TARGET_DIR" -maxdepth 6 -type f -name "*service*" \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | wc -l | tr -d '[:space:]')
 
   count_models=$(find "$TARGET_DIR" -maxdepth 6 -type f \( -name "*model*" -o -name "*entity*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | wc -l | tr -d '[:space:]')
 
   count_dtos=$(find "$TARGET_DIR" -maxdepth 6 -type f \( -name "*dto*" -o -name "*schema*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | wc -l | tr -d '[:space:]')
 
   count_routes=$(find "$TARGET_DIR" -maxdepth 6 -type f \( -name "*route*" -o -name "*router*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | wc -l | tr -d '[:space:]')
 
   count_middlewares=$(find "$TARGET_DIR" -maxdepth 6 -type f -name "*middleware*" \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | wc -l | tr -d '[:space:]')
 
   count_tests=$(find "$TARGET_DIR" -maxdepth 6 -type f \( -name "*.test.*" -o -name "*.spec.*" -o -name "test_*" -o -name "*_test.*" \) \
-    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" \
+    -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -not -path "*/target/*" -not -path "*/vault/*" -not -path "*/review-specialists/*" -not -path "*/templates/*" -not -path "*/.aiframework/*" -not -path "*/.claude/*" -not -path "*/docs/*" -not -path "*/tools/*" \
     2>/dev/null | wc -l | tr -d '[:space:]')
 
   component_counts=$(jq -n \

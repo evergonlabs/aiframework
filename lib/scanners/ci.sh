@@ -48,7 +48,25 @@ scan_ci() {
       local wf_secrets
       wf_secrets=$(grep -oE 'secrets\.[A-Z_]+' "$wf" 2>/dev/null | sort -u | sed 's/secrets\.//' | tr '\n' ',' | sed 's/,$//' || true)
 
-      workflows+=("{\"file\": \"$wf_basename\", \"name\": \"$wf_name\", \"triggers\": \"$wf_triggers\", \"jobs\": \"$wf_jobs\", \"secrets\": \"$wf_secrets\"}")
+      # Derive purpose from workflow name, jobs, and file content
+      local wf_purpose=""
+      local wf_content
+      wf_content=$(cat "$wf" 2>/dev/null)
+      if echo "$wf_jobs" | grep -qiE 'lint|check'; then wf_purpose="lint"; fi
+      if echo "$wf_jobs" | grep -qiE 'test|spec'; then wf_purpose="${wf_purpose:+$wf_purpose + }test"; fi
+      if echo "$wf_jobs" | grep -qiE 'build|compile'; then wf_purpose="${wf_purpose:+$wf_purpose + }build"; fi
+      if echo "$wf_jobs" | grep -qiE 'deploy|release|publish'; then wf_purpose="${wf_purpose:+$wf_purpose + }deploy"; fi
+      if echo "$wf_content" | grep -qiE 'security|codeql|snyk|dependabot'; then wf_purpose="${wf_purpose:+$wf_purpose + }security"; fi
+      [[ -z "$wf_purpose" ]] && wf_purpose="$wf_name"
+
+      # Derive trigger summary
+      local wf_trigger_summary=""
+      if echo "$wf_triggers" | grep -q 'push'; then wf_trigger_summary="push"; fi
+      if echo "$wf_triggers" | grep -q 'pull_request'; then wf_trigger_summary="${wf_trigger_summary:+$wf_trigger_summary + }PR"; fi
+      if echo "$wf_triggers" | grep -q 'schedule'; then wf_trigger_summary="${wf_trigger_summary:+$wf_trigger_summary + }scheduled"; fi
+      [[ -z "$wf_trigger_summary" ]] && wf_trigger_summary="${wf_triggers:-manual}"
+
+      workflows+=("{\"file\": \"$wf_basename\", \"name\": \"$wf_name\", \"triggers\": \"$wf_triggers\", \"jobs\": \"$wf_jobs\", \"secrets\": \"$wf_secrets\", \"purpose\": \"$wf_purpose\", \"trigger\": \"$wf_trigger_summary\"}")
     done
 
     if [[ ${#workflows[@]} -eq 0 ]]; then

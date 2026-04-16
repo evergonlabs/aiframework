@@ -80,8 +80,17 @@ scan_identity() {
   fi
 
   if [[ -z "$description" && -f "$TARGET_DIR/README.md" ]]; then
-    # First non-heading, non-empty paragraph
-    description=$(awk '/^[^#\[]/ && NF {print; exit}' "$TARGET_DIR/README.md" 2>/dev/null)
+    # First non-heading, non-empty, non-HTML, non-code-block paragraph
+    description=$(awk '
+      /^```/   { in_code=!in_code; next }
+      in_code  { next }
+      /^#/     { next }
+      /^\[/    { next }
+      /^<[a-zA-Z]/ { next }
+      /^[>*_~`|-]/ && length < 3 { next }
+      /^\s*$/ { next }
+      NF { gsub(/^[>*_ ]+/, ""); gsub(/[*_]+$/, ""); gsub(/\*\*/, ""); print; exit }
+    ' "$TARGET_DIR/README.md" 2>/dev/null)
   fi
 
   [[ -z "$description" ]] && description="NOT_FOUND"

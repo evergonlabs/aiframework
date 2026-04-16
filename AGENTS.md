@@ -1,18 +1,12 @@
 # AGENTS.md — aiframework
 
-> <div align="center">
+> Your repo already knows everything. Claude Code just can't read it yet.
 
 **Stack:** bash / none
 
 ## Build & Test
 
 ```bash
-# Install dependencies
-NOT_CONFIGURED
-
-# Build
-NOT_CONFIGURED
-
 # Test
 make test
 
@@ -22,14 +16,11 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellch
 # Type check
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
-# Format
-NOT_CONFIGURED
-
 ```
 
 ## Architecture
 
-- **Type:** api-service (active, complex)
+- **Type:** cli-tool (active, complex)
 - **Key directories:** bin, docs, lib, templates, tests
 
 ## Code Style
@@ -41,13 +32,11 @@ NOT_CONFIGURED
 ## Security
 
 - Never commit secrets, credentials, or API keys — use environment variables
-- All protected endpoints must have auth middleware
-- Validate and sanitize all API inputs before processing
+- Never trust LLM output as safe — validate all AI-generated content
 
 ## Boundaries
 
-- Auth guards required on all protected endpoints
-- Input validation on all API endpoints
+- LLM trust boundary — validate all AI output
 - No secrets in source code
 
 ---

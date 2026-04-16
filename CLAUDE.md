@@ -1,6 +1,6 @@
 # CLAUDE.md — aiframework
 
-> <div align="center">. Stack: bash/none.
+> Your repo already knows everything. Claude Code just can't read it yet.. Stack: bash/none.
 
 ## Commands
 
@@ -18,32 +18,32 @@ make test
 
 ## Invariants
 
-- **INV-1**: Auth guards on all protected endpoints
-- **INV-2**: Input validation on all API endpoints
+- **INV-1**: LLM trust boundary — validate all AI output
 
 ## Architecture
 
-- **Archetype**: api-service (active, complex)
+- **Archetype**: cli-tool (active, complex)
 
 ## Key Locations
 
-- **Authentication & Authorization**: tools/review-specialists/auth.md
-- **API Layer**: tools/review-specialists/api.md
+- **AI/LLM Integration**: bin/aiframework-update-check
+- **AI/LLM Integration**: bin/aiframework-mcp
+- **AI/LLM Integration**: bin/aiframework
 - **Scripts**: `bin/`
 - **Scripts**: `tools/`
 - **CI**: `.github/`
 
 **Most important files** (by dependency rank):
-- `lib/indexers/__init__.py`
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `tests/test_indexer.py`
-- `lib/scanners/archetype.sh`
-- `lib/indexers/lang_python.py`
+- `lib/scanners/code_index.sh`
+- `lib/indexers/lang_go.py`
 - `lib/scanners/structure.sh`
-- `lib/validators/quality_gate.sh`
+- `lib/indexers/lang_bash.py`
+- `lib/scanners/env.sh`
+- `lib/indexers/parsers/ruby.py`
+- `lib/generators/hooks.sh`
 - `lib/indexers/parsers/python.py`
-- `lib/scanners/domain.sh`
 
 ## Environment Variables
 
@@ -105,11 +105,3 @@ This file auto-evolves. Rules of thumb:
 ---
 
 *Generated: 2026-04-17 by aiframework v1.1.0. Run `aiframework refresh` to update. Lean mode (complex).*
-
-
-
-
-
-
-
----
