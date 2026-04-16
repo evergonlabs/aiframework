@@ -119,7 +119,7 @@ Before marking any new feature complete, verify ALL applicable items:
 
 ## Project Identity
 
-**aiframework** — One command. Any repo. Fully configured for AI-assisted development with Claude Code.
+**aiframework** — <div align="center">
 
 **Stack:** c / none
 
@@ -223,10 +223,6 @@ clang-format -i
 - **Source**: `lib/scanners/quality.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/stack.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/structure.sh` — Repo analysis scanner
-- **Source**: `lib/validators/consistency.sh` — Consistency validator
-- **Source**: `lib/validators/security.sh` — Security validator
-- **Source**: `lib/validators/freshness.sh` — Freshness validator
-- **Source**: `lib/freshness/track.sh` — Freshness tracking module
 - **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
 - **Source**: `vault/raw/README.md` — Module documentation
 - **Source**: `vault/wiki/sources/README.md` — Module documentation
@@ -237,20 +233,10 @@ clang-format -i
 
 | Module | Role | Files | Key Symbols | Depends On |
 |--------|------|-------|-------------|------------|
-| . | general | 4 | - | - |
-| lib/freshness | general | 1 | freshness_save_hashes, freshness_check_drift | - |
-| lib/generators | generation | 10 | generate_tracking, _sanitize_manifest_val, generate_skills | - |
-| lib/indexers | general | 9 | _extract_rdoc_comment, parse_ruby, _extract_doc_comment | lib/indexers |
-| lib/knowledge | general | 1 | knowledge_init, knowledge_record_profile, knowledge_record_miss | - |
-| lib/scanners | discovery | 12 | _arr_to_json, scan_structure, scan_stack | - |
-| lib/validators | verification | 5 | report_row, validate_files, validate_quality_gate | - |
-| tests | testing | 3 | pass, fail, setup_fixture | - |
-| vault/.vault/hooks | general | 1 | find_vault_root | - |
-| vault/.vault/scripts | tooling | 3 | cmd_lint, cmd_validate, cmd_orphans | - |
 
 ### Architecture Hot Spots
 
-- **Most complex**: `tests` (60 symbols across 3 files)
+- **Most complex**: `lib/generators` (85 symbols across 10 files)
 
 ---
 
@@ -258,21 +244,21 @@ clang-format -i
 
 > Files ranked by architectural importance (how many other files depend on them).
 
-- `lib/indexers/__init__.py` (score: 0.004362244897959184)
-- `lib/indexers/graph.py` (score: 0.004362244897959184)
-- `vault/.vault/scripts/vault-tools.sh` (score: 0.0030612244897959186)
-- `lib/validators/files.sh` (score: 0.0030612244897959186)
-- `tests/test_validators.sh` (score: 0.0030612244897959186)
-- `lib/indexers/lang_bash.py` (score: 0.0030612244897959186)
-- `lib/generators/vault.sh` (score: 0.0030612244897959186)
-- `lib/indexers/lang_rust.py` (score: 0.0030612244897959186)
-- `lib/indexers/lang_go.py` (score: 0.0030612244897959186)
-- `lib/generators/skills.sh` (score: 0.0030612244897959186)
-- `lib/indexers/lang_ruby.py` (score: 0.0030612244897959186)
-- `lib/generators/tracking.sh` (score: 0.0030612244897959186)
-- `lib/generators/vault_ingest.sh` (score: 0.0030612244897959186)
-- `lib/scanners/structure.sh` (score: 0.0030612244897959186)
-- `vault/.vault/hooks/pre-commit.sh` (score: 0.0030612244897959186)
+- `lib/indexers/lang_ruby.py` (score: 0.0033187500000000005)
+- `lib/indexers/__init__.py` (score: 0.0033187500000000005)
+- `lib/indexers/graph.py` (score: 0.0033187500000000005)
+- `lib/indexers/lang_python.py` (score: 0.0033187500000000005)
+- `lib/indexers/lang_typescript.py` (score: 0.0033187500000000005)
+- `lib/indexers/lang_bash.py` (score: 0.0033187500000000005)
+- `lib/indexers/lang_go.py` (score: 0.0033187500000000005)
+- `lib/indexers/lang_rust.py` (score: 0.0033187500000000005)
+- `lib/scanners/stack.sh` (score: 0.0030000000000000005)
+- `generate.sh` (score: 0.0030000000000000005)
+- `lib/generators/ci.sh` (score: 0.0030000000000000005)
+- `lib/scanners/user_context.sh` (score: 0.0030000000000000005)
+- `lib/scanners/structure.sh` (score: 0.0030000000000000005)
+- `lib/scanners/archetype.sh` (score: 0.0030000000000000005)
+- `lib/validators/freshness.sh` (score: 0.0030000000000000005)
 
 ---
 
@@ -502,35 +488,14 @@ Never commit API keys, passwords, tokens, or credentials. All secrets must be st
 
 ## Custom Skills
 
-### `/aif-review`
+### `/aiframework-review`
 Project-specific code review checking all invariants.
 
-### `/aif-ship`
+### `/aiframework-ship`
 Full shipping workflow: verify → review → docs → changelog → commit.
 
-### `/aif-learn`
+### `/aiframework-learn`
 Capture project learnings to persistent storage (JSONL + vault).
-
-### `/aif-feedback`
-Collect structured feedback on generated output quality.
-
-### `/aif-evolve`
-Analyze accumulated learnings and patterns. Synthesizes JSONL learnings into CLAUDE.md updates, new rules, and vault entries. Run periodically.
-
-### `/aif-enhance`
-Research gaps in manifest using Claude Code's native tools. Enriches vault with concept pages and framework conventions.
-
-### `/aif-research`
-Deep-dive research on a topic using web search and code analysis. Produces structured findings.
-
-### `/aif-analyze`
-Analyze codebase patterns, architecture, and quality metrics. Identifies improvement opportunities.
-
-### `/aif-ingest`
-Ingest external documents into the vault. Processes raw files into wiki pages.
-
-### `/aif-pulse`
-Check for latest Claude Code features, best practices, and ecosystem updates. Discovers new capabilities and suggests project improvements. Run weekly.
 
 ---
 
@@ -652,7 +617,11 @@ At the start of each session:
 4. Check `git log --oneline -10` — understand recent work
 5. Check `git status` — understand current state
 6. If a STATUS.md file exists — read it for multi-phase task progress
-7. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+7. Run `aiframework-update-check` — notify developer of updates or drift:
+   - `UPGRADE_AVAILABLE <old> <new>`: Tell the developer a new aiframework version is available and offer to upgrade (`cd <aiframework-path> && git pull`)
+   - `DRIFT_DETECTED <files>`: Tell the developer generated files are stale and offer to run `aiframework refresh`
+   - `UP_TO_DATE` or empty: No action needed
+8. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 ---
 
@@ -737,3 +706,326 @@ Blockers: None.
 | `/cso` finds vulnerability | Block deploy, fix immediately, re-run `/cso` |
 | QA regression | Investigate with `/investigate`, add regression test |
 
+
+
+<!-- CLAUDE.md Guidance:
+- Update this file after significant decisions, bug fixes, or architectural changes
+- NEVER delete content — only add, refine, or mark as deprecated
+- Use /learn to capture non-obvious discoveries
+- Session summary format: "Session YYYY-MM-DD: <what was done>, <key decisions>, <blockers>"
+-->
+
+<!-- Previous Session Summary:
+Session 2026-04-16: Initial CLAUDE.md generation via aiframework.
+Key decisions: Automated project analysis and documentation generation.
+Blockers: None.
+-->
+
+---
+
+## Execution Matrices
+
+### Bug Fix Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/investigate` — reproduce & understand | Can reproduce? |
+| 2 | Plan fix approach | Root cause identified? |
+| 3 | Implement fix | Code change minimal & correct? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` (if security-related) | No vulnerabilities? |
+| 7 | Update docs + CHANGELOG | Docs accurate? |
+| 8 | `/qa` | App works? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/learn` | Lesson captured? |
+
+### Feature Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/plan-eng-review` | Plan approved? |
+| 2 | Build — implement feature | Code complete? |
+| 3 | Write tests | Coverage adequate? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` | No security gaps? |
+| 7 | Update docs + CHANGELOG + VERSION | Docs accurate? |
+| 8 | `/qa` | Feature works end-to-end? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/canary` | No regressions? |
+| 11 | `/learn` | Lessons captured? |
+
+### Deploy Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | Verify: lint + typecheck + test + build | All pass? |
+| 2 | `/review` | No issues? |
+| 3 | `/cso` | Secure? |
+| 4 | `/qa` | QA pass? |
+| 5 | Update CHANGELOG + VERSION | Done? |
+| 6 | `/ship` | Deploy triggered? |
+| 7 | `/canary` — monitor post-deploy | Healthy? |
+
+### Weekly Cadence
+
+| Day | Task |
+|-----|------|
+| Monday | Review open PRs, triage issues |
+| Wednesday | `/retro` — mid-week check |
+| Friday | `/retro` — weekly retrospective, update CLAUDE.md, run `vault-tools.sh doctor` |
+
+### Failure Recovery Table
+
+| Failure | Recovery Action |
+|---------|----------------|
+| Test fails after code change | Revert change, re-investigate, fix root cause |
+| Build fails | Check compiler errors, fix type/syntax issues |
+| Lint fails | Auto-fix with formatter, then manual review |
+| Deploy fails | Rollback, check logs, fix and re-deploy |
+| `/cso` finds vulnerability | Block deploy, fix immediately, re-run `/cso` |
+| QA regression | Investigate with `/investigate`, add regression test |
+
+
+
+<!-- CLAUDE.md Guidance:
+- Update this file after significant decisions, bug fixes, or architectural changes
+- NEVER delete content — only add, refine, or mark as deprecated
+- Use /learn to capture non-obvious discoveries
+- Session summary format: "Session YYYY-MM-DD: <what was done>, <key decisions>, <blockers>"
+-->
+
+<!-- Previous Session Summary:
+Session 2026-04-16: Initial CLAUDE.md generation via aiframework.
+Key decisions: Automated project analysis and documentation generation.
+Blockers: None.
+-->
+
+---
+
+## Execution Matrices
+
+### Bug Fix Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/investigate` — reproduce & understand | Can reproduce? |
+| 2 | Plan fix approach | Root cause identified? |
+| 3 | Implement fix | Code change minimal & correct? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` (if security-related) | No vulnerabilities? |
+| 7 | Update docs + CHANGELOG | Docs accurate? |
+| 8 | `/qa` | App works? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/learn` | Lesson captured? |
+
+### Feature Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/plan-eng-review` | Plan approved? |
+| 2 | Build — implement feature | Code complete? |
+| 3 | Write tests | Coverage adequate? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` | No security gaps? |
+| 7 | Update docs + CHANGELOG + VERSION | Docs accurate? |
+| 8 | `/qa` | Feature works end-to-end? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/canary` | No regressions? |
+| 11 | `/learn` | Lessons captured? |
+
+### Deploy Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | Verify: lint + typecheck + test + build | All pass? |
+| 2 | `/review` | No issues? |
+| 3 | `/cso` | Secure? |
+| 4 | `/qa` | QA pass? |
+| 5 | Update CHANGELOG + VERSION | Done? |
+| 6 | `/ship` | Deploy triggered? |
+| 7 | `/canary` — monitor post-deploy | Healthy? |
+
+### Weekly Cadence
+
+| Day | Task |
+|-----|------|
+| Monday | Review open PRs, triage issues |
+| Wednesday | `/retro` — mid-week check |
+| Friday | `/retro` — weekly retrospective, update CLAUDE.md, run `vault-tools.sh doctor` |
+
+### Failure Recovery Table
+
+| Failure | Recovery Action |
+|---------|----------------|
+| Test fails after code change | Revert change, re-investigate, fix root cause |
+| Build fails | Check compiler errors, fix type/syntax issues |
+| Lint fails | Auto-fix with formatter, then manual review |
+| Deploy fails | Rollback, check logs, fix and re-deploy |
+| `/cso` finds vulnerability | Block deploy, fix immediately, re-run `/cso` |
+| QA regression | Investigate with `/investigate`, add regression test |
+
+
+
+<!-- CLAUDE.md Guidance:
+- Update this file after significant decisions, bug fixes, or architectural changes
+- NEVER delete content — only add, refine, or mark as deprecated
+- Use /learn to capture non-obvious discoveries
+- Session summary format: "Session YYYY-MM-DD: <what was done>, <key decisions>, <blockers>"
+-->
+
+<!-- Previous Session Summary:
+Session 2026-04-16: Initial CLAUDE.md generation via aiframework.
+Key decisions: Automated project analysis and documentation generation.
+Blockers: None.
+-->
+
+---
+
+## Execution Matrices
+
+### Bug Fix Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/investigate` — reproduce & understand | Can reproduce? |
+| 2 | Plan fix approach | Root cause identified? |
+| 3 | Implement fix | Code change minimal & correct? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` (if security-related) | No vulnerabilities? |
+| 7 | Update docs + CHANGELOG | Docs accurate? |
+| 8 | `/qa` | App works? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/learn` | Lesson captured? |
+
+### Feature Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/plan-eng-review` | Plan approved? |
+| 2 | Build — implement feature | Code complete? |
+| 3 | Write tests | Coverage adequate? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` | No security gaps? |
+| 7 | Update docs + CHANGELOG + VERSION | Docs accurate? |
+| 8 | `/qa` | Feature works end-to-end? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/canary` | No regressions? |
+| 11 | `/learn` | Lessons captured? |
+
+### Deploy Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | Verify: lint + typecheck + test + build | All pass? |
+| 2 | `/review` | No issues? |
+| 3 | `/cso` | Secure? |
+| 4 | `/qa` | QA pass? |
+| 5 | Update CHANGELOG + VERSION | Done? |
+| 6 | `/ship` | Deploy triggered? |
+| 7 | `/canary` — monitor post-deploy | Healthy? |
+
+### Weekly Cadence
+
+| Day | Task |
+|-----|------|
+| Monday | Review open PRs, triage issues |
+| Wednesday | `/retro` — mid-week check |
+| Friday | `/retro` — weekly retrospective, update CLAUDE.md, run `vault-tools.sh doctor` |
+
+### Failure Recovery Table
+
+| Failure | Recovery Action |
+|---------|----------------|
+| Test fails after code change | Revert change, re-investigate, fix root cause |
+| Build fails | Check compiler errors, fix type/syntax issues |
+| Lint fails | Auto-fix with formatter, then manual review |
+| Deploy fails | Rollback, check logs, fix and re-deploy |
+| `/cso` finds vulnerability | Block deploy, fix immediately, re-run `/cso` |
+| QA regression | Investigate with `/investigate`, add regression test |
+
+
+
+<!-- CLAUDE.md Guidance:
+- Update this file after significant decisions, bug fixes, or architectural changes
+- NEVER delete content — only add, refine, or mark as deprecated
+- Use /learn to capture non-obvious discoveries
+- Session summary format: "Session YYYY-MM-DD: <what was done>, <key decisions>, <blockers>"
+-->
+
+<!-- Previous Session Summary:
+Session 2026-04-16: Initial CLAUDE.md generation via aiframework.
+Key decisions: Automated project analysis and documentation generation.
+Blockers: None.
+-->
+
+---
+
+## Execution Matrices
+
+### Bug Fix Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/investigate` — reproduce & understand | Can reproduce? |
+| 2 | Plan fix approach | Root cause identified? |
+| 3 | Implement fix | Code change minimal & correct? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` (if security-related) | No vulnerabilities? |
+| 7 | Update docs + CHANGELOG | Docs accurate? |
+| 8 | `/qa` | App works? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/learn` | Lesson captured? |
+
+### Feature Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | `/plan-eng-review` | Plan approved? |
+| 2 | Build — implement feature | Code complete? |
+| 3 | Write tests | Coverage adequate? |
+| 4 | Verify: lint + typecheck + test + build | All pass? |
+| 5 | `/review` | No issues? |
+| 6 | `/cso` | No security gaps? |
+| 7 | Update docs + CHANGELOG + VERSION | Docs accurate? |
+| 8 | `/qa` | Feature works end-to-end? |
+| 9 | `/ship` | PR/deploy clean? |
+| 10 | `/canary` | No regressions? |
+| 11 | `/learn` | Lessons captured? |
+
+### Deploy Flow
+
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | Verify: lint + typecheck + test + build | All pass? |
+| 2 | `/review` | No issues? |
+| 3 | `/cso` | Secure? |
+| 4 | `/qa` | QA pass? |
+| 5 | Update CHANGELOG + VERSION | Done? |
+| 6 | `/ship` | Deploy triggered? |
+| 7 | `/canary` — monitor post-deploy | Healthy? |
+
+### Weekly Cadence
+
+| Day | Task |
+|-----|------|
+| Monday | Review open PRs, triage issues |
+| Wednesday | `/retro` — mid-week check |
+| Friday | `/retro` — weekly retrospective, update CLAUDE.md, run `vault-tools.sh doctor` |
+
+### Failure Recovery Table
+
+| Failure | Recovery Action |
+|---------|----------------|
+| Test fails after code change | Revert change, re-investigate, fix root cause |
+| Build fails | Check compiler errors, fix type/syntax issues |
+| Lint fails | Auto-fix with formatter, then manual review |
+| Deploy fails | Rollback, check logs, fix and re-deploy |
+| `/cso` finds vulnerability | Block deploy, fix immediately, re-run `/cso` |
+| QA regression | Investigate with `/investigate`, add regression test |

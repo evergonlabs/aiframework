@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# aiframework-mcp — MCP server wrapper
+# Launches the Python MCP server for AI agent integration.
+#
+# Usage:
+#   aiframework-mcp              # Run MCP server (stdin/stdout JSON-RPC)
+#   aiframework-mcp --version    # Print version
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+if [[ "${1:-}" == "--version" ]]; then
+  echo "aiframework-mcp $(cat "$ROOT_DIR/VERSION")"
+  exit 0
+fi
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "Usage: aiframework-mcp"
+  echo ""
+  echo "Launches aiframework as an MCP server (JSON-RPC over stdin/stdout)."
+  echo "Configure in your AI agent's MCP settings:"
+  echo ""
+  echo '  "aiframework": {'
+  echo '    "command": "aiframework-mcp"'
+  echo '  }'
+  exit 0
+fi
+
+exec python3 "$ROOT_DIR/lib/mcp/server.py"

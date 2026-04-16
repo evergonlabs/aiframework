@@ -206,10 +206,11 @@ preserve_rule() {
   local basename="${file##*/}"
 
   case "$basename" in
-    workflow.md)
+    workflow.md|pipeline.md|session-protocol.md|invariants.md)
+      # Generated rules — backup and overwrite
       if _file_exists "$file"; then
         _backup_file "$file"
-        log_info "Updating workflow.md (backup saved)"
+        log_info "Updating ${basename} (backup saved)"
       fi
       return 0  # proceed
       ;;

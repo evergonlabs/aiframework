@@ -264,4 +264,25 @@ validate_files() {
   else
     report_row "Manifest" "WARN" "Not in default location"
   fi
+
+  # Check extended rules (moderate/complex/enterprise only)
+  local proj_complexity
+  proj_complexity=$(echo "$m" | jq -r '.archetype.complexity // "simple"')
+  if [[ "$proj_complexity" == "moderate" || "$proj_complexity" == "complex" || "$proj_complexity" == "enterprise" ]]; then
+    local ext_rules=(
+      ".claude/rules/pipeline.md"
+      ".claude/rules/session-protocol.md"
+      ".claude/rules/invariants.md"
+    )
+    local ext_found=0
+    local ext_total=${#ext_rules[@]}
+    for er in "${ext_rules[@]}"; do
+      [[ -f "$TARGET_DIR/$er" ]] && ext_found=$((ext_found + 1))
+    done
+    if [[ $ext_found -eq $ext_total ]]; then
+      report_row "Extended rules ($ext_total)" "PASS" "All present"
+    else
+      report_row "Extended rules" "FAIL" "$ext_found/$ext_total present"
+    fi
+  fi
 }

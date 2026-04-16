@@ -238,6 +238,7 @@ parse_args() {
       --verbose)   VERBOSE=true; shift ;;
       --non-interactive) NON_INTERACTIVE=true; shift ;;
       --no-index)  NO_INDEX=true; shift ;;
+      --tier)      AIF_CLI_TIER="$2"; shift 2 ;;
       --help|-h)   usage; exit 0 ;;
       *)           log_error "Unknown option: $1"; usage; exit 1 ;;
     esac
@@ -367,7 +368,6 @@ cmd_discover() {
 
 cmd_generate() {
   banner
-  log_phase "GENERATE" 7
 
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
@@ -378,11 +378,30 @@ cmd_generate() {
   MANIFEST=$(cat "$MANIFEST_PATH")
   export MANIFEST
 
+  # Load config + resolve tier
+  source "$LIB_DIR/config.sh"
+  load_config
+  resolve_tier "${AIF_CLI_TIER:-}"
+
+  # Count total generators based on tier
+  local total_steps=2  # CLAUDE.md + AGENTS.md always
+  tier_includes "cursor" && format_enabled "cursor" && total_steps=$((total_steps + 1))
+  tier_includes "hooks" && total_steps=$((total_steps + 1))
+  tier_includes "ci" && total_steps=$((total_steps + 1))
+  tier_includes "skills" && total_steps=$((total_steps + 1))
+  tier_includes "docs" && total_steps=$((total_steps + 1))
+  tier_includes "tracking" && total_steps=$((total_steps + 1))
+  tier_includes "vault-memory" && total_steps=$((total_steps + 1))
+
+  log_phase "GENERATE" "$total_steps"
+
   # Load preserve module first — generators call its functions
   source "$LIB_DIR/generators/preserve.sh"
   _init_preserve
 
   source "$LIB_DIR/generators/claude_md.sh"
+  source "$LIB_DIR/generators/agents_md.sh"
+  source "$LIB_DIR/generators/cursor_rules.sh"
   source "$LIB_DIR/generators/hooks.sh"
   source "$LIB_DIR/generators/ci.sh"
   source "$LIB_DIR/generators/skills.sh"
@@ -393,31 +412,64 @@ cmd_generate() {
 
   local generated=0
 
-  log_step "Generating CLAUDE.md"
-  generate_claude_md && generated=$((generated + 1)) || true
+  # CLAUDE.md — always generated
+  if format_enabled "claude"; then
+    log_step "Generating CLAUDE.md"
+    generate_claude_md && generated=$((generated + 1)) || true
+  fi
 
-  log_step "Generating git hooks"
-  generate_hooks && generated=$((generated + 1)) || true
+  # AGENTS.md — always generated
+  if format_enabled "agents"; then
+    log_step "Generating AGENTS.md"
+    generate_agents_md && generated=$((generated + 1)) || true
+  fi
 
-  log_step "Generating CI workflow"
-  generate_ci && generated=$((generated + 1)) || true
+  # .cursorrules — standard tier+
+  if tier_includes "cursor" && format_enabled "cursor"; then
+    log_step "Generating .cursorrules"
+    generate_cursor_rules && generated=$((generated + 1)) || true
+  fi
 
-  log_step "Generating custom skills"
-  generate_skills && generated=$((generated + 1)) || true
+  # Git hooks — standard tier+
+  if tier_includes "hooks"; then
+    log_step "Generating git hooks"
+    generate_hooks && generated=$((generated + 1)) || true
+  fi
 
-  log_step "Generating documentation scaffold"
-  generate_docs && generated=$((generated + 1)) || true
+  # CI workflow — standard tier+
+  if tier_includes "ci"; then
+    log_step "Generating CI workflow"
+    generate_ci && generated=$((generated + 1)) || true
+  fi
 
-  log_step "Generating tracking files"
-  generate_tracking && generated=$((generated + 1)) || true
+  # Custom skills — standard tier+
+  if tier_includes "skills"; then
+    log_step "Generating custom skills"
+    generate_skills && generated=$((generated + 1)) || true
+  fi
 
-  log_step "Generating agentic memory vault"
-  generate_vault && generated=$((generated + 1)) || true
+  # Documentation scaffold — full tier+
+  if tier_includes "docs"; then
+    log_step "Generating documentation scaffold"
+    generate_docs && generated=$((generated + 1)) || true
+  fi
+
+  # Tracking files — full tier+
+  if tier_includes "tracking"; then
+    log_step "Generating tracking files"
+    generate_tracking && generated=$((generated + 1)) || true
+  fi
+
+  # Vault — full tier+ (memory), enterprise (full)
+  if tier_includes "vault-memory"; then
+    log_step "Generating agentic memory vault"
+    generate_vault && generated=$((generated + 1)) || true
+  fi
 
   log_phase_done
 
   echo ""
-  log_ok "Generated ${BOLD}$generated/7${NC} file groups"
+  log_ok "Generated ${BOLD}$generated/$total_steps${NC} file groups (tier: ${AIF_RESOLVED_TIER})"
   print_preserve_summary
   echo ""
 }

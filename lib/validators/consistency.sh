@@ -76,11 +76,15 @@ validate_consistency() {
     report_row "Cmd sync: SETUP-DEV" "SKIP" "Files missing"
   fi
 
-  # --- E8: Doc-sync matrix in CLAUDE.md matches doc-sync in ship skill ---
+  # --- E8: Doc-sync matrix in CLAUDE.md (or rules/pipeline.md) matches doc-sync in ship skill ---
   if [[ -f "$TARGET_DIR/CLAUDE.md" && -f "$TARGET_DIR/.claude/skills/${short}-ship/SKILL.md" ]]; then
     local has_docsync_claude=false
     local has_docsync_ship=false
     grep -q 'Doc.Sync\|doc.sync\|Doc Sync' "$TARGET_DIR/CLAUDE.md" 2>/dev/null && has_docsync_claude=true
+    # Also check .claude/rules/pipeline.md (extended rules for complex projects)
+    if [[ "$has_docsync_claude" == false && -f "$TARGET_DIR/.claude/rules/pipeline.md" ]]; then
+      grep -q 'Doc.Sync\|doc.sync\|Doc Sync' "$TARGET_DIR/.claude/rules/pipeline.md" 2>/dev/null && has_docsync_claude=true
+    fi
     grep -q 'Doc Sync\|doc.sync\|documentation' "$TARGET_DIR/.claude/skills/${short}-ship/SKILL.md" 2>/dev/null && has_docsync_ship=true
 
     if $has_docsync_claude && $has_docsync_ship; then

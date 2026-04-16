@@ -42,7 +42,12 @@ arch=$(jq -r '.archetype.type' "$dir/.aiframework/manifest.json" 2>/dev/null || 
 
 "$ROOT_DIR/bin/aiframework" generate --target "$dir" 2>/dev/null || true
 [[ -f "$dir/CLAUDE.md" ]] && pass "CLAUDE.md generated" || fail "CLAUDE.md missing"
+[[ -f "$dir/AGENTS.md" ]] && pass "AGENTS.md generated" || fail "AGENTS.md missing"
 [[ -d "$dir/vault" ]] && pass "vault created" || fail "vault missing"
+
+# Lean CLAUDE.md: must be under 200 lines
+line_count=$(wc -l < "$dir/CLAUDE.md" | tr -d '[:space:]')
+[[ "$line_count" -lt 200 ]] && pass "CLAUDE.md is lean ($line_count lines)" || fail "CLAUDE.md too large ($line_count lines, expected <200)"
 
 echo ""
 
@@ -76,6 +81,14 @@ echo 'stuff' > "$dir/config.txt"
 arch=$(jq -r '.archetype.type' "$dir/.aiframework/manifest.json" 2>/dev/null || echo "unknown")
 [[ "$arch" == "minimal" ]] && pass "archetype=minimal" || fail "archetype=$arch (expected minimal)"
 
+# Generate and check: minimal repos should NOT get extended rules
+"$ROOT_DIR/bin/aiframework" generate --target "$dir" 2>/dev/null || true
+if [[ -f "$dir/CLAUDE.md" ]]; then
+  min_lines=$(wc -l < "$dir/CLAUDE.md" | tr -d '[:space:]')
+  [[ "$min_lines" -lt 200 ]] && pass "CLAUDE.md is lean ($min_lines lines)" || fail "CLAUDE.md too large ($min_lines lines)"
+fi
+[[ ! -f "$dir/.claude/rules/pipeline.md" ]] && pass "no pipeline.md (simple project)" || fail "pipeline.md exists (should not for minimal)"
+
 echo ""
 
 # Test 4: Monorepo detection
@@ -92,6 +105,56 @@ mono=$(jq -r '.stack.is_monorepo' "$dir/.aiframework/manifest.json" 2>/dev/null 
 [[ "$mono" == "true" ]] && pass "monorepo=true" || fail "monorepo=$mono"
 arch=$(jq -r '.archetype.type' "$dir/.aiframework/manifest.json" 2>/dev/null || echo "unknown")
 [[ "$arch" == "monorepo" ]] && pass "archetype=monorepo" || fail "archetype=$arch"
+
+echo ""
+
+# Test 5: Complex project — extended rules generation
+echo "Test 5: Complex project (extended rules)"
+dir=$(setup_fixture "complex-api")
+echo '{"name":"bigapp","scripts":{"dev":"next dev","build":"next build","test":"jest","lint":"eslint ."}}' > "$dir/package.json"
+echo '{"compilerOptions":{"strict":true}}' > "$dir/tsconfig.json"
+mkdir -p "$dir/src/api" "$dir/src/auth"
+echo 'export function handler() {}' > "$dir/src/api/route.ts"
+echo 'export function login() {}' > "$dir/src/auth/session.ts"
+
+"$ROOT_DIR/bin/aiframework" discover --target "$dir" --non-interactive --no-index 2>/dev/null || true
+# Override complexity to complex for testing extended rules
+jq '.archetype.complexity = "complex"' "$dir/.aiframework/manifest.json" > "$dir/.aiframework/manifest.json.tmp" && mv "$dir/.aiframework/manifest.json.tmp" "$dir/.aiframework/manifest.json"
+
+"$ROOT_DIR/bin/aiframework" generate --target "$dir" 2>/dev/null || true
+[[ -f "$dir/CLAUDE.md" ]] && pass "CLAUDE.md generated" || fail "CLAUDE.md missing"
+[[ -f "$dir/AGENTS.md" ]] && pass "AGENTS.md generated" || fail "AGENTS.md missing"
+[[ -f "$dir/.cursorrules" ]] && pass ".cursorrules generated" || fail ".cursorrules missing"
+complex_lines=$(wc -l < "$dir/CLAUDE.md" | tr -d '[:space:]')
+[[ "$complex_lines" -lt 200 ]] && pass "CLAUDE.md is lean ($complex_lines lines)" || fail "CLAUDE.md too large ($complex_lines lines)"
+[[ -f "$dir/.claude/rules/pipeline.md" ]] && pass "pipeline.md generated" || fail "pipeline.md missing"
+[[ -f "$dir/.claude/rules/session-protocol.md" ]] && pass "session-protocol.md generated" || fail "session-protocol.md missing"
+[[ -f "$dir/.claude/rules/invariants.md" ]] && pass "invariants.md generated" || fail "invariants.md missing"
+[[ -f "$dir/docs/reference/architecture.md" ]] && pass "architecture.md generated" || fail "architecture.md missing"
+# Verify pipeline.md has key content
+grep -q 'Autonomous Pipeline' "$dir/.claude/rules/pipeline.md" && pass "pipeline has 12-stage content" || fail "pipeline missing pipeline content"
+grep -q 'Skill Routing' "$dir/.claude/rules/pipeline.md" && pass "pipeline has skill routing" || fail "pipeline missing skill routing"
+# Verify session-protocol has execution matrices
+grep -q 'Bug Fix Flow' "$dir/.claude/rules/session-protocol.md" && pass "session-protocol has matrices" || fail "session-protocol missing matrices"
+
+# Verify AGENTS.md content
+grep -q '## Build' "$dir/AGENTS.md" && pass "AGENTS.md has Build section" || fail "AGENTS.md missing Build"
+agents_lines=$(wc -l < "$dir/AGENTS.md" | tr -d '[:space:]')
+[[ "$agents_lines" -lt 150 ]] && pass "AGENTS.md under 150 lines ($agents_lines)" || fail "AGENTS.md too large ($agents_lines)"
+
+echo ""
+
+# Test 6: Config-gated output (only AGENTS.md)
+echo "Test 6: Config-gated output"
+dir=$(setup_fixture "config-test")
+echo '{"name":"cfgapp","scripts":{"build":"make"}}' > "$dir/package.json"
+"$ROOT_DIR/bin/aiframework" discover --target "$dir" --non-interactive --no-index 2>/dev/null || true
+mkdir -p "$dir/.aiframework"
+echo '{"formats":["agents"],"tier":"minimal"}' > "$dir/.aiframework/config.json"
+"$ROOT_DIR/bin/aiframework" generate --target "$dir" 2>/dev/null || true
+[[ -f "$dir/AGENTS.md" ]] && pass "AGENTS.md generated (config)" || fail "AGENTS.md missing (config)"
+[[ ! -f "$dir/CLAUDE.md" ]] && pass "CLAUDE.md not generated (config)" || fail "CLAUDE.md exists (should be gated)"
+[[ ! -d "$dir/vault" ]] && pass "vault not generated (minimal tier)" || fail "vault exists (should be gated)"
 
 echo ""
 

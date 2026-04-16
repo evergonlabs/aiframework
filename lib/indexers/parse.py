@@ -21,6 +21,7 @@ from typing import Any
 
 from . import __version__
 from .graph import build_graph, compute_pagerank
+from .registry import discover_parsers
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -39,17 +40,10 @@ _EXCLUDED_DIRS: set[str] = {
 
 _MAX_FILE_SIZE = 512 * 1024  # 512 KB — covers large generated files like vault.sh
 
-_EXT_LANGUAGE: dict[str, str] = {
-    ".sh": "bash",
-    ".bash": "bash",
-    ".py": "python",
-    ".ts": "typescript",
-    ".tsx": "typescript",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".go": "go",
-    ".rs": "rust",
-    ".rb": "ruby",
+# Base extension-to-language mapping for languages without plugin parsers.
+# Plugin parsers (from parsers/ and contrib/) contribute their own mappings
+# via the registry and are merged in below.
+_EXT_LANGUAGE_BASE: dict[str, str] = {
     ".java": "java",
     ".cs": "csharp",
     ".php": "php",
@@ -59,6 +53,11 @@ _EXT_LANGUAGE: dict[str, str] = {
     ".ex": "elixir",
     ".exs": "elixir",
 }
+
+# Discover plugin parsers and merge extension mappings.
+_PLUGIN_PARSERS, _PLUGIN_EXT_LANGUAGE = discover_parsers()
+
+_EXT_LANGUAGE: dict[str, str] = {**_EXT_LANGUAGE_BASE, **_PLUGIN_EXT_LANGUAGE}
 
 # ---------------------------------------------------------------------------
 # Language parsers — each returns (symbols, imports, exports)
@@ -786,64 +785,11 @@ def _lang_elixir(text: str, rel_path: str) -> tuple[list[_Symbol], list[str], li
 
 
 # ---------------------------------------------------------------------------
-# Dispatcher
+# Dispatcher — combines plugin parsers with inline fallbacks
 # ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Standalone parser adapters — wrap the improved lang_*.py parsers to match
-# the inline parser interface: (text, rel_path) -> (symbols, imports, exports)
-# ---------------------------------------------------------------------------
-
-def _try_import_standalone():
-    """Import standalone parsers if available, return dict of adapters."""
-    adapters = {}
-    try:
-        from .lang_bash import parse_bash
-        adapters["bash"] = lambda text, path: _adapt(parse_bash(path, text))
-    except ImportError:
-        pass
-    try:
-        from .lang_python import parse_python
-        adapters["python"] = lambda text, path: _adapt(parse_python(path, text))
-    except ImportError:
-        pass
-    try:
-        from .lang_typescript import parse_typescript
-        adapters["typescript"] = lambda text, path: _adapt(parse_typescript(path, text))
-    except ImportError:
-        pass
-    try:
-        from .lang_go import parse_go
-        adapters["go"] = lambda text, path: _adapt(parse_go(path, text))
-    except ImportError:
-        pass
-    try:
-        from .lang_rust import parse_rust
-        adapters["rust"] = lambda text, path: _adapt(parse_rust(path, text))
-    except ImportError:
-        pass
-    try:
-        from .lang_ruby import parse_ruby
-        adapters["ruby"] = lambda text, path: _adapt(parse_ruby(path, text))
-    except ImportError:
-        pass
-    return adapters
-
-def _adapt(result: dict) -> tuple:
-    """Adapt standalone parser dict result to inline tuple format."""
-    return (result.get("symbols", []), result.get("imports", []), result.get("exports", []))
-
-# Use standalone parsers where available, fall back to inline
-_STANDALONE = _try_import_standalone()
-
-_PARSERS: dict[str, Any] = {
-    "bash": _STANDALONE.get("bash", _lang_bash),
-    "python": _STANDALONE.get("python", _lang_python),
-    "typescript": _STANDALONE.get("typescript", _lang_typescript),
-    "javascript": _STANDALONE.get("typescript", _lang_typescript),  # reuse TS parser
-    "go": _STANDALONE.get("go", _lang_go),
-    "rust": _STANDALONE.get("rust", _lang_rust),
-    "ruby": _STANDALONE.get("ruby", _lang_ruby),
+# Inline parsers for languages that don't yet have standalone plugin modules.
+_INLINE_PARSERS: dict[str, Any] = {
     "java": _lang_java,
     "csharp": _lang_csharp,
     "php": _lang_php,
@@ -851,6 +797,15 @@ _PARSERS: dict[str, Any] = {
     "swift": _lang_swift,
     "elixir": _lang_elixir,
 }
+
+# Merge: plugin parsers take priority, inline parsers fill the gaps.
+# JavaScript reuses the typescript parser (handled by extensions in the
+# typescript parser module: [".ts", ".tsx", ".js", ".jsx"]).
+_PARSERS: dict[str, Any] = {**_INLINE_PARSERS, **_PLUGIN_PARSERS}
+
+# Alias: JavaScript files use the TypeScript parser.
+if "typescript" in _PARSERS and "javascript" not in _PARSERS:
+    _PARSERS["javascript"] = _PARSERS["typescript"]
 
 
 def _parse_file(

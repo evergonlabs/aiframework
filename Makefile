@@ -5,11 +5,12 @@ PREFIX ?= /usr/local
 install:
 	@mkdir -p $(PREFIX)/bin
 	@ln -sf $(CURDIR)/bin/aiframework $(PREFIX)/bin/aiframework
-	@echo "Installed aiframework to $(PREFIX)/bin/aiframework"
+	@ln -sf $(CURDIR)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-mcp
+	@echo "Installed aiframework + aiframework-mcp to $(PREFIX)/bin/"
 
 uninstall:
-	@rm -f $(PREFIX)/bin/aiframework
-	@echo "Removed aiframework from $(PREFIX)/bin/aiframework"
+	@rm -f $(PREFIX)/bin/aiframework $(PREFIX)/bin/aiframework-mcp
+	@echo "Removed aiframework + aiframework-mcp from $(PREFIX)/bin/"
 
 lint:
 	@echo "Checking bash syntax..."
@@ -21,6 +22,8 @@ lint:
 test:
 	@echo "Running Python tests..."
 	@python3 tests/test_indexer.py
+	@echo "Running MCP tests..."
+	@python3 tests/test_mcp.py
 	@echo "Running validator tests..."
 	@bash tests/test_validators.sh
 	@echo "Running integration tests..."
