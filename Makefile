@@ -21,6 +21,8 @@ lint:
 test:
 	@echo "Running Python tests..."
 	@python3 tests/test_indexer.py
+	@echo "Running validator tests..."
+	@bash tests/test_validators.sh
 	@echo "Running integration tests..."
 	@bash tests/test_e2e.sh
 	@echo "All tests passed."
