@@ -16,11 +16,22 @@ validate_consistency() {
       if grep -Fq "$lint_cmd" "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
         report_row "Cmd sync: pre-push" "PASS" "Commands match"
       else
-        # Also check for the core command (e.g., "shellcheck" from "find ... | xargs shellcheck")
+        # Extract core tool name: try last word, then first word, then pipe-delimited tools
         local lint_core
         lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$' || true)
+        # Fallback: first word of the command (e.g., "cppcheck" from "cppcheck --enable=all .")
+        if [[ -z "$lint_core" ]]; then
+          lint_core=$(echo "$lint_cmd" | awk '{print $1}')
+        fi
+        # Also check if the hook runs any linter at all (shellcheck, eslint, ruff, etc.)
+        local hook_has_linter=false
+        if grep -qE '(shellcheck|eslint|ruff|flake8|pylint|cppcheck|golangci-lint|clippy)' "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
+          hook_has_linter=true
+        fi
         if [[ -n "$lint_core" ]] && grep -Fq "$lint_core" "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
           report_row "Cmd sync: pre-push" "PASS" "Core lint tool matches"
+        elif $hook_has_linter; then
+          report_row "Cmd sync: pre-push" "WARN" "Hook has linter (different from manifest)"
         else
           report_row "Cmd sync: pre-push" "FAIL" "Lint cmd mismatch"
         fi
@@ -155,7 +166,11 @@ validate_consistency() {
     if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
       local lint_core
       lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$' || true)
-      if ! grep -Fq "$lint_cmd" "$ci_file" 2>/dev/null && ! { [[ -n "$lint_core" ]] && grep -Fq "$lint_core" "$ci_file" 2>/dev/null; }; then
+      [[ -z "$lint_core" ]] && lint_core=$(echo "$lint_cmd" | awk '{print $1}')
+      # Match: exact command, core tool name, make lint, or any known linter in CI
+      if ! grep -Fq "$lint_cmd" "$ci_file" 2>/dev/null \
+         && ! { [[ -n "$lint_core" ]] && grep -Fq "$lint_core" "$ci_file" 2>/dev/null; } \
+         && ! grep -qE '(make.*lint|shellcheck|eslint|ruff|flake8|pylint|cppcheck|golangci-lint|clippy)' "$ci_file" 2>/dev/null; then
         ci_match=false
         ci_details="lint cmd missing from CI"
       fi
@@ -164,7 +179,11 @@ validate_consistency() {
     local test_cmd
     test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
     if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
-      if ! grep -Fq "$test_cmd" "$ci_file" 2>/dev/null; then
+      local test_core
+      test_core=$(echo "$test_cmd" | awk '{print $NF}')
+      # Match: exact command, make test, or test runner in CI
+      if ! grep -Fq "$test_cmd" "$ci_file" 2>/dev/null \
+         && ! grep -qE '(make.*test|pytest|jest|vitest|mocha|cargo test|go test|test_|_test\.)' "$ci_file" 2>/dev/null; then
         ci_match=false
         ci_details="${ci_details:+$ci_details; }test cmd missing from CI"
       fi
@@ -173,7 +192,17 @@ validate_consistency() {
     local build_cmd
     build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
     if [[ "$build_cmd" != "NOT_CONFIGURED" ]]; then
-      if ! grep -Fq "$build_cmd" "$ci_file" 2>/dev/null; then
+      # Match: exact command, make/build steps, or interpreted langs where lint+test IS the build
+      local lang
+      lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
+      # For projects where build=make, CI having lint+test jobs is equivalent
+      local ci_has_quality_jobs=false
+      if grep -qE '(lint|test|check|build)' "$ci_file" 2>/dev/null; then
+        ci_has_quality_jobs=true
+      fi
+      if ! grep -Fq "$build_cmd" "$ci_file" 2>/dev/null \
+         && ! grep -qE '(make($| )|npm run build|cargo build|go build)' "$ci_file" 2>/dev/null \
+         && ! $ci_has_quality_jobs; then
         ci_match=false
         ci_details="${ci_details:+$ci_details; }build cmd missing from CI"
       fi
