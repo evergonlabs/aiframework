@@ -295,6 +295,10 @@ cmd_generate() {
   MANIFEST=$(cat "$MANIFEST_PATH")
   export MANIFEST
 
+  # Load preserve module first — generators call its functions
+  source "$LIB_DIR/generators/preserve.sh"
+  _init_preserve
+
   source "$LIB_DIR/generators/claude_md.sh"
   source "$LIB_DIR/generators/hooks.sh"
   source "$LIB_DIR/generators/ci.sh"
@@ -329,6 +333,7 @@ cmd_generate() {
 
   echo ""
   log_ok "Generated $generated/7 file groups"
+  print_preserve_summary
   echo ""
 }
 

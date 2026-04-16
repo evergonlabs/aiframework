@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 # Generator: Tracking Files
 # Creates CHANGELOG.md, VERSION, STATUS.md
+# Respects existing files — never overwrites user content
 
 generate_tracking() {
   local m="$MANIFEST"
-  local name=$(echo "$m" | jq -r '.identity.name')
-  local short=$(echo "$m" | jq -r '.identity.short_name')
-  local version=$(echo "$m" | jq -r '.identity.version // "0.1.0"')
-  local today=$(date +%Y-%m-%d)
+  local name
+  name=$(echo "$m" | jq -r '.identity.name')
+  local short
+  short=$(echo "$m" | jq -r '.identity.short_name')
+  local version
+  version=$(echo "$m" | jq -r '.identity.version // "0.1.0"')
+  local today
+  today=$(date +%Y-%m-%d)
 
   if [[ "$DRY_RUN" == true ]]; then
     log_info "[DRY RUN] Would create CHANGELOG.md, VERSION, STATUS.md"
@@ -15,7 +20,8 @@ generate_tracking() {
   fi
 
   # --- CHANGELOG.md ---
-  cat > "$TARGET_DIR/CHANGELOG.md" << CHANGELOG
+  if preserve_tracking "$TARGET_DIR/CHANGELOG.md"; then
+    cat > "$TARGET_DIR/CHANGELOG.md" << CHANGELOG
 # Changelog
 
 All notable changes to ${name} are documented here.
@@ -34,15 +40,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - CI workflow for quality gates
 - Agentic memory vault (22 files)
 CHANGELOG
-
-  log_ok "Created CHANGELOG.md"
+    log_ok "Created CHANGELOG.md"
+  fi
 
   # --- VERSION ---
-  echo "$version" > "$TARGET_DIR/VERSION"
-  log_ok "Created VERSION (${version})"
+  if preserve_tracking "$TARGET_DIR/VERSION"; then
+    echo "$version" > "$TARGET_DIR/VERSION"
+    log_ok "Created VERSION (${version})"
+  fi
 
   # --- STATUS.md ---
-  cat > "$TARGET_DIR/STATUS.md" << STATUS
+  if preserve_tracking "$TARGET_DIR/STATUS.md"; then
+    cat > "$TARGET_DIR/STATUS.md" << STATUS
 # Current Sprint — Status Tracker
 
 ## Current Phase: Automation setup
@@ -65,6 +74,6 @@ CHANGELOG
 
 *Last updated: ${today}*
 STATUS
-
-  log_ok "Created STATUS.md"
+    log_ok "Created STATUS.md"
+  fi
 }

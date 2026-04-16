@@ -201,6 +201,9 @@ generate_claude_md_lean() {
     return 0
   fi
 
+  # Preserve existing CLAUDE.md content for merge
+  preserve_claude_md
+
   # --- Generate .claude/rules/workflow.md (offload workflow rules) ---
   _generate_workflow_rules
 
@@ -418,6 +421,9 @@ This file auto-evolves. Rules of thumb:
 
 *Generated: ${today} by aiframework v$(cat "$ROOT_DIR/VERSION"). Run \`aiframework refresh\` to update. Lean mode (${complexity}).*
 FOOTER
+
+  # Merge back any user-added content
+  merge_claude_md_user_content
 
   log_ok "CLAUDE.md (lean) written to $out"
 }
@@ -2043,6 +2049,9 @@ generate_claude_md_full() {
     return 0
   fi
 
+  # Preserve existing CLAUDE.md content for merge
+  preserve_claude_md
+
   # Generate workflow rules for full mode
   _generate_workflow_rules
 
@@ -2057,6 +2066,9 @@ generate_claude_md_full() {
   _emit_pipeline_and_routing
   _emit_invariants_and_config
   _emit_skills_vault_and_footer
+
+  # Merge back any user-added content from the original CLAUDE.md
+  merge_claude_md_user_content
 
   log_ok "CLAUDE.md (full) written to $_cm_out"
 }

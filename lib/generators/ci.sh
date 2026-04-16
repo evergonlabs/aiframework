@@ -17,6 +17,11 @@ generate_ci() {
     return 0
   fi
 
+  # Preserve existing CI workflow even if coverage is incomplete
+  if ! preserve_ci "$TARGET_DIR/.github/workflows/ci.yml"; then
+    return 0
+  fi
+
   local lang=$(echo "$m" | jq -r '.stack.language')
   local name=$(echo "$m" | jq -r '.identity.name')
   local pkg=$(echo "$m" | jq -r '.commands.package_manager // "npm"')

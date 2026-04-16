@@ -70,6 +70,13 @@ generate_hooks() {
   esac
 
   if [[ -n "$precommit_check" ]]; then
+    # Preserve existing hooks
+    if ! preserve_hook "$TARGET_DIR/.githooks/pre-commit"; then
+      precommit_check=""  # skip pre-commit generation
+    fi
+  fi
+
+  if [[ -n "$precommit_check" ]]; then
     # Extract the core tool name for availability check
     local core_tool
     core_tool=$(echo "$precommit_check" | grep -oE 'shellcheck|eslint|ruff|clippy|tsc|mypy|pyright' | head -1)
@@ -136,6 +143,14 @@ SKIPDOC
     go) skip_patterns+="|.*_test\.go$" ;;
     rust) skip_patterns+="|/tests/.*\.rs$" ;;
   esac
+
+  # Preserve existing pre-push hook
+  if ! preserve_hook "$TARGET_DIR/.githooks/pre-push"; then
+    # Still activate hooks path even if we didn't generate hooks
+    git -C "$TARGET_DIR" config core.hooksPath .githooks 2>/dev/null || true
+    log_ok "Git hooks preserved (core.hooksPath set)"
+    return 0
+  fi
 
   # Count gates
   local gate_num=0

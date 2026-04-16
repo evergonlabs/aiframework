@@ -437,43 +437,86 @@ LEARNMD
   touch "$TARGET_DIR/tools/learnings/${short}-learnings.jsonl"
   log_ok "Created tools/learnings/${short}-learnings.jsonl"
 
-  # --- AGENTS.md (cross-tool compatibility) ---
+  # --- AGENTS.md (cross-tool, open standard) ---
+  # Follows the AGENTS.md spec: tool-agnostic, <60 lines, 6 core sections
+  # Commands first, concrete over vague, no auto-generated fluff
   local agents_file="$TARGET_DIR/AGENTS.md"
   if [[ ! -f "$agents_file" ]]; then
-    local _agents_fw_line=""
-    if [[ "$fw" != "none" && -n "$fw" ]]; then
-      _agents_fw_line="- Use ${fw} best practices"
+    local _agents_desc
+    _agents_desc=$(echo "$m" | jq -r '.identity.description // ""')
+    if [[ "$_agents_desc" == "NOT_FOUND" || "$_agents_desc" == "No description" || -z "$_agents_desc" ]]; then
+      _agents_desc="${name} — ${lang} project"
     fi
-    local _agents_arch_type
-    _agents_arch_type=$(echo "$m" | jq -r '.archetype.type // "application"')
-    cat > "$agents_file" << AGENTSMD
-# AGENTS.md
 
-> Cross-tool agent configuration. Works with Claude Code, Codex CLI, and other AI assistants.
+    {
+      echo "# AGENTS.md"
+      echo ""
+      echo "${_agents_desc}"
+      echo ""
 
-## Project: ${name}
+      # 1. Commands (most important — put first)
+      echo "## Commands"
+      echo ""
+      echo '```bash'
+      [[ "$install" != "NOT_CONFIGURED" ]] && echo "${install}        # install"
+      [[ "$lint" != "NOT_CONFIGURED" ]] && echo "${lint}        # lint"
+      [[ "$typecheck" != "NOT_CONFIGURED" ]] && echo "${typecheck}        # type check"
+      [[ "$test_cmd" != "NOT_CONFIGURED" ]] && echo "${test_cmd}        # test"
+      [[ "$build" != "NOT_CONFIGURED" ]] && echo "${build}        # build"
+      echo '```'
+      echo ""
 
-$(desc_val=$(echo "$m" | jq -r '.identity.description // ""'); if [[ "$desc_val" == "NOT_FOUND" || "$desc_val" == "No description" || -z "$desc_val" ]]; then echo "Agent configuration for ${name}."; else echo "$desc_val"; fi)
+      # 2. Testing
+      local _test_fw
+      _test_fw=$(echo "$m" | jq -r '.quality.test_framework.tool // empty')
+      if [[ -n "$_test_fw" || "$test_cmd" != "NOT_CONFIGURED" ]]; then
+        echo "## Testing"
+        echo ""
+        [[ -n "$_test_fw" ]] && echo "Framework: ${_test_fw}."
+        echo "Run \`${test_cmd}\` before committing. Write tests for new functionality."
+        echo ""
+      fi
 
-## Commands
+      # 3. Code style
+      echo "## Code Style"
+      echo ""
+      echo "- Follow ${lang} community conventions and idioms"
+      [[ "$fw" != "none" && -n "$fw" ]] && echo "- Use ${fw} patterns and APIs"
+      [[ "$lint" != "NOT_CONFIGURED" ]] && echo "- Lint: \`${lint}\`"
+      local _fmt
+      _fmt=$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')
+      [[ "$_fmt" != "NOT_CONFIGURED" ]] && echo "- Format: \`${_fmt}\`"
+      echo ""
 
-- **Install**: \`${install}\`
-- **Build**: \`${build}\`
-- **Test**: \`${test_cmd}\`
-- **Lint**: \`${lint}\`
+      # 4. Git workflow
+      echo "## Git Workflow"
+      echo ""
+      echo "- Branch: \`feat/\`, \`fix/\`, \`refactor/\`, \`docs/\`"
+      echo "- Commits: conventional (\`feat: ...\`, \`fix: ...\`)"
+      echo "- Run lint + test before pushing"
+      echo ""
 
-## Conventions
+      # 5. Boundaries
+      echo "## Boundaries"
+      echo ""
+      echo "### Always"
+      echo "- Validate all user input"
+      echo "- Use environment variables for secrets"
+      echo "- Handle errors explicitly"
+      echo ""
+      echo "### Ask First"
+      echo "- Database schema changes"
+      echo "- New external dependencies"
+      echo "- Changes to CI/CD pipeline"
+      echo "- Deleting files or removing features"
+      echo ""
+      echo "### Never"
+      echo "- Commit secrets, API keys, or credentials"
+      echo "- Skip tests to save time"
+      echo "- Use \`--force\` push without explicit request"
+    } > "$agents_file"
 
-- Follow ${lang} community conventions
-${_agents_fw_line:+${_agents_fw_line}
-}- Run lint + test before committing
-- Never commit secrets or API keys
-
-## Architecture
-
-${_agents_arch_type} project using ${lang}/${fw}.
-AGENTSMD
-    log_ok "Created AGENTS.md"
+    log_ok "Created AGENTS.md (open standard, cross-tool)"
   fi
 
   # Generate .claude/settings.json with safe defaults

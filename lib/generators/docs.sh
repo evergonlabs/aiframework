@@ -24,7 +24,10 @@ generate_docs() {
   # --- docs/ scaffold ---
   mkdir -p "$TARGET_DIR/docs/"{onboarding,guides,reference,explanation,decisions}
 
-  cat > "$TARGET_DIR/docs/README.md" << DOCSMD
+  if ! preserve_doc "$TARGET_DIR/docs/README.md"; then
+    log_ok "Preserved existing docs/README.md"
+  else
+    cat > "$TARGET_DIR/docs/README.md" << DOCSMD
 # ${name} — Documentation
 
 ## Structure (Diataxis)
@@ -38,7 +41,8 @@ generate_docs() {
 | Decisions | \`decisions/\` | Architecture Decision Records |
 DOCSMD
 
-  log_ok "Created docs/ scaffold (Diataxis structure)"
+    log_ok "Created docs/ scaffold (Diataxis structure)"
+  fi
 
   # --- SETUP-DEV.md ---
   local prerequisites=""
@@ -62,7 +66,10 @@ DOCSMD
       ;;
   esac
 
-  cat > "$TARGET_DIR/SETUP-DEV.md" << SETUPMD
+  if ! preserve_doc "$TARGET_DIR/SETUP-DEV.md"; then
+    true  # skip — preserved
+  else
+    cat > "$TARGET_DIR/SETUP-DEV.md" << SETUPMD
 # Developer Setup — ${name}
 
 ## Prerequisites
@@ -118,10 +125,14 @@ cd ~/.claude/skills/gstack && ./setup --no-prefix
 | 2 | \`docs/README.md\` | 2 min |
 SETUPMD
 
-  log_ok "Created SETUP-DEV.md"
+    log_ok "Created SETUP-DEV.md"
+  fi
 
   # --- CONTRIBUTING.md ---
-  cat > "$TARGET_DIR/CONTRIBUTING.md" << CONTRIBMD
+  if ! preserve_doc "$TARGET_DIR/CONTRIBUTING.md"; then
+    true  # skip — preserved
+  else
+    cat > "$TARGET_DIR/CONTRIBUTING.md" << CONTRIBMD
 # Contributing to ${name}
 
 ## Branch Naming
@@ -180,5 +191,6 @@ CONTRIBMD
     echo "3. **CI**: GitHub Actions runs quality checks on all PRs" >> "$TARGET_DIR/CONTRIBUTING.md"
   fi
 
-  log_ok "Created CONTRIBUTING.md"
+    log_ok "Created CONTRIBUTING.md"
+  fi
 }
