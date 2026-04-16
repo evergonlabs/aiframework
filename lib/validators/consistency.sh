@@ -18,7 +18,7 @@ validate_consistency() {
       else
         # Also check for the core command (e.g., "shellcheck" from "find ... | xargs shellcheck")
         local lint_core
-        lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$')
+        lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$' || true)
         if [[ -n "$lint_core" ]] && grep -Fq "$lint_core" "$TARGET_DIR/.githooks/pre-push" 2>/dev/null; then
           report_row "Cmd sync: pre-push" "PASS" "Core lint tool matches"
         else
@@ -154,8 +154,8 @@ validate_consistency() {
     lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
     if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
       local lint_core
-      lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$')
-      if ! grep -Fq "$lint_cmd" "$ci_file" 2>/dev/null && ! grep -Fq "$lint_core" "$ci_file" 2>/dev/null; then
+      lint_core=$(echo "$lint_cmd" | grep -oE '[a-z]+$' || true)
+      if ! grep -Fq "$lint_cmd" "$ci_file" 2>/dev/null && ! { [[ -n "$lint_core" ]] && grep -Fq "$lint_core" "$ci_file" 2>/dev/null; }; then
         ci_match=false
         ci_details="lint cmd missing from CI"
       fi

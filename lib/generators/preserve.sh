@@ -62,6 +62,20 @@ preserve_claude_md() {
   local user_custom_sections=""
   user_custom_sections=$(sed -n '/^\*Generated:.*aiframework/,$ p' "$target" 2>/dev/null | tail -n +2 || true)
 
+  # Strip known generated sections that were previously appended after the footer
+  # (execution matrices, session protocol, previous session comments, etc.)
+  if [[ -n "$user_custom_sections" ]]; then
+    # Remove everything starting from known generated markers
+    local cleaned=""
+    cleaned=$(echo "$user_custom_sections" | sed '/^<!-- CLAUDE\.md Guidance:/,/^-->$/d' | sed '/^<!-- Previous Session Summary:/,/^-->$/d' | sed '/^## Execution Matrices$/,/^---$/d' | sed '/^## Execution Matrices$/,$d' || true)
+    # If only whitespace remains, discard
+    if [[ -z "$(echo "$cleaned" | tr -d '[:space:]')" ]]; then
+      user_custom_sections=""
+    else
+      user_custom_sections="$cleaned"
+    fi
+  fi
+
   # Extract user-added session summary comments
   local user_sessions=""
   user_sessions=$(sed -n '/^<!-- Previous Session Summary:/,/^-->$/p' "$target" 2>/dev/null || true)

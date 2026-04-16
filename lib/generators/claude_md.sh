@@ -1585,7 +1585,7 @@ _emit_invariants_and_config() {
     local arch_data="$ROOT_DIR/lib/data/archetypes.json"
     if [[ -f "$arch_data" ]]; then
       local extra_inv
-      extra_inv=$(jq -r --arg a "$arch_type" '.archetypes[$a].extra_invariants[]? // empty' "$arch_data" 2>/dev/null)
+      extra_inv=$(jq -r --arg a "$arch_type" '.archetypes[$a].extra_invariants[]? | if type == "object" then "[\(.id // "-")]: \(.rule // "-")" else . end // empty' "$arch_data" 2>/dev/null)
       if [[ -n "$extra_inv" ]]; then
         echo "### Archetype Invariants" >> "$out"
         echo "" >> "$out"
@@ -2524,7 +2524,7 @@ INVHEAD
       local arch_data="$ROOT_DIR/lib/data/archetypes.json"
       if [[ -f "$arch_data" ]]; then
         local extra_inv
-        extra_inv=$(jq -r --arg a "$arch_type" '.archetypes[$a].extra_invariants[]? // empty' "$arch_data" 2>/dev/null)
+        extra_inv=$(jq -r --arg a "$arch_type" '.archetypes[$a].extra_invariants[]? | if type == "object" then "[\(.id // "-")]: \(.rule // "-")" else . end // empty' "$arch_data" 2>/dev/null)
         if [[ -n "$extra_inv" ]]; then
           echo "### Archetype Invariants" >> "$inv_out"
           echo "" >> "$inv_out"
