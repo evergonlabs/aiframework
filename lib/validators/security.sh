@@ -12,6 +12,18 @@ validate_security() {
     'sk-[a-zA-Z0-9]{48}'
     'sk-ant-[a-zA-Z0-9-]{93}'
     'AKIA[0-9A-Z]{16}'
+    'sk_live_[a-zA-Z0-9]{24,}'
+    'rk_live_[a-zA-Z0-9]{24,}'
+    'xoxb-[0-9]+-[a-zA-Z0-9]+'
+    'xoxp-[0-9]+-[a-zA-Z0-9]+'
+    'SG\.[a-zA-Z0-9_-]{22}\.[a-zA-Z0-9_-]{43}'
+    '-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'
+    'postgres://[^ ]+:[^ ]+@'
+    'mysql://[^ ]+:[^ ]+@'
+    'mongodb(\+srv)?://[^ ]+:[^ ]+@'
+    'AIza[0-9A-Za-z_-]{35}'
+    'ya29\.[0-9A-Za-z_-]+'
+    'azure[_-]?(?:storage|account)[_-]?key["\s:=]+[A-Za-z0-9+/=]{20,}'
   )
 
   local found_secrets=0

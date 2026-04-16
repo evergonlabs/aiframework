@@ -312,6 +312,158 @@ lint_hr014_no_deletion() {
   return $errors
 }
 
+# HR-007: Frontmatter 'updated' date accuracy (within 30 days of git last-modified)
+lint_hr007_updated_accuracy() {
+  local vault_root="$1"
+  local errors=0
+
+  while IFS= read -r -d '' file; do
+    local rel
+    rel=$(rel_path "$file" "$vault_root")
+
+    if ! has_frontmatter "$file"; then
+      continue
+    fi
+
+    local updated
+    updated=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^updated:' | head -1 | sed 's/updated:[[:space:]]*//' | tr -d '"' | tr -d "'" | xargs)
+    [[ -z "$updated" ]] && continue
+
+    # Get git last-modified date
+    if git -C "$vault_root" rev-parse --is-inside-work-tree &>/dev/null; then
+      local git_date
+      git_date=$(git -C "$vault_root" log -1 --format="%Y-%m-%d" -- "$file" 2>/dev/null || true)
+      [[ -z "$git_date" ]] && continue
+
+      # Compare dates — warn if frontmatter updated is >30 days before git date
+      local updated_epoch git_epoch
+      updated_epoch=$(date -j -f "%Y-%m-%d" "$updated" "+%s" 2>/dev/null || date -d "$updated" "+%s" 2>/dev/null || echo "0")
+      git_epoch=$(date -j -f "%Y-%m-%d" "$git_date" "+%s" 2>/dev/null || date -d "$git_date" "+%s" 2>/dev/null || echo "0")
+
+      if [[ "$updated_epoch" -gt 0 && "$git_epoch" -gt 0 ]]; then
+        local diff_days=$(( (git_epoch - updated_epoch) / 86400 ))
+        if [[ $diff_days -gt 30 ]]; then
+          log_fail "HR-007: Stale 'updated' date in $rel (frontmatter: $updated, git: $git_date, ${diff_days}d behind)"
+          ((errors++))
+        fi
+      fi
+    fi
+  done < <(find "$vault_root" -path "$vault_root/.vault" -prune -o -name '*.md' -print0 2>/dev/null)
+
+  if [[ $errors -eq 0 ]]; then
+    log_pass "HR-007: Frontmatter 'updated' dates accurate"
+  fi
+  return $errors
+}
+
+# HR-009: Flat tags must use prefix/value format
+lint_hr009_flat_tags() {
+  local vault_root="$1"
+  local errors=0
+
+  while IFS= read -r -d '' file; do
+    local rel
+    rel=$(rel_path "$file" "$vault_root")
+
+    if ! has_frontmatter "$file"; then
+      continue
+    fi
+
+    # Extract tags from frontmatter
+    local in_tags=0
+    while IFS= read -r line; do
+      if [[ "$line" =~ ^tags: ]]; then
+        # Inline tags: tags: [a, b, c]
+        if [[ "$line" =~ \[ ]]; then
+          local tag_list
+          tag_list=$(echo "$line" | sed 's/.*\[//;s/\].*//' | tr ',' '\n')
+          while IFS= read -r tag; do
+            tag=$(echo "$tag" | xargs)
+            [[ -z "$tag" ]] && continue
+            if [[ ! "$tag" =~ / ]]; then
+              log_fail "HR-009: Tag '$tag' missing prefix/value format in $rel (expected: prefix/value)"
+              ((errors++))
+            fi
+          done <<< "$tag_list"
+          continue
+        fi
+        in_tags=1
+        continue
+      fi
+      if [[ $in_tags -eq 1 ]]; then
+        if [[ "$line" =~ ^[[:space:]]*-[[:space:]] ]]; then
+          local tag
+          tag=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*//' | xargs)
+          [[ -z "$tag" ]] && continue
+          if [[ ! "$tag" =~ / ]]; then
+            log_fail "HR-009: Tag '$tag' missing prefix/value format in $rel (expected: prefix/value)"
+            ((errors++))
+          fi
+        else
+          in_tags=0
+        fi
+      fi
+    done < <(sed -n '/^---$/,/^---$/p' "$file")
+  done < <(find "$vault_root" -path "$vault_root/.vault" -prune -o -name '*.md' -print0 2>/dev/null)
+
+  if [[ $errors -eq 0 ]]; then
+    log_pass "HR-009: All tags use prefix/value format"
+  fi
+  return $errors
+}
+
+# HR-013: CI and template file protection (staged changes)
+lint_hr013_ci_template_protection() {
+  local vault_root="$1"
+  local errors=0
+
+  # Find repo root (vault may be a subdirectory)
+  local repo_root
+  repo_root=$(git -C "$vault_root" rev-parse --show-toplevel 2>/dev/null || echo "")
+  [[ -z "$repo_root" ]] && { log_pass "HR-013: Not in a git repo (skip)"; return 0; }
+
+  local ci_changes
+  ci_changes=$(git -C "$repo_root" diff --cached --name-only -- ".github/workflows/" ".gitlab-ci.yml" "vault/.vault/templates/" 2>/dev/null || true)
+  if [[ -n "$ci_changes" ]]; then
+    log_warn "HR-013: Staged changes to CI/template files — verify intentional:"
+    echo "$ci_changes" | sed 's/^/         /'
+    # Warning only, not a hard error
+  else
+    log_pass "HR-013: No CI/template changes staged"
+  fi
+
+  return $errors
+}
+
+# HR-015: Append-only logs (log.md line count must not decrease)
+lint_hr015_append_only_logs() {
+  local vault_root="$1"
+  local errors=0
+
+  local log_file="$vault_root/wiki/log.md"
+  [[ -f "$log_file" ]] || { log_pass "HR-015: No log.md found (skip)"; return 0; }
+
+  if git -C "$vault_root" rev-parse --is-inside-work-tree &>/dev/null; then
+    local current_lines prev_lines
+    current_lines=$(wc -l < "$log_file" | tr -d '[:space:]')
+
+    # Get previous committed version line count
+    local rel_log
+    rel_log=$(rel_path "$log_file" "$(git -C "$vault_root" rev-parse --show-toplevel 2>/dev/null)")
+    prev_lines=$(git -C "$vault_root" show "HEAD:$rel_log" 2>/dev/null | wc -l | tr -d '[:space:]' || echo "0")
+
+    if [[ "$prev_lines" -gt 0 && "$current_lines" -lt "$prev_lines" ]]; then
+      log_fail "HR-015: log.md line count decreased ($prev_lines → $current_lines) — logs are append-only"
+      errors=1
+    fi
+  fi
+
+  if [[ $errors -eq 0 ]]; then
+    log_pass "HR-015: Log files are append-only"
+  fi
+  return $errors
+}
+
 # Composite: Run all lint checks
 lint_all() {
   local vault_root="$1"
@@ -323,11 +475,15 @@ lint_all() {
   lint_hr004_wiki_length "$vault_root"       || ((total_errors++))
   lint_hr005_code_length "$vault_root"       || ((total_errors++))
   lint_hr006_unique_titles "$vault_root"     || ((total_errors++))
+  lint_hr007_updated_accuracy "$vault_root"  || ((total_errors++))
   lint_hr008_index_registration "$vault_root"|| ((total_errors++))
+  lint_hr009_flat_tags "$vault_root"         || ((total_errors++))
   lint_hr010_binary_quarantine "$vault_root" || ((total_errors++))
   lint_hr011_vault_protection "$vault_root"  || ((total_errors++))
   lint_hr012_config_protection "$vault_root" || ((total_errors++))
+  lint_hr013_ci_template_protection "$vault_root" || ((total_errors++))
   lint_hr014_no_deletion "$vault_root"       || ((total_errors++))
+  lint_hr015_append_only_logs "$vault_root"  || ((total_errors++))
 
   return $total_errors
 }

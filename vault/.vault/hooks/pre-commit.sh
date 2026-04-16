@@ -139,10 +139,10 @@ else
 fi
 
 # HR-013: CI/Template protection
-ci_changes=\$(git diff --cached --name-only -- ".github/workflows/" ".gitlab-ci.yml" 2>/dev/null || true)
-if [[ -n "\$ci_changes" ]]; then
+ci_changes=$(git diff --cached --name-only -- ".github/workflows/" ".gitlab-ci.yml" 2>/dev/null || true)
+if [[ -n "$ci_changes" ]]; then
   echo "[WARN] HR-013: CI pipeline files modified — verify changes are intentional"
-  echo "\$ci_changes" | sed 's/^/  /'
+  echo "$ci_changes" | sed 's/^/  /'
 fi
 
 # HR-014: No file deletions in vault
