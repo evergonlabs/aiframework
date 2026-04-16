@@ -332,7 +332,25 @@ fi
 INV_TAIL
   fi
 
-  cat >> "$TARGET_DIR/.githooks/pre-push" << 'PREPUSH_TAIL'
+  cat >> "$TARGET_DIR/.githooks/pre-push" << 'REFRESH_GATE'
+
+# Auto-refresh: regenerate aiframework output if key files drifted
+if command -v aiframework >/dev/null 2>&1; then
+  _drift=$(freshness_check_drift "." 2>/dev/null || echo "unknown")
+  if [[ "$_drift" == drifted:* ]]; then
+    echo "  [refresh] Key files changed — running aiframework refresh..."
+    aiframework refresh --target . --non-interactive 2>&1 | tail -3
+    # Auto-commit refreshed files if any changed
+    if [[ -n "$(git diff --name-only 2>/dev/null)" ]]; then
+      git add CLAUDE.md .claude/ vault/ .aiframework/ 2>/dev/null || true
+      git commit -m "chore(aiframework): auto-refresh on push [skip ci]" --no-verify 2>/dev/null || true
+      echo "  [refresh] Auto-committed refreshed files"
+    fi
+  fi
+fi
+REFRESH_GATE
+
+cat >> "$TARGET_DIR/.githooks/pre-push" << 'PREPUSH_TAIL'
 echo ""
 echo "  All gates passed — push allowed"
 echo "  TIP: Run /review and /cso before creating a PR"

@@ -133,29 +133,11 @@ MANSRCEOF
     ingested=$((ingested + 1))
   fi
 
-  # Update index.md with new source pages
-  if [[ "$ingested" -gt 0 && -f "$vault_root/wiki/index.md" ]]; then
-    # Append source entries if not already present
-    for doc in "${docs_to_ingest[@]}"; do
-      local slug
-      slug=$(echo "$doc" | tr '/' '-' | sed 's/\.md$//')
-      if [[ -f "$vault_root/wiki/sources/${slug}.md" ]] && ! grep -q "sources/${slug}.md" "$vault_root/wiki/index.md" 2>/dev/null; then
-        # Insert before ## Conventions using temp file
-        local tmp
-        tmp=$(mktemp)
-        awk -v entry="| ${slug} | wiki/sources/${slug}.md | source | ${today} | current | type/source |" \
-          '/^## Conventions/{print entry}1' "$vault_root/wiki/index.md" > "$tmp"
-        mv "$tmp" "$vault_root/wiki/index.md"
-      fi
-    done
-
-    # Same for manifest
-    if [[ -f "$vault_root/wiki/sources/manifest.md" ]] && ! grep -q "sources/manifest.md" "$vault_root/wiki/index.md" 2>/dev/null; then
-      local tmp
-      tmp=$(mktemp)
-      awk -v entry="| manifest | wiki/sources/manifest.md | source | ${today} | current | source-type/manifest |" \
-        '/^## Conventions/{print entry}1' "$vault_root/wiki/index.md" > "$tmp"
-      mv "$tmp" "$vault_root/wiki/index.md"
+  # Rebuild index.md authoritatively from disk
+  if [[ "$ingested" -gt 0 ]]; then
+    local vault_tools="$vault_root/.vault/scripts/vault-tools.sh"
+    if [[ -x "$vault_tools" ]]; then
+      "$vault_tools" index-rebuild >/dev/null 2>&1 || true
     fi
   fi
 

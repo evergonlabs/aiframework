@@ -3313,11 +3313,7 @@ populate_vault_from_index() {
 
       local entity_file="$vault_root/wiki/entities/${mod_slug}.md"
 
-      # Skip if already exists
-      if [[ -f "$entity_file" ]]; then
-        i=$((i + 1))
-        continue
-      fi
+      # Regenerate entity pages on every run to pick up new symbols
 
       mod_role=$(echo "$modules_json" | jq -r ".[$i].value.role // \"Module at ${mod_path}\"")
       mod_lang=$(echo "$modules_json" | jq -r ".[$i].value.language // \"${lang}\"")
@@ -3327,9 +3323,14 @@ populate_vault_from_index() {
       local file_list
       file_list=$(echo "$modules_json" | jq -r ".[$i].value.files[]" 2>/dev/null | sed 's/^/- `/' | sed 's/$/`/' | head -30)
 
-      # Top 10 symbols
+      # Top 10 symbols — join .files[] by file path prefix
       local symbols
-      symbols=$(echo "$modules_json" | jq -r "[.[$i].value.symbols[]?.name] | unique | .[:10] | .[]" 2>/dev/null || true)
+      if [[ "$mod_path" == "." ]]; then
+        # Root module: symbols in files without subdirectory
+        symbols=$(jq -r '[.files | to_entries[] | select(.key | contains("/") | not) | .value.symbols[]?] | unique | .[:10] | .[]' "$code_index" 2>/dev/null || true)
+      else
+        symbols=$(jq -r --arg mp "$mod_path" '[.files | to_entries[] | select(.key | startswith($mp + "/")) | .value.symbols[]?] | unique | .[:10] | .[]' "$code_index" 2>/dev/null || true)
+      fi
       local symbols_list=""
       if [[ -n "$symbols" ]]; then
         symbols_list=$(echo "$symbols" | sed 's/^/- `/' | sed 's/$/`/')
@@ -3428,7 +3429,7 @@ MODENTEOF
   # 2. Architecture concept page — module dependency graph
   # ────────────────────────────────────────────────────────────
   local arch_file="$vault_root/wiki/concepts/architecture.md"
-  if [[ ! -f "$arch_file" && "$module_count" -gt 0 ]]; then
+  if [[ "$module_count" -gt 0 ]]; then
     # Build module graph table
     local graph_table=""
     local ii=0
@@ -3565,32 +3566,43 @@ ${lang_stats}
       api_mod_path=$(echo "$modules_json" | jq -r ".[$k].key")
       api_slug=$(echo "$api_mod_path" | sed 's|/|-|g; s|^\.||; s|^-||')
       [[ -z "$api_slug" ]] && api_slug="root-module"
-      symbol_count=$(echo "$modules_json" | jq ".[$k].value.symbols | length" 2>/dev/null || echo 0)
+      # Join .files[] by file path prefix for symbol count
+      if [[ "$api_mod_path" == "." ]]; then
+        symbol_count=$(jq '[.files | to_entries[] | select(.key | contains("/") | not) | .value.symbols[]?] | length' "$code_index" 2>/dev/null || echo 0)
+      else
+        symbol_count=$(jq --arg mp "$api_mod_path" '[.files | to_entries[] | select(.key | startswith($mp + "/")) | .value.symbols[]?] | length' "$code_index" 2>/dev/null || echo 0)
+      fi
 
       if [[ "$symbol_count" -ge 10 ]]; then
         local api_file="$vault_root/wiki/entities/${api_slug}-api.md"
+        local api_mod_lang
+        api_mod_lang=$(echo "$modules_json" | jq -r ".[$k].value.language // \"${lang}\"")
 
-        if [[ ! -f "$api_file" ]]; then
-          local api_mod_lang
-          api_mod_lang=$(echo "$modules_json" | jq -r ".[$k].value.language // \"${lang}\"")
-
-          # Extract symbols with details
-          local symbol_table=""
-          local sym_idx=0
-          local sym_total
-          sym_total=$(echo "$modules_json" | jq ".[$k].value.symbols | length")
-          while [[ $sym_idx -lt $sym_total ]]; do
-            local sym_name sym_kind sym_file sym_doc
-            sym_name=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].name // \"unknown\"")
-            sym_kind=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].kind // \"symbol\"")
-            sym_file=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].file // \"—\"")
-            sym_doc=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].doc // \"—\"" | head -1 | cut -c1-80)
-            symbol_table="${symbol_table}
+        # Extract symbols with details from .files[] joined with top-level .symbols[]
+        local symbol_table=""
+        local sym_json
+        if [[ "$api_mod_path" == "." ]]; then
+          sym_json=$(jq -c '[.files | to_entries[] | select(.key | contains("/") | not) | {file: .key, syms: .value.symbols} | select(.syms | length > 0) | .file as $f | .syms[] | {name: ., file: $f}] | unique_by(.name)' "$code_index" 2>/dev/null || echo "[]")
+        else
+          sym_json=$(jq -c --arg mp "$api_mod_path" '[.files | to_entries[] | select(.key | startswith($mp + "/")) | {file: .key, syms: .value.symbols} | select(.syms | length > 0) | .file as $f | .syms[] | {name: ., file: $f}] | unique_by(.name)' "$code_index" 2>/dev/null || echo "[]")
+        fi
+        local sym_total
+        sym_total=$(echo "$sym_json" | jq 'length')
+        local sym_idx=0
+        while [[ $sym_idx -lt $sym_total ]]; do
+          local sym_name sym_kind sym_file sym_doc
+          sym_name=$(echo "$sym_json" | jq -r ".[$sym_idx].name // \"unknown\"")
+          sym_file=$(echo "$sym_json" | jq -r ".[$sym_idx].file // \"—\"")
+          # Look up kind/doc from top-level symbols
+          sym_kind=$(jq -r --arg n "$sym_name" '[.symbols[] | select(.name == $n)][0].kind // "symbol"' "$code_index" 2>/dev/null || echo "symbol")
+          sym_doc=$(jq -r --arg n "$sym_name" '[.symbols[] | select(.name == $n)][0].docstring // "—"' "$code_index" 2>/dev/null | head -1 | cut -c1-80)
+          [[ -z "$sym_doc" || "$sym_doc" == "null" ]] && sym_doc="—"
+          symbol_table="${symbol_table}
 | \`${sym_name}\` | ${sym_kind} | \`${sym_file}\` | ${sym_doc} |"
-            sym_idx=$((sym_idx + 1))
-          done
+          sym_idx=$((sym_idx + 1))
+        done
 
-          cat > "$api_file" << APIEOF
+        cat > "$api_file" << APIEOF
 ---
 title: "API Reference: ${api_mod_path}"
 type: entity
@@ -3621,12 +3633,11 @@ confidence: medium
 - [[tech-stack]]
 APIEOF
 
-          new_index_entries="${new_index_entries}
+        new_index_entries="${new_index_entries}
 | ${api_slug}-api | wiki/entities/${api_slug}-api.md | entity | ${today} | current | domain/${api_mod_lang} |"
-          new_log_entries="${new_log_entries}
+        new_log_entries="${new_log_entries}
 | ${timestamp} | create-entity | aiframework/code-index | wiki/entities/${api_slug}-api.md | success | API reference from code index |"
-          pages_created=$((pages_created + 1))
-        fi
+        pages_created=$((pages_created + 1))
       fi
 
       k=$((k + 1))
@@ -3634,37 +3645,12 @@ APIEOF
   fi
 
   # ────────────────────────────────────────────────────────────
-  # 5. Update index.md — append new pages
+  # 5. Rebuild index.md authoritatively from disk
   # ────────────────────────────────────────────────────────────
-  if [[ -n "$new_index_entries" && -f "$index_file" ]]; then
-    # Append entries before the ## Conventions section
-    if grep -q "^## Conventions" "$index_file"; then
-      local temp_entries
-      temp_entries=$(echo "$new_index_entries" | grep -v '^$')
-      # Filter out entries already in the index
-      local filtered_entries=""
-      while IFS= read -r entry_line; do
-        [[ -z "$entry_line" ]] && continue
-        local entry_slug
-        entry_slug=$(echo "$entry_line" | awk -F'|' '{gsub(/^ +| +$/, "", $2); print $2}')
-        if ! grep -qF "| ${entry_slug} |" "$index_file" 2>/dev/null; then
-          filtered_entries="${filtered_entries}
-${entry_line}"
-        fi
-      done <<< "$temp_entries"
-
-      if [[ -n "$filtered_entries" ]]; then
-        # Insert entries before "## Conventions" using temp file (portable, no sed multi-line issues)
-        local head_content tail_content
-        head_content=$(sed -n '/^## Conventions/q;p' "$index_file")
-        tail_content=$(sed -n '/^## Conventions/,$p' "$index_file")
-        { printf '%s\n' "$head_content"; printf '%s\n\n' "$filtered_entries"; printf '%s\n' "$tail_content"; } > "${index_file}.tmp" \
-          && mv "${index_file}.tmp" "$index_file"
-
-        # Update the updated date
-        sed -i.bak "s/^updated: .*/updated: \"${today}\"/" "$index_file"
-        rm -f "$index_file.bak"
-      fi
+  if [[ $pages_created -gt 0 ]]; then
+    local vault_tools="$vault_root/.vault/scripts/vault-tools.sh"
+    if [[ -x "$vault_tools" ]]; then
+      "$vault_tools" index-rebuild >/dev/null 2>&1 || true
     fi
   fi
 

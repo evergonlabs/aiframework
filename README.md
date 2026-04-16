@@ -1,243 +1,365 @@
-# aiframework
+<div align="center">
 
-One command. Any repo. Fully configured for AI-assisted development with Claude Code.
+```
+     ██████╗ ██╗███████╗██████╗  █████╗ ███╗   ███╗███████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
+    ██╔══██╗██║██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
+    ███████║██║█████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝
+    ██╔══██║██║██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗
+    ██║  ██║██║██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
+    ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+```
 
-## What It Does
+**One command. Any repo. Zero config.**
 
-aiframework scans your repo, indexes every symbol, and generates a complete Claude Code configuration:
-- **CLAUDE.md** -- project instructions Claude reads every session (~80-150 lines, lean and high-signal)
-- **`.claude/rules/`** -- path-scoped rules loaded automatically when Claude reads matching files
-- **`.claude/settings.json`** -- permissions and tool configuration
-- **`.claude/skills/`** -- slash commands for review, ship, learn workflows
-- **`AGENTS.md`** -- cross-tool agent configuration
-- **`vault/`** -- persistent knowledge base (wiki, memory, learnings)
-- **`.githooks/`** -- pre-commit and pre-push quality gates
-- **`.github/workflows/`** -- CI pipeline for your language
+*The open-source autopilot for AI-assisted development with Claude Code.*
 
-## Quick Start
+[![version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://github.com/evergonlabs/aiframework/releases)
+[![license](https://img.shields.io/badge/license-proprietary-red?style=flat-square)](LICENSE)
+[![Made with Bash](https://img.shields.io/badge/Made%20with-Bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white)](https://claude.ai/claude-code)
+[![tests](https://img.shields.io/badge/tests-36%20passing-brightgreen?style=flat-square)]()
+
+[Quick Start](#-quick-start) &bull; [What It Generates](#-what-it-generates) &bull; [Skills](#-skills-reference) &bull; [Languages](#-supported-languages) &bull; [How It Works](#-how-it-works) &bull; [Self-Evolution](#-self-evolution)
+
+---
+
+</div>
+
+## The Problem
+
+You open Claude Code on a new repo. Claude doesn't know your stack, your conventions, your invariants, your test commands, or where anything lives. You spend the first 10 minutes of every session explaining context. Multiply that by every developer on the team.
+
+**aiframework fixes this in one command.**
+
+It scans your repo &mdash; every file, every symbol, every dependency &mdash; and generates a complete Claude Code configuration that makes Claude an expert on *your* project from the first prompt.
+
+## What You Get
+
+```
+Before aiframework          After aiframework
+───────────────────         ─────────────────────────────────
+Claude: "What framework     Claude: "This is a FastAPI app with
+ do you use?"                auth middleware, PostgreSQL via
+                             SQLAlchemy, 47 endpoints, and a
+You: *explains for           custom permission system. I see
+ 10 minutes*                 the deploy script expects
+                             DATABASE_URL and REDIS_URL.
+Claude: "Can you show        Let me check the pre-push gate
+ me the test command?"       before we start..."
+```
+
+<br>
+
+## &#9889; Quick Start
 
 ```bash
-# Install
+# Install (30 seconds)
 git clone https://github.com/evergonlabs/aiframework.git
 cd aiframework && make install
 
-# Run on your project
+# Run on any project (60 seconds)
 aiframework run --target /path/to/your-project
 
-# Open in Claude Code
+# That's it. Open Claude Code.
 cd /path/to/your-project && claude
 ```
 
-That's it. Claude Code now reads your generated CLAUDE.md and has full project context.
+> Claude now reads your generated `CLAUDE.md` automatically and has full project context &mdash; commands, invariants, architecture, skills, and a persistent knowledge vault.
 
-## Requirements
+<br>
 
-- `bash` 3.2+ (4+ recommended)
-- `jq` -- `brew install jq` / `apt install jq`
-- `git`
-- `python3` 3.10+ (for code indexer; bash fallback if unavailable)
+## &#128230; What It Generates
 
-## After Generation: Your Workflow
+**23+ files** across 7 generators. Everything is deterministic &mdash; same repo always produces same output.
 
-### Day 1 (one-time setup, 5 minutes)
+<table>
+<tr>
+<td width="50%">
 
-| Step | Command | What happens |
-|------|---------|-------------|
-| 1 | `aiframework run --target .` | Scans repo, generates all config files |
-| 2 | Open in Claude Code | Claude reads CLAUDE.md automatically |
-| 3 | `/aif-enhance` | (Optional) Research gaps, add framework conventions |
-| 4 | Edit CLAUDE.md | Add project-specific env vars, gotchas |
+**Claude Code Configuration**
+| File | Purpose |
+|:-----|:--------|
+| `CLAUDE.md` | Project brain &mdash; commands, invariants, architecture |
+| `.claude/rules/` | Path-scoped rules (workflow, testing, security) |
+| `.claude/settings.json` | Permissions &amp; tool config |
+| `.claude/skills/` | Slash commands (`/review`, `/ship`, `/learn`) |
+| `AGENTS.md` | Cross-tool agent configuration |
 
-### Daily Development
+</td>
+<td width="50%">
 
-| What you're doing | Skill to run |
-|-------------------|-------------|
-| Ready to merge | `/aif-review` -- code review with invariant checks |
-| Ready to ship | `/aif-ship` -- lint -> review -> docs -> changelog -> commit |
-| Found a gotcha | `/aif-learn "description"` -- captures to persistent storage |
-| Need framework docs | `/aif-research` -- searches official documentation |
-| Want code analysis | `/aif-analyze` -- finds missing tests, circular deps |
-| Adding reference docs | `/aif-ingest` -- deposits into vault knowledge base |
+**DevOps & Knowledge**
+| File | Purpose |
+|:-----|:--------|
+| `.githooks/` | Pre-commit lint + pre-push quality gates |
+| `.github/workflows/ci.yml` | CI pipeline for your language |
+| `vault/` | Persistent knowledge base (31 files) |
+| `docs/` | Documentation scaffold (Diataxis) |
+| `CHANGELOG.md` + `VERSION` | Release tracking |
 
-### Weekly Maintenance
+</td>
+</tr>
+</table>
 
-| What | Skill | What happens |
-|------|-------|-------------|
-| Evolve your rules | `/aif-evolve` | Reads native Claude Code session data + learnings, proposes CLAUDE.md improvements |
-| Check for new features | `/aif-pulse` | Researches latest Claude Code capabilities, suggests project improvements |
-| Refresh after changes | `aiframework refresh` | Detects drift in package.json/deps, re-generates if needed |
-
-## What Gets Generated
-
-### Files (23+)
-
-| File | Purpose | Auto-loaded by Claude? |
-|------|---------|----------------------|
-| `CLAUDE.md` | Project instructions (commands, invariants, architecture) | Yes -- every session |
-| `AGENTS.md` | Cross-tool agent config | Yes -- if present |
-| `.claude/rules/workflow.md` | Development process rules | Yes -- always |
-| `.claude/rules/testing.md` | Testing conventions | Yes -- when editing test files |
-| `.claude/rules/security.md` | Security rules | Yes -- when editing auth/api files |
-| `.claude/settings.json` | Permissions (safe defaults) | Yes -- enforced |
-| `.claude/skills/<name>-review/` | Code review with invariant checks | On `/name-review` |
-| `.claude/skills/<name>-ship/` | Shipping workflow | On `/name-ship` |
-| `.claude/skills/<name>-learn/` | Capture learnings | On `/name-learn` |
-| `.githooks/pre-commit` | Lint on commit | Auto -- git hook |
-| `.githooks/pre-push` | Full quality gate on push | Auto -- git hook |
-| `.github/workflows/ci.yml` | CI pipeline | Auto -- on push/PR |
-| `vault/` | Knowledge base (31 files) | Referenced in CLAUDE.md |
-| `tools/learnings/` | JSONL learnings file | Read by `/aif-evolve` |
-| `docs/` | Documentation scaffold | Reference |
-| `CHANGELOG.md` | Release notes | Reference |
-| `VERSION` | Semantic version | Reference |
-
-### The Generated `.claude/` Directory
+<details>
+<summary><strong>Generated <code>.claude/</code> directory structure</strong></summary>
 
 ```
 .claude/
 ├── rules/
-│   ├── workflow.md    # Always loaded — dev process, git safety, verification
-│   ├── testing.md     # Loaded for **/*.test.*, **/tests/** — test conventions
-│   └── security.md    # Loaded for **/auth/**, **/api/** — security rules
-├── settings.json      # Pre-approves: Read, Glob, Grep, WebSearch
+│   ├── workflow.md       # Always loaded — dev process, git safety, verification
+│   ├── testing.md        # Loaded for **/*.test.*, **/tests/** — test conventions
+│   └── security.md       # Loaded for **/auth/**, **/api/** — security rules
+├── settings.json         # Pre-approves: Read, Glob, Grep, WebSearch
 └── skills/
-    ├── <name>-review/ # /name-review → invariant checks
-    ├── <name>-ship/   # /name-ship → lint → review → commit
-    └── <name>-learn/  # /name-learn → persist learnings
+    ├── <name>-review/    # /name-review → invariant checks
+    ├── <name>-ship/      # /name-ship → lint → review → commit
+    └── <name>-learn/     # /name-learn → persist learnings
 ```
 
-## Skills Reference (10 total)
+</details>
 
-| Skill | When to use | What it does |
-|-------|------------|-------------|
-| `/aif-enhance` | After first scan | Research gaps, find framework conventions, analyze code, enrich vault |
-| `/aif-research` | Unknown framework patterns | Search official docs for conventions and invariants |
-| `/aif-analyze` | Code quality check | Read code-index.json for missing tests, circular deps, god modules |
-| `/aif-evolve` | Weekly | Analyze native Claude Code session data + learnings, propose CLAUDE.md updates |
-| `/aif-pulse` | Weekly | Research latest Claude Code features, suggest project improvements |
-| `/aif-feedback` | After runs | Collect structured user feedback (5 questions) for `/aif-evolve` |
+<br>
+
+## &#128295; Skills Reference
+
+10 slash commands generated per project. Use them inside Claude Code:
+
+| Skill | Trigger | What it does |
+|:------|:--------|:-------------|
 | `/aif-review` | Before merging | Code review against project invariants |
-| `/aif-ship` | Ready to push | Full pipeline: lint -> review -> docs -> changelog -> commit |
-| `/aif-learn` | After discoveries | Capture gotcha/pattern to persistent JSONL storage |
-| `/aif-ingest` | New reference docs | Deposit document into vault knowledge base |
+| `/aif-ship` | Ready to push | Full pipeline: lint &rarr; review &rarr; docs &rarr; changelog &rarr; commit |
+| `/aif-learn` | Found a gotcha | Capture pattern/gotcha to persistent JSONL storage |
+| `/aif-enhance` | After first scan | Research gaps, find framework conventions, enrich vault |
+| `/aif-research` | Unknown patterns | Search official docs for conventions and invariants |
+| `/aif-analyze` | Code quality | Find missing tests, circular deps, god modules |
+| `/aif-evolve` | Weekly | Synthesize learnings into CLAUDE.md improvements |
+| `/aif-pulse` | Weekly | Research latest Claude Code features, suggest adoption |
+| `/aif-feedback` | After runs | Collect structured feedback for `/aif-evolve` |
+| `/aif-ingest` | New docs | Deposit documents into vault knowledge base |
 
-## How It Works
+<br>
+
+## &#127760; Supported Languages
+
+<table>
+<tr>
+<td>
+
+| Language | Symbols | Frameworks |
+|:---------|:--------|:-----------|
+| **TypeScript/JS** | Functions, classes, types, imports | Next.js, NestJS, React, Vue, Express, Hono, Svelte |
+| **Python** | Functions, classes, methods, imports | FastAPI, Django, Flask, Starlette |
+| **Go** | Functions, types, imports | Gin, Echo, Chi, Fiber |
+| **Rust** | Functions, structs, enums, imports | Actix, Axum, Rocket, Warp |
+
+</td>
+</tr>
+<tr>
+<td>
+
+| Language | Symbols | Frameworks |
+|:---------|:--------|:-----------|
+| **Ruby** | Methods, classes, modules | Rails, Sinatra |
+| **Java** | Classes, methods, interfaces | Spring Boot, Quarkus |
+| **C#, PHP, Kotlin, Swift, Elixir** | Full symbol extraction | Major frameworks |
+| **+ 20 more** | Detection via marker files | Extensible via JSON registry |
+
+</td>
+</tr>
+</table>
+
+**18 domain detectors**: Auth, Database, API, AI/LLM, Frontend, Workers, File Upload, Financial, GraphQL, Messaging, Caching, Search, Observability, Realtime, Email, Storage, Sandbox, External APIs
+
+**11 archetypes**: `library` &middot; `cli-tool` &middot; `web-app` &middot; `api-service` &middot; `full-stack` &middot; `monorepo` &middot; `data-pipeline` &middot; `ml-project` &middot; `mobile-app` &middot; `infrastructure` &middot; `documentation-site`
+
+<br>
+
+## &#9881; How It Works
 
 ```
 aiframework run --target /path/to/repo
-  │
-  ├── DISCOVER (12 scanners)
-  │   ├── identity, stack, commands, structure
-  │   ├── ci, env, quality, domain, user_context
-  │   ├── code_index (13 languages, symbols, imports, edges)
-  │   ├── archetype (library/web-app/api/monorepo/...)
-  │   └── skill_suggest (deploy, migrations, Docker, E2E...)
-  │   → manifest.json + code-index.json
-  │
-  ├── GENERATE (7 generators)
-  │   ├── CLAUDE.md (lean ~80-150 lines)
-  │   ├── .claude/rules/ (path-scoped)
-  │   ├── .claude/settings.json + skills/
-  │   ├── AGENTS.md, hooks, CI, docs, tracking
-  │   └── vault/ (31 files, auto-ingest)
-  │   → 23+ files
-  │
-  └── VERIFY (5 validators, 46+ checks)
-      ├── files, consistency, security, quality_gate
-      ├── freshness (manifest age, file drift, index staleness)
-      └── → PASS / FAIL / WARN report
+│
+├── DISCOVER ─────────────────────────────────── 12 scanners, deterministic
+│   ├── identity      → name, version, short name
+│   ├── stack         → language, framework, monorepo detection
+│   ├── commands      → package manager, install, lint, test, build
+│   ├── structure     → files, dirs, source roots, test files
+│   ├── ci/deploy     → GitHub Actions, Docker, Vercel, Fly.io...
+│   ├── env           → environment variables from .env, config
+│   ├── quality       → linter, formatter, type checker, test runner
+│   ├── domain        → auth, database, AI/LLM, GraphQL... (18 types)
+│   ├── code_index    → symbols, imports, edges (13 languages)
+│   ├── archetype     → library / api-service / monorepo / ... (11 types)
+│   └── skill_suggest → deploy, migrations, Docker, E2E...
+│   ╰─→ manifest.json + code-index.json
+│
+├── GENERATE ─────────────────────────────────── 7 generators, 23+ files
+│   ├── CLAUDE.md          (lean 80-150 lines, high-signal)
+│   ├── .claude/rules/     (path-scoped, auto-loaded)
+│   ├── .claude/skills/    (10 slash commands)
+│   ├── .githooks/         (pre-commit + pre-push gates)
+│   ├── .github/workflows/ (CI pipeline)
+│   ├── vault/             (31 files, wiki, memory, learnings)
+│   └── docs/              (Diataxis scaffold)
+│
+└── VERIFY ───────────────────────────────────── 5 validators, 46+ checks
+    ├── files         → all expected files exist
+    ├── consistency   → commands match across CLAUDE.md, hooks, CI
+    ├── security      → no secrets in source, .gitignore coverage
+    ├── quality_gate  → lint/test commands configured and working
+    └── freshness     → manifest age, file drift, index staleness
+    ╰─→ PASS / FAIL / WARN report
 ```
 
-## Supported Languages
+<br>
 
-| Language | Indexer | Frameworks Detected |
-|----------|---------|-------------------|
-| TypeScript/JavaScript | Functions, classes, types, imports | Next.js, NestJS, React, Vue, Express, Hono, Svelte |
-| Python | Functions, classes, methods, imports | FastAPI, Django, Flask, Starlette |
-| Go | Functions, types, imports | Gin, Echo, Chi, Fiber |
-| Rust | Functions, structs, enums, imports | Actix, Axum, Rocket, Warp |
-| Ruby | Methods, classes, modules | Rails, Sinatra |
-| Java | Classes, methods, interfaces | Spring Boot, Quarkus |
-| C#, PHP, Kotlin, Swift, Elixir | Full symbol extraction | Major frameworks |
-| + 20 languages in registry | Detection via marker files | Extensible via JSON |
+## &#9889; Self-Evolution
 
-## Domain Detection (18 types)
+aiframework-generated projects get smarter over time:
 
-Auth, Database, API, AI/LLM, Frontend, Workers, File Upload, Financial, GraphQL, Messaging, Caching, Search, Observability, Realtime, Email, Storage, Sandbox, External APIs
+```
+                    ┌─────────────┐
+                    │  Developer   │
+                    │  writes code │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │  git push   │◄──── pre-push hook detects drift
+                    └──────┬──────┘      auto-refreshes if needed
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+        ┌──────────┐ ┌──────────┐ ┌──────────┐
+        │ /aif-    │ │ /aif-    │ │ /aif-    │
+        │  learn   │ │  evolve  │ │  pulse   │
+        │          │ │          │ │          │
+        │ captures │ │ reads    │ │ discovers│
+        │ gotchas  │ │ learnings│ │ new CC   │
+        │ to JSONL │ │ → updates│ │ features │
+        └──────────┘ │ CLAUDE.md│ └──────────┘
+                     └──────────┘
+```
 
-Each detected domain adds invariants and security rules to CLAUDE.md.
+| Mechanism | What it does | Trigger |
+|:----------|:-------------|:--------|
+| **Drift detection** | Detects changed deps/config, re-generates | `aiframework refresh` or auto on push |
+| **Update notifications** | Checks for new aiframework versions, notifies in Claude Code session | Every session start |
+| **Learning capture** | Persists gotchas/patterns to JSONL | `/aif-learn` |
+| **Feedback loop** | Structured quality/accuracy feedback | `/aif-feedback` |
+| **Rule evolution** | Synthesizes learnings into CLAUDE.md updates | `/aif-evolve` |
+| **Ecosystem pulse** | Discovers latest Claude Code capabilities | `/aif-pulse` |
 
-## Archetype Detection (11 types)
+<br>
 
-library, cli-tool, web-app, api-service, full-stack, monorepo, data-pipeline, ml-project, mobile-app, infrastructure, documentation-site
+## &#128218; Your Workflow
 
-Archetype controls CLAUDE.md depth (lean for simple projects, full for complex).
+### Day 1 &mdash; One-time setup (5 minutes)
 
-## Self-Evolution
+```bash
+aiframework run --target .          # Scan + generate + verify
+claude                               # Open Claude Code — it just works
+/aif-enhance                         # (Optional) Research gaps, add conventions
+```
 
-aiframework-generated projects improve over time:
+### Daily Development
 
-1. **Drift detection**: `aiframework refresh` checks if package.json/deps changed and re-generates
-2. **Learning capture**: `/aif-learn` persists gotchas to JSONL
-3. **Feedback loop**: `/aif-feedback` collects structured user feedback (quality, accuracy, missing context)
-4. **Rule evolution**: `/aif-evolve` reads native Claude Code insights + learnings + feedback, proposes CLAUDE.md updates
-5. **Ecosystem pulse**: `/aif-pulse` researches latest Claude Code features and suggests adoption
-6. **Pre-push warning**: Git hook warns if manifest is stale
+```bash
+/aif-review                          # Code review with invariant checks
+/aif-ship                            # Lint → review → docs → changelog → commit
+/aif-learn "gotcha description"      # Capture to persistent storage
+```
 
-## CLI Reference
+### Weekly Maintenance
+
+```bash
+/aif-evolve                          # Analyze learnings → improve CLAUDE.md
+/aif-pulse                           # Check for new Claude Code features
+aiframework refresh                  # Re-generate if deps changed
+```
+
+<br>
+
+## &#128187; CLI Reference
 
 ```
 aiframework <command> [options]
 
 Commands:
-  run         Full pipeline: discover → generate → verify → report
-  discover    Scan repo → manifest.json + code-index.json
-  generate    Read manifest → generate all files
-  verify      Validate generated files (46+ checks including freshness)
-  report      Generate human-readable report of everything detected/generated
-  refresh     Lightweight: re-discover + generate only if drift detected
-  index       Build code index only
-  stats       Show cross-repo learning patterns
+  run              Full pipeline: discover → generate → verify → report
+  discover         Scan repo → manifest.json + code-index.json
+  generate         Read manifest → generate all files
+  verify           Validate generated files (46+ checks)
+  refresh          Re-discover + generate only if drift detected
+  report           Human-readable report of everything detected
+  index            Build code index only
+  stats            Cross-repo learning patterns
 
 Options:
-  --target <path>      Target repo (default: current directory)
-  --non-interactive    Skip user context questions
-  --no-index           Skip code indexing
-  --dry-run            Preview without writing
-  --verbose            Detailed output
+  --target <path>       Target repo (default: current directory)
+  --non-interactive     Skip user context questions
+  --no-index            Skip code indexing
+  --dry-run             Preview without writing
+  --verbose             Detailed output
 ```
 
-## Data-Driven and Extensible
+<br>
 
-All detection logic reads from JSON registries. Add a language, domain, or archetype by editing a file:
+## &#128736; Data-Driven & Extensible
+
+All detection logic reads from JSON registries. Add a language, domain, or archetype by editing one file:
 
 | Registry | Entries | Location |
-|----------|---------|----------|
+|:---------|:--------|:---------|
 | Languages | 20 | `lib/data/languages.json` |
 | Domains | 18 | `lib/data/domains.json` |
 | Deploy targets | 24 | `lib/data/deploy_targets.json` |
 | Archetypes | 11 | `lib/data/archetypes.json` |
 
-## Project Structure
+<br>
+
+## &#128196; Requirements
+
+| Dependency | Version | Required | Install |
+|:-----------|:--------|:---------|:--------|
+| `bash` | 3.2+ (4+ recommended) | Yes | Pre-installed on macOS/Linux |
+| `jq` | 1.6+ | Yes | `brew install jq` / `apt install jq` |
+| `git` | 2.0+ | Yes | Pre-installed |
+| `python3` | 3.10+ | Recommended | For code indexer (bash fallback available) |
+
+<br>
+
+## &#128193; Project Structure
 
 ```
 aiframework/
-├── bin/aiframework           # CLI entry point
+├── bin/
+│   ├── aiframework                # CLI entry point
+│   └── aiframework-update-check   # Version + drift detector
 ├── lib/
-│   ├── scanners/             # 12 deterministic scanners
-│   ├── indexers/             # Code indexer (Python, 13 languages)
-│   ├── generators/           # 7 file generators
-│   ├── validators/           # 5 verification modules + freshness
-│   ├── freshness/            # Drift detection
-│   ├── knowledge/            # Cross-repo learning store
-│   └── data/                 # JSON registries (languages, domains, etc.)
-├── .claude/skills/           # 10 aif-* skills
-├── tests/                    # Unit + integration tests
-├── docs/                     # Onboarding, guides, reference, architecture
-├── vault/                    # Knowledge vault (rules, wiki, memory)
-└── Makefile                  # install, uninstall, lint, test, check
+│   ├── scanners/                  # 12 deterministic scanners
+│   ├── indexers/                  # Code indexer (Python, 13 languages)
+│   ├── generators/                # 7 file generators
+│   ├── validators/                # 5 verification modules
+│   ├── freshness/                 # Drift detection
+│   ├── knowledge/                 # Cross-repo learning store
+│   └── data/                      # JSON registries
+├── .claude/skills/                # 10 aif-* skill definitions
+├── tests/                         # 36 tests (unit + integration)
+├── docs/                          # Onboarding, guides, reference
+├── vault/                         # Knowledge vault (wiki, memory, rules)
+└── Makefile                       # install, uninstall, lint, test
 ```
 
-## License
+<br>
 
-Evergon Labs. All rights reserved.
+---
+
+<div align="center">
+
+**Built by [Evergon Labs](https://github.com/evergonlabs)**
+
+*Because AI agents are only as good as the context you give them.*
+
+</div>

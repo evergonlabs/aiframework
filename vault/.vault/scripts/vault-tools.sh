@@ -533,7 +533,7 @@ cmd_index_rebuild() {
     status=$(get_frontmatter_field "$file" "status")
     [[ -z "$status" ]] && status="current"
     local primary_tag
-    primary_tag=$(get_frontmatter_tags "$file" | head -1)
+    primary_tag=$(get_frontmatter_tags "$file" 2>/dev/null | head -1 || true)
     [[ -z "$primary_tag" ]] && primary_tag="-"
 
     entries="${entries}| ${slug} | ${rel} | ${page_type} | ${created} | ${status} | ${primary_tag} |

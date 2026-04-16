@@ -547,8 +547,26 @@ cmd_refresh() {
     cmd_discover
     echo ""
     cmd_generate
+    _write_refresh_notice "$drifted_files"
     return 0
   fi
+}
+
+_write_refresh_notice() {
+  local drifted_files="${1:-}"
+  local notice_file="$OUTPUT_DIR/last-refresh.json"
+  local now
+  now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  local user
+  user=$(git config user.name 2>/dev/null || echo "unknown")
+  cat > "$notice_file" << EOF
+{
+  "refreshed_at": "$now",
+  "refreshed_by": "$user",
+  "drifted_files": "$drifted_files",
+  "version": "$(cat "$ROOT_DIR/VERSION" 2>/dev/null || echo "unknown")"
+}
+EOF
 }
 
 cmd_run() {
@@ -581,6 +599,7 @@ cmd_run() {
   cmd_generate
   cmd_verify
   cmd_report
+  _write_refresh_notice "full-run"
 
   # Completion summary
   local _run_elapsed=$(( SECONDS - _run_start ))

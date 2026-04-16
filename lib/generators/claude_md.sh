@@ -1940,7 +1940,11 @@ At the start of each session:
 4. Check \`git log --oneline -10\` — understand recent work
 5. Check \`git status\` — understand current state
 6. If a STATUS.md file exists — read it for multi-phase task progress
-7. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+7. Run \`aiframework-update-check\` — notify developer of updates or drift:
+   - \`UPGRADE_AVAILABLE <old> <new>\`: Tell the developer a new aiframework version is available and offer to upgrade (\`cd <aiframework-path> && git pull\`)
+   - \`DRIFT_DETECTED <files>\`: Tell the developer generated files are stale and offer to run \`aiframework refresh\`
+   - \`UP_TO_DATE\` or empty: No action needed
+8. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 SESSIONPROTO
   fi
