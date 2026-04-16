@@ -4,7 +4,7 @@ type: concept
 created: 2026-04-15
 updated: 2026-04-15
 status: current
-tags: [domain/ai, type/concept, lifecycle/active]
+tags: [domain/ai-llm, type/concept, lifecycle/active]
 confidence: medium
 ---
 

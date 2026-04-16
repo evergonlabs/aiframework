@@ -122,6 +122,35 @@ scan_commands() {
     done
   fi
 
+  # --- Data-driven command defaults from languages.json ---
+  local cmd_data="$ROOT_DIR/lib/data/languages.json"
+  if [[ -f "$cmd_data" ]] && command -v jq &>/dev/null; then
+    local language
+    language=$(echo "$MANIFEST" | jq -r '.stack.language // "unknown"')
+    if [[ "$language" != "unknown" ]]; then
+      local lang_key="$language"
+      # Try to find matching package manager in registry
+      for pm_key in $(jq -r --arg l "$lang_key" '.languages[$l].package_managers // {} | keys[]' "$cmd_data" 2>/dev/null); do
+        local pm_lock pm_marker
+        pm_lock=$(jq -r --arg l "$lang_key" --arg p "$pm_key" '.languages[$l].package_managers[$p].lock_file // empty' "$cmd_data" 2>/dev/null)
+        pm_marker=$(jq -r --arg l "$lang_key" --arg p "$pm_key" '.languages[$l].package_managers[$p].manifest // empty' "$cmd_data" 2>/dev/null)
+
+        if [[ -n "$pm_lock" && -f "$TARGET_DIR/$pm_lock" ]] || [[ -n "$pm_marker" && -f "$TARGET_DIR/$pm_marker" ]]; then
+          # Found matching PM — load default commands
+          local pm_cmds
+          pm_cmds=$(jq -c --arg l "$lang_key" --arg p "$pm_key" '.languages[$l].package_managers[$p].commands // {}' "$cmd_data" 2>/dev/null)
+
+          [[ -z "$install_cmd" ]] && install_cmd=$(echo "$pm_cmds" | jq -r '.install // empty' 2>/dev/null)
+          [[ -z "$build_cmd" ]] && build_cmd=$(echo "$pm_cmds" | jq -r '.build // empty' 2>/dev/null)
+          [[ -z "$test_cmd" ]] && test_cmd=$(echo "$pm_cmds" | jq -r '.test // empty' 2>/dev/null)
+          [[ -z "$lint_cmd" ]] && lint_cmd=$(echo "$pm_cmds" | jq -r '.lint // empty' 2>/dev/null)
+          [[ -z "$format_cmd" ]] && format_cmd=$(echo "$pm_cmds" | jq -r '.format // empty' 2>/dev/null)
+          break
+        fi
+      done
+    fi
+  fi
+
   # --- Commands for Python ---
   if [[ -f "$TARGET_DIR/pyproject.toml" && -z "$install_cmd" ]]; then
     case "$pkg_manager" in

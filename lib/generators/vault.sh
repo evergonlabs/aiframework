@@ -51,6 +51,8 @@ generate_vault() {
   # Idempotency marker
   if [[ -f "$vault_root/.vault/.initialized" ]]; then
     log_warn "Vault already initialized (found .vault/.initialized). Skipping."
+    populate_vault_from_index "$TARGET_DIR" "$vault_root"
+    vault_auto_ingest "$TARGET_DIR" "$vault_root"
     return 0
   fi
 
@@ -876,6 +878,7 @@ ${domain_tag_list}
   - source-type/adr
   - source-type/changelog
   - source-type/api-spec
+  - source-type/code-index
 
 ## 14. confidence/ — Confidence Level
 
@@ -3225,6 +3228,16 @@ INITEOF
   log_ok "Created .vault/.initialized (idempotency marker)"
 
   # ──────────────────────────────────────────────────────────────
+  # Populate vault from code index (if available)
+  # ──────────────────────────────────────────────────────────────
+  populate_vault_from_index "$TARGET_DIR" "$vault_root"
+
+  # ──────────────────────────────────────────────────────────────
+  # Auto-ingest key project documents into raw/ and wiki/sources/
+  # ──────────────────────────────────────────────────────────────
+  vault_auto_ingest "$TARGET_DIR" "$vault_root"
+
+  # ──────────────────────────────────────────────────────────────
   # Summary
   # ──────────────────────────────────────────────────────────────
   log_ok "Vault fully initialized at $vault_root/"
@@ -3235,4 +3248,442 @@ INITEOF
   log_ok "  Hooks: pre-commit.sh (enforces HR-001/002/003/008/011/012/014)"
   log_ok "  Templates: source, concept, entity, comparison, decision"
   log_ok "  Docs: architecture.md (three-layer model), git-workflow.md"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# populate_vault_from_index — Auto-generate vault wiki pages from
+# .aiframework/code-index.json when it exists.
+#
+# This function is NOT gated by the idempotency check and can run
+# on both fresh and existing vaults.
+#
+# Args:
+#   $1 — target_dir  (project root where .aiframework/ lives)
+#   $2 — vault_root  (path to vault/ directory)
+# ══════════════════════════════════════════════════════════════════
+populate_vault_from_index() {
+  local target_dir="$1"
+  local vault_root="$2"
+  local code_index="$target_dir/.aiframework/code-index.json"
+
+  if [[ ! -f "$code_index" ]]; then
+    log_info "No code index found at $code_index — skipping vault population from index"
+    return 0
+  fi
+
+  if ! command -v jq &>/dev/null; then
+    log_warn "jq not found — cannot populate vault from code index"
+    return 0
+  fi
+
+  log_info "Populating vault wiki from code index..."
+
+  local today
+  today=$(date +%Y-%m-%d)
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  local lang
+  lang=$(jq -r '._meta.languages | to_entries | sort_by(.value) | reverse | .[0].key // "unknown"' "$code_index" 2>/dev/null || echo "unknown")
+
+  # Ensure entities directory exists
+  mkdir -p "$vault_root/wiki/entities"
+
+  local index_file="$vault_root/wiki/index.md"
+  local log_file="$vault_root/wiki/log.md"
+  local new_index_entries=""
+  local new_log_entries=""
+  local pages_created=0
+
+  # ────────────────────────────────────────────────────────────
+  # 1. Module entity pages — modules with 3+ files
+  # ────────────────────────────────────────────────────────────
+  local modules_json
+  modules_json=$(jq -c '[.modules | to_entries[] | select((.value.files | length) >= 3)]' "$code_index" 2>/dev/null || echo "[]")
+  local module_count
+  module_count=$(echo "$modules_json" | jq 'length')
+
+  if [[ "$module_count" -gt 0 ]]; then
+    local i=0
+    while [[ $i -lt $module_count ]]; do
+      local mod_path mod_slug mod_role mod_lang mod_file_count
+      mod_path=$(echo "$modules_json" | jq -r ".[$i].key")
+      mod_slug=$(echo "$mod_path" | sed 's|/|-|g; s|^\.||; s|^-||')
+      # Ensure slug is not empty
+      [[ -z "$mod_slug" ]] && mod_slug="root-module"
+
+      local entity_file="$vault_root/wiki/entities/${mod_slug}.md"
+
+      # Skip if already exists
+      if [[ -f "$entity_file" ]]; then
+        i=$((i + 1))
+        continue
+      fi
+
+      mod_role=$(echo "$modules_json" | jq -r ".[$i].value.role // \"Module at ${mod_path}\"")
+      mod_lang=$(echo "$modules_json" | jq -r ".[$i].value.language // \"${lang}\"")
+      mod_file_count=$(echo "$modules_json" | jq -r ".[$i].value.files | length")
+
+      # File list (all files)
+      local file_list
+      file_list=$(echo "$modules_json" | jq -r ".[$i].value.files[]" 2>/dev/null | sed 's/^/- `/' | sed 's/$/`/' | head -30)
+
+      # Top 10 symbols
+      local symbols
+      symbols=$(echo "$modules_json" | jq -r "[.[$i].value.symbols[]?.name] | unique | .[:10] | .[]" 2>/dev/null || true)
+      local symbols_list=""
+      if [[ -n "$symbols" ]]; then
+        symbols_list=$(echo "$symbols" | sed 's/^/- `/' | sed 's/$/`/')
+      else
+        symbols_list="*No symbols extracted.*"
+      fi
+
+      # Dependencies (from edges where source starts with this module path)
+      local dependencies
+      dependencies=$(jq -r --arg mp "$mod_path" '[.edges[]? | select(.source | startswith($mp)) | .target | split("/")[0:2] | join("/")] | unique | .[]' "$code_index" 2>/dev/null || true)
+      local deps_list=""
+      if [[ -n "$dependencies" ]]; then
+        deps_list=$(echo "$dependencies" | while IFS= read -r dep; do
+          local dep_slug
+          dep_slug=$(echo "$dep" | sed 's|/|-|g; s|^\.||; s|^-||')
+          echo "- [[${dep_slug}]] (\`${dep}\`)"
+        done)
+      else
+        deps_list="*No outbound dependencies detected.*"
+      fi
+
+      # Dependents (reverse edges — where target starts with this module path)
+      local dependents
+      dependents=$(jq -r --arg mp "$mod_path" '[.edges[]? | select(.target | startswith($mp)) | .source | split("/")[0:2] | join("/")] | unique | .[]' "$code_index" 2>/dev/null || true)
+      local dependents_list=""
+      if [[ -n "$dependents" ]]; then
+        dependents_list=$(echo "$dependents" | while IFS= read -r dep; do
+          local dep_slug
+          dep_slug=$(echo "$dep" | sed 's|/|-|g; s|^\.||; s|^-||')
+          echo "- [[${dep_slug}]] (\`${dep}\`)"
+        done)
+      else
+        dependents_list="*No inbound dependents detected.*"
+      fi
+
+      cat > "$entity_file" << MODENTEOF
+---
+title: "Module: ${mod_path}"
+type: entity
+created: ${today}
+updated: ${today}
+status: current
+tags:
+  - type/entity
+  - domain/${mod_lang}
+  - source-type/code-index
+confidence: medium
+---
+
+# Module: ${mod_path}
+
+> ${mod_role}
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| Path | \`${mod_path}\` |
+| Language | ${mod_lang} |
+| Files | ${mod_file_count} |
+
+## Files
+
+${file_list}
+
+## Key Symbols
+
+${symbols_list}
+
+## Dependencies (outbound)
+
+${deps_list}
+
+## Dependents (inbound)
+
+${dependents_list}
+
+## Related
+
+- [[architecture]]
+- [[tech-stack]]
+- [[project-overview]]
+MODENTEOF
+
+      new_index_entries="${new_index_entries}
+| ${mod_slug} | wiki/entities/${mod_slug}.md | entity | ${today} | current | domain/${mod_lang} |"
+      new_log_entries="${new_log_entries}
+| ${timestamp} | create-entity | aiframework/code-index | wiki/entities/${mod_slug}.md | success | Auto-generated from code index |"
+      pages_created=$((pages_created + 1))
+
+      i=$((i + 1))
+    done
+  fi
+
+  # ────────────────────────────────────────────────────────────
+  # 2. Architecture concept page — module dependency graph
+  # ────────────────────────────────────────────────────────────
+  local arch_file="$vault_root/wiki/concepts/architecture.md"
+  if [[ ! -f "$arch_file" && "$module_count" -gt 0 ]]; then
+    # Build module graph table
+    local graph_table=""
+    local ii=0
+    while [[ $ii -lt $module_count ]]; do
+      local mp
+      mp=$(echo "$modules_json" | jq -r ".[$ii].key")
+      local deps_out
+      deps_out=$(jq -r --arg mp "$mp" '[.edges[]? | select(.source | startswith($mp)) | .target | split("/")[0:2] | join("/")] | unique | join(", ")' "$code_index" 2>/dev/null || echo "—")
+      local deps_in
+      deps_in=$(jq -r --arg mp "$mp" '[.edges[]? | select(.target | startswith($mp)) | .source | split("/")[0:2] | join("/")] | unique | join(", ")' "$code_index" 2>/dev/null || echo "—")
+      [[ -z "$deps_out" ]] && deps_out="—"
+      [[ -z "$deps_in" ]] && deps_in="—"
+      graph_table="${graph_table}
+| \`${mp}\` | ${deps_out} | ${deps_in} |"
+      ii=$((ii + 1))
+    done
+
+    # Hot spots: modules with highest fan_in
+    local hot_spots
+    hot_spots=$(jq -r '[.edges[]?.target | split("/")[0:2] | join("/")] | group_by(.) | map({module: .[0], fan_in: length}) | sort_by(.fan_in) | reverse | .[:5] | .[] | "- `\(.module)` — fan_in: \(.fan_in)"' "$code_index" 2>/dev/null || echo "- *No hot spots detected.*")
+
+    # Entry points: modules with fan_in=0
+    local all_targets
+    all_targets=$(jq -r '[.edges[]?.target | split("/")[0:2] | join("/")] | unique | .[]' "$code_index" 2>/dev/null || true)
+    local entry_points=""
+    local jj=0
+    while [[ $jj -lt $module_count ]]; do
+      local ep_path
+      ep_path=$(echo "$modules_json" | jq -r ".[$jj].key")
+      if [[ -z "$all_targets" ]] || ! echo "$all_targets" | grep -qxF "$ep_path"; then
+        entry_points="${entry_points}
+- \`${ep_path}\`"
+      fi
+      jj=$((jj + 1))
+    done
+    [[ -z "$entry_points" ]] && entry_points="
+- *All modules have inbound dependencies.*"
+
+    cat > "$arch_file" << ARCHIDXEOF
+---
+title: "Architecture — Module Graph"
+type: concept
+created: ${today}
+updated: ${today}
+status: current
+tags:
+  - type/concept
+  - type/architecture
+  - domain/${lang}
+  - source-type/code-index
+confidence: medium
+---
+
+# Architecture — Module Graph
+
+> Auto-generated from code index. Shows module dependencies and structure.
+
+## Module Dependency Table
+
+| Module | Depends On | Depended By |
+|--------|-----------|-------------|${graph_table}
+
+## Hot Spots (highest fan-in)
+
+${hot_spots}
+
+## Entry Points (fan-in = 0)
+
+${entry_points}
+
+## Related
+
+- [[tech-stack]]
+- [[project-overview]]
+ARCHIDXEOF
+
+    new_index_entries="${new_index_entries}
+| architecture | wiki/concepts/architecture.md | concept | ${today} | current | domain/${lang} |"
+    new_log_entries="${new_log_entries}
+| ${timestamp} | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |"
+    pages_created=$((pages_created + 1))
+  fi
+
+  # ────────────────────────────────────────────────────────────
+  # 3. Enhanced tech-stack page — append symbol counts per language
+  # ────────────────────────────────────────────────────────────
+  local techstack_file="$vault_root/wiki/concepts/tech-stack.md"
+  if [[ -f "$techstack_file" ]]; then
+    local lang_stats
+    lang_stats=$(jq -r '._meta.languages // {} | to_entries | sort_by(.value) | reverse | .[] | "| \(.key) | \(.value) |"' "$code_index" 2>/dev/null || true)
+
+    if [[ -n "$lang_stats" ]]; then
+      local marker="## Related"
+      if grep -q "$marker" "$techstack_file" && ! grep -q "## Symbol Counts by Language" "$techstack_file"; then
+        # Insert before ## Related
+        local tech_append="## Symbol Counts by Language
+
+> Auto-populated from code index (\`_meta.languages\`).
+
+| Language | Symbol Count |
+|----------|-------------|
+${lang_stats}
+
+"
+        # Insert tech_append before "## Related" using read loop (awk breaks on multiline vars)
+        local tmp
+        tmp=$(mktemp)
+        while IFS= read -r line; do
+          if [[ "$line" == "## Related"* ]]; then
+            printf '%s\n' "$tech_append"
+          fi
+          printf '%s\n' "$line"
+        done < "$techstack_file" > "$tmp"
+        mv "$tmp" "$techstack_file"
+
+        # Update the updated date in frontmatter
+        sed -i.bak "s/^updated: .*/updated: ${today}/" "$techstack_file"
+        rm -f "$techstack_file.bak"
+
+        new_log_entries="${new_log_entries}
+| ${timestamp} | update-concept | aiframework/code-index | wiki/concepts/tech-stack.md | success | Appended symbol counts from code index |"
+        log_ok "Updated tech-stack.md with symbol counts"
+      fi
+    fi
+  fi
+
+  # ────────────────────────────────────────────────────────────
+  # 4. Function/class reference pages — modules with 10+ symbols
+  # ────────────────────────────────────────────────────────────
+  if [[ "$module_count" -gt 0 ]]; then
+    local k=0
+    while [[ $k -lt $module_count ]]; do
+      local api_mod_path api_slug symbol_count
+      api_mod_path=$(echo "$modules_json" | jq -r ".[$k].key")
+      api_slug=$(echo "$api_mod_path" | sed 's|/|-|g; s|^\.||; s|^-||')
+      [[ -z "$api_slug" ]] && api_slug="root-module"
+      symbol_count=$(echo "$modules_json" | jq ".[$k].value.symbols | length" 2>/dev/null || echo 0)
+
+      if [[ "$symbol_count" -ge 10 ]]; then
+        local api_file="$vault_root/wiki/entities/${api_slug}-api.md"
+
+        if [[ ! -f "$api_file" ]]; then
+          local api_mod_lang
+          api_mod_lang=$(echo "$modules_json" | jq -r ".[$k].value.language // \"${lang}\"")
+
+          # Extract symbols with details
+          local symbol_table=""
+          local sym_idx=0
+          local sym_total
+          sym_total=$(echo "$modules_json" | jq ".[$k].value.symbols | length")
+          while [[ $sym_idx -lt $sym_total ]]; do
+            local sym_name sym_kind sym_file sym_doc
+            sym_name=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].name // \"unknown\"")
+            sym_kind=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].kind // \"symbol\"")
+            sym_file=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].file // \"—\"")
+            sym_doc=$(echo "$modules_json" | jq -r ".[$k].value.symbols[$sym_idx].doc // \"—\"" | head -1 | cut -c1-80)
+            symbol_table="${symbol_table}
+| \`${sym_name}\` | ${sym_kind} | \`${sym_file}\` | ${sym_doc} |"
+            sym_idx=$((sym_idx + 1))
+          done
+
+          cat > "$api_file" << APIEOF
+---
+title: "API Reference: ${api_mod_path}"
+type: entity
+created: ${today}
+updated: ${today}
+status: current
+tags:
+  - type/entity
+  - domain/${api_mod_lang}
+  - source-type/code-index
+  - format/reference
+confidence: medium
+---
+
+# API Reference: ${api_mod_path}
+
+> Function and class reference for \`${api_mod_path}\` (${symbol_count} symbols).
+
+## Symbols
+
+| Name | Kind | File | Description |
+|------|------|------|-------------|${symbol_table}
+
+## Related
+
+- [[${api_slug}]]
+- [[architecture]]
+- [[tech-stack]]
+APIEOF
+
+          new_index_entries="${new_index_entries}
+| ${api_slug}-api | wiki/entities/${api_slug}-api.md | entity | ${today} | current | domain/${api_mod_lang} |"
+          new_log_entries="${new_log_entries}
+| ${timestamp} | create-entity | aiframework/code-index | wiki/entities/${api_slug}-api.md | success | API reference from code index |"
+          pages_created=$((pages_created + 1))
+        fi
+      fi
+
+      k=$((k + 1))
+    done
+  fi
+
+  # ────────────────────────────────────────────────────────────
+  # 5. Update index.md — append new pages
+  # ────────────────────────────────────────────────────────────
+  if [[ -n "$new_index_entries" && -f "$index_file" ]]; then
+    # Append entries before the ## Conventions section
+    if grep -q "^## Conventions" "$index_file"; then
+      local temp_entries
+      temp_entries=$(echo "$new_index_entries" | grep -v '^$')
+      # Filter out entries already in the index
+      local filtered_entries=""
+      while IFS= read -r entry_line; do
+        [[ -z "$entry_line" ]] && continue
+        local entry_slug
+        entry_slug=$(echo "$entry_line" | awk -F'|' '{gsub(/^ +| +$/, "", $2); print $2}')
+        if ! grep -qF "| ${entry_slug} |" "$index_file" 2>/dev/null; then
+          filtered_entries="${filtered_entries}
+${entry_line}"
+        fi
+      done <<< "$temp_entries"
+
+      if [[ -n "$filtered_entries" ]]; then
+        # Insert entries before "## Conventions" using temp file (portable, no sed multi-line issues)
+        local head_content tail_content
+        head_content=$(sed -n '/^## Conventions/q;p' "$index_file")
+        tail_content=$(sed -n '/^## Conventions/,$p' "$index_file")
+        { printf '%s\n' "$head_content"; printf '%s\n\n' "$filtered_entries"; printf '%s\n' "$tail_content"; } > "${index_file}.tmp" \
+          && mv "${index_file}.tmp" "$index_file"
+
+        # Update the updated date
+        sed -i.bak "s/^updated: .*/updated: \"${today}\"/" "$index_file"
+        rm -f "$index_file.bak"
+      fi
+    fi
+  fi
+
+  # ────────────────────────────────────────────────────────────
+  # 6. Append to log.md
+  # ────────────────────────────────────────────────────────────
+  if [[ -n "$new_log_entries" && -f "$log_file" ]]; then
+    local log_lines
+    log_lines=$(echo "$new_log_entries" | grep -v '^$')
+    echo "$log_lines" >> "$log_file"
+
+    # Update the updated date in frontmatter
+    sed -i.bak "s/^updated: .*/updated: \"${today}\"/" "$log_file"
+    rm -f "$log_file.bak"
+  fi
+
+  if [[ $pages_created -gt 0 ]]; then
+    log_ok "Populated vault from code index: ${pages_created} page(s) created"
+  else
+    log_info "Code index found but no new vault pages needed"
+  fi
 }

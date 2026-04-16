@@ -64,7 +64,7 @@ on:
   push:
     branches: [main]
     paths:
-$(echo -n "${ts_path_entries}")      - 'package.json'
+${ts_path_entries}      - 'package.json'
 $([ -n "$lock" ] && echo "      - '${lock}'" || true)
       - '.github/workflows/ci.yml'
 

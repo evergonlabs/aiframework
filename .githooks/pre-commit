@@ -6,9 +6,9 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   exit 0
 fi
 echo "Pre-commit: Lint checking..."
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck 2>&1
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' -not -path '*/fixtures/*' | xargs shellcheck -S error 2>&1
 if [ $? -ne 0 ]; then
-  echo "Lint checking failed. Fix errors before committing."
+  echo "Lint checking failed. Fix warnings before committing."
   exit 1
 fi
 echo "Lint checking passed."

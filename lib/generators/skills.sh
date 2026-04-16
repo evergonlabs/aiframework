@@ -6,6 +6,9 @@ generate_skills() {
   local m="$MANIFEST"
   local short=$(echo "$m" | jq -r '.identity.short_name')
   local name=$(echo "$m" | jq -r '.identity.name')
+  local lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
+  local fw=$(echo "$m" | jq -r '.stack.framework // "none"')
+  local install=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
   local lint=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
   local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
   local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
@@ -433,4 +436,61 @@ LEARNMD
   mkdir -p "$TARGET_DIR/tools/learnings"
   touch "$TARGET_DIR/tools/learnings/${short}-learnings.jsonl"
   log_ok "Created tools/learnings/${short}-learnings.jsonl"
+
+  # --- AGENTS.md (cross-tool compatibility) ---
+  local agents_file="$TARGET_DIR/AGENTS.md"
+  if [[ ! -f "$agents_file" ]]; then
+    local _agents_fw_line=""
+    if [[ "$fw" != "none" && -n "$fw" ]]; then
+      _agents_fw_line="- Use ${fw} best practices"
+    fi
+    local _agents_arch_type
+    _agents_arch_type=$(echo "$m" | jq -r '.archetype.type // "application"')
+    cat > "$agents_file" << AGENTSMD
+# AGENTS.md
+
+> Cross-tool agent configuration. Works with Claude Code, Codex CLI, and other AI assistants.
+
+## Project: ${name}
+
+$(desc_val=$(echo "$m" | jq -r '.identity.description // ""'); if [[ "$desc_val" == "NOT_FOUND" || "$desc_val" == "No description" || -z "$desc_val" ]]; then echo "Agent configuration for ${name}."; else echo "$desc_val"; fi)
+
+## Commands
+
+- **Install**: \`${install}\`
+- **Build**: \`${build}\`
+- **Test**: \`${test_cmd}\`
+- **Lint**: \`${lint}\`
+
+## Conventions
+
+- Follow ${lang} community conventions
+${_agents_fw_line:+${_agents_fw_line}
+}- Run lint + test before committing
+- Never commit secrets or API keys
+
+## Architecture
+
+${_agents_arch_type} project using ${lang}/${fw}.
+AGENTSMD
+    log_ok "Created AGENTS.md"
+  fi
+
+  # Generate .claude/settings.json with safe defaults
+  local settings_file="$TARGET_DIR/.claude/settings.json"
+  if [[ ! -f "$settings_file" ]]; then
+    cat > "$settings_file" << 'SETTINGS'
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch"
+    ]
+  }
+}
+SETTINGS
+    log_ok "Created .claude/settings.json"
+  fi
 }

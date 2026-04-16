@@ -100,7 +100,7 @@ validate_consistency() {
   for f in "${placeholder_files[@]}"; do
     if [[ -f "$TARGET_DIR/$f" ]]; then
       local placeholders
-      placeholders=$(grep -c '{{' "$TARGET_DIR/$f" 2>/dev/null | tr -d '[:space:]' || echo "0")
+      placeholders=$({ grep '{{' "$TARGET_DIR/$f" 2>/dev/null | grep -v '\${{' | wc -l | tr -d '[:space:]'; } || echo "0")
       if [[ "$placeholders" -gt 0 ]]; then
         report_row "Placeholders: $f" "FAIL" "$placeholders {{}} found"
       fi
@@ -110,7 +110,7 @@ validate_consistency() {
   # Check CI too
   if [[ -f "$TARGET_DIR/.github/workflows/ci.yml" ]]; then
     local ci_placeholders
-    ci_placeholders=$(grep -c '{{' "$TARGET_DIR/.github/workflows/ci.yml" 2>/dev/null | tr -d '[:space:]' || echo "0")
+    ci_placeholders=$({ grep '{{' "$TARGET_DIR/.github/workflows/ci.yml" 2>/dev/null | grep -v '\${{' | wc -l | tr -d '[:space:]'; } || echo "0")
     if [[ "$ci_placeholders" -gt 0 ]]; then
       report_row "Placeholders: ci.yml" "FAIL" "$ci_placeholders {{}} found"
     else
@@ -122,7 +122,7 @@ validate_consistency() {
     for f in "${placeholder_files[@]}"; do
       if [[ -f "$TARGET_DIR/$f" ]]; then
         local count
-        count=$(grep -c '{{' "$TARGET_DIR/$f" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        count=$({ grep '{{' "$TARGET_DIR/$f" 2>/dev/null | grep -v '\${{' | wc -l | tr -d '[:space:]'; } || echo "0")
         total_placeholders=$((total_placeholders + count))
       fi
     done
@@ -187,7 +187,7 @@ validate_consistency() {
   # --- E4: Invariants in CLAUDE.md match review skill ---
   if [[ -f "$TARGET_DIR/CLAUDE.md" && -f "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md" ]]; then
     local inv_in_claude
-    inv_in_claude=$(grep -c '### INV-' "$TARGET_DIR/CLAUDE.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
+    inv_in_claude=$(grep -cE '(### INV-|\*\*INV-)' "$TARGET_DIR/CLAUDE.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
     local inv_in_review
     inv_in_review=$(grep -c 'INV-' "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
 
@@ -205,7 +205,7 @@ validate_consistency() {
   # --- E5: Invariants match pre-push invariant checks ---
   if [[ -f "$TARGET_DIR/CLAUDE.md" && -f "$TARGET_DIR/.githooks/pre-push" ]]; then
     local inv_in_claude
-    inv_in_claude=$(grep -c '### INV-' "$TARGET_DIR/CLAUDE.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
+    inv_in_claude=$(grep -cE '(### INV-|\*\*INV-)' "$TARGET_DIR/CLAUDE.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
     local inv_in_prepush
     inv_in_prepush=$(grep -cE '# INV[-:]' "$TARGET_DIR/.githooks/pre-push" 2>/dev/null || true)
     inv_in_prepush=$(echo "$inv_in_prepush" | head -1 | tr -d '[:space:]')

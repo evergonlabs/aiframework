@@ -23,7 +23,12 @@ scan_structure() {
   # --- Top-level directories ---
   local all_dirs="[]"
   if [[ -d "$TARGET_DIR" ]]; then
-    all_dirs=$(ls -1d "$TARGET_DIR"/*/ 2>/dev/null | xargs -I{} basename {} | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+    local dirs_output
+    # shellcheck disable=SC2011
+    dirs_output=$(ls -1d "$TARGET_DIR"/*/ 2>/dev/null | xargs -I{} basename {} 2>/dev/null || true)
+    if [[ -n "$dirs_output" ]]; then
+      all_dirs=$(echo "$dirs_output" | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+    fi
   fi
 
   # --- Source directories ---

@@ -99,30 +99,53 @@ scan_ci() {
   ci_gaps=$(_ci_arr_to_json "${gaps[@]+"${gaps[@]}"}")
 
   # --- Deploy Target Detection ---
-  if [[ -f "$TARGET_DIR/fly.toml" ]]; then
-    deploy_target="fly.io"
-  elif [[ -f "$TARGET_DIR/vercel.json" || -f "$TARGET_DIR/.vercel" ]]; then
-    deploy_target="vercel"
-  elif [[ -f "$TARGET_DIR/netlify.toml" ]]; then
-    deploy_target="netlify"
-  elif [[ -f "$TARGET_DIR/render.yaml" ]]; then
-    deploy_target="render"
-  elif [[ -f "$TARGET_DIR/appspec.yml" ]]; then
-    deploy_target="aws-codedeploy"
-  elif [[ -f "$TARGET_DIR/serverless.yml" || -f "$TARGET_DIR/serverless.yaml" ]]; then
-    deploy_target="serverless"
-  elif [[ -f "$TARGET_DIR/wrangler.toml" ]]; then
-    deploy_target="cloudflare-workers"
-  elif [[ -d "$TARGET_DIR/terraform" ]] || ls "$TARGET_DIR"/*.tf >/dev/null 2>&1; then
-    deploy_target="terraform"
-  elif [[ -d "$TARGET_DIR/k8s" || -d "$TARGET_DIR/kubernetes" || -d "$TARGET_DIR/helm" ]]; then
-    deploy_target="kubernetes"
-  elif [[ -f "$TARGET_DIR/Dockerfile" ]]; then
-    deploy_target="docker"
-  elif [[ -d "$TARGET_DIR/supabase" ]]; then
-    deploy_target="supabase"
-  elif [[ -f "$TARGET_DIR/firebase.json" ]]; then
-    deploy_target="firebase"
+
+  # Data-driven deploy target detection (single jq call for performance)
+  local deploy_file="$ROOT_DIR/lib/data/deploy_targets.json"
+  if [[ -f "$deploy_file" ]] && command -v jq &>/dev/null; then
+    local deploy_checks
+    deploy_checks=$(jq -r '.targets | to_entries[] | .key as $k | (.value.marker_files[]? // empty | "file \($k) \(.)"), (.value.marker_dirs[]? // empty | "dir \($k) \(.)")' "$deploy_file" 2>/dev/null || true)
+    if [[ -n "$deploy_checks" ]]; then
+      while IFS=' ' read -r check_type check_target check_path; do
+        [[ -z "$check_type" ]] && continue
+        if [[ "$check_type" == "file" && -f "$TARGET_DIR/$check_path" ]]; then
+          deploy_target="$check_target"
+          break
+        elif [[ "$check_type" == "dir" && -d "$TARGET_DIR/$check_path" ]]; then
+          deploy_target="$check_target"
+          break
+        fi
+      done <<< "$deploy_checks"
+    fi
+  fi
+
+  # Fallback to hardcoded detection if data-driven didn't find anything
+  if [[ "$deploy_target" == "none" ]]; then
+    if [[ -f "$TARGET_DIR/fly.toml" ]]; then
+      deploy_target="fly.io"
+    elif [[ -f "$TARGET_DIR/vercel.json" || -f "$TARGET_DIR/.vercel" ]]; then
+      deploy_target="vercel"
+    elif [[ -f "$TARGET_DIR/netlify.toml" ]]; then
+      deploy_target="netlify"
+    elif [[ -f "$TARGET_DIR/render.yaml" ]]; then
+      deploy_target="render"
+    elif [[ -f "$TARGET_DIR/appspec.yml" ]]; then
+      deploy_target="aws-codedeploy"
+    elif [[ -f "$TARGET_DIR/serverless.yml" || -f "$TARGET_DIR/serverless.yaml" ]]; then
+      deploy_target="serverless"
+    elif [[ -f "$TARGET_DIR/wrangler.toml" ]]; then
+      deploy_target="cloudflare-workers"
+    elif [[ -d "$TARGET_DIR/terraform" ]] || ls "$TARGET_DIR"/*.tf >/dev/null 2>&1; then
+      deploy_target="terraform"
+    elif [[ -d "$TARGET_DIR/k8s" || -d "$TARGET_DIR/kubernetes" || -d "$TARGET_DIR/helm" ]]; then
+      deploy_target="kubernetes"
+    elif [[ -f "$TARGET_DIR/Dockerfile" ]]; then
+      deploy_target="docker"
+    elif [[ -d "$TARGET_DIR/supabase" ]]; then
+      deploy_target="supabase"
+    elif [[ -f "$TARGET_DIR/firebase.json" ]]; then
+      deploy_target="firebase"
+    fi
   fi
 
   # --- E2B / Sandbox ---

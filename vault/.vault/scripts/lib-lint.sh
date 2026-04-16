@@ -165,7 +165,8 @@ lint_hr005_code_length() {
 lint_hr006_unique_titles() {
   local vault_root="$1"
   local errors=0
-  local -A seen_titles
+  local seen_titles=""
+  local seen_files=""
 
   while IFS= read -r -d '' file; do
     local rel
@@ -174,11 +175,11 @@ lint_hr006_unique_titles() {
     title=$(get_frontmatter_field "$file" "title")
     [[ -z "$title" ]] && continue
 
-    if [[ -n "${seen_titles[$title]+_}" ]]; then
-      log_fail "HR-006: Duplicate title '$title' in: $rel (first seen in: ${seen_titles[$title]})"
+    if echo "$seen_titles" | grep -qF "|$title|"; then
+      log_fail "HR-006: Duplicate title '$title' in: $rel"
       ((errors++))
     else
-      seen_titles["$title"]="$rel"
+      seen_titles="${seen_titles}|${title}|"
     fi
   done < <(find "$vault_root/wiki" "$vault_root/memory" -name "*.md" -type f -print0 2>/dev/null)
 

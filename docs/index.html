@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiframework — How It Works</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a25;
+    --border: #2a2a3a;
+    --text: #e4e4ef;
+    --text2: #8888a0;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --green: #00d2a0;
+    --blue: #74b9ff;
+    --orange: #fdcb6e;
+    --pink: #fd79a8;
+    --red: #ff6b6b;
+    --cyan: #00cec9;
+    --radius: 16px;
+    --glow: 0 0 40px rgba(108,92,231,0.15);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 100px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(108,92,231,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--accent2), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+  }
+  .hero .tagline {
+    font-size: 1.25rem;
+    color: var(--text2);
+    max-width: 600px;
+    margin: 0 auto 40px;
+  }
+  .hero-cmd {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 1.1rem;
+    color: var(--green);
+    letter-spacing: 0.02em;
+  }
+  .hero-cmd .dim { color: var(--text2); }
+
+  /* Section */
+  section { padding: 80px 0; }
+  .section-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 12px;
+  }
+  section h2 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  section .subtitle {
+    font-size: 1.05rem;
+    color: var(--text2);
+    max-width: 640px;
+    margin-bottom: 48px;
+  }
+
+  /* Pipeline Flow */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .pipe-stage {
+    background: var(--surface);
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .pipe-stage:hover { background: var(--surface2); }
+  .pipe-stage.active { background: var(--surface2); }
+  .pipe-stage .num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  .pipe-stage:nth-child(1) .num { background: rgba(108,92,231,0.2); color: var(--accent2); }
+  .pipe-stage:nth-child(2) .num { background: rgba(0,206,201,0.2); color: var(--cyan); }
+  .pipe-stage:nth-child(3) .num { background: rgba(0,210,160,0.2); color: var(--green); }
+  .pipe-stage:nth-child(4) .num { background: rgba(253,203,110,0.2); color: var(--orange); }
+  .pipe-stage h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .pipe-stage p { font-size: 0.8rem; color: var(--text2); }
+  .pipe-stage .arrow {
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: var(--text2);
+    z-index: 2;
+  }
+
+  /* Stage detail panel */
+  .stage-detail {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    min-height: 200px;
+    transition: all 0.3s;
+  }
+  .stage-detail h4 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stage-detail .badge {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .badge-free { background: rgba(0,210,160,0.15); color: var(--green); }
+  .badge-opt { background: rgba(253,203,110,0.15); color: var(--orange); }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .detail-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--border);
+    transition: border-color 0.2s;
+  }
+  .detail-item:hover { border-left-color: var(--accent); }
+  .detail-item .di-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .detail-item .di-desc {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  /* Output section */
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .output-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .output-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+    transform: translateY(-2px);
+  }
+  .output-card .icon {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .output-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .output-card p {
+    font-size: 0.85rem;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .output-card .file-list {
+    margin-top: 12px;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    line-height: 1.8;
+  }
+
+  /* Schema viz */
+  .schema-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .schema-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .schema-tab {
+    padding: 14px 24px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .schema-tab:hover { color: var(--text); }
+  .schema-tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+  .schema-content {
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    min-height: 320px;
+  }
+  .schema-content .key { color: var(--accent2); }
+  .schema-content .str { color: var(--green); }
+  .schema-content .num { color: var(--orange); }
+  .schema-content .comment { color: var(--text2); font-style: italic; }
+
+  /* Language cards */
+  .lang-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+  }
+  .lang-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 12px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .lang-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: var(--glow);
+  }
+  .lang-card .lang-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+  .lang-card .lang-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+  .lang-card .lang-ext { font-size: 0.72rem; color: var(--text2); font-family: monospace; }
+
+  /* Vault visual */
+  .vault-layers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .vault-layer {
+    border-radius: var(--radius);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .vault-layer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .vault-layer.raw { background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.2); }
+  .vault-layer.raw::before { background: var(--accent); }
+  .vault-layer.wiki { background: rgba(0,206,201,0.08); border: 1px solid rgba(0,206,201,0.2); }
+  .vault-layer.wiki::before { background: var(--cyan); }
+  .vault-layer.memory { background: rgba(0,210,160,0.08); border: 1px solid rgba(0,210,160,0.2); }
+  .vault-layer.memory::before { background: var(--green); }
+  .vault-layer h3 { font-size: 1rem; margin-bottom: 4px; }
+  .vault-layer .path { font-family: monospace; font-size: 0.78rem; color: var(--text2); margin-bottom: 12px; }
+  .vault-layer p { font-size: 0.85rem; color: var(--text2); line-height: 1.5; }
+  .vault-flow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    font-size: 0.9rem;
+    color: var(--text2);
+  }
+  .vault-flow .arrow-right { color: var(--accent2); font-size: 1.4rem; }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+  }
+  .stat .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent2), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat .stat-label { font-size: 0.78rem; color: var(--text2); margin-top: 4px; }
+
+  /* Quick start */
+  .quickstart {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .qs-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+  .qs-step:last-child { border-bottom: none; }
+  .qs-step:hover { background: var(--surface2); }
+  .qs-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(108,92,231,0.15);
+    color: var(--accent2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .qs-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+  .qs-content p { font-size: 0.85rem; color: var(--text2); }
+  .qs-content code {
+    display: inline-block;
+    margin-top: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--green);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text2);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--accent2); text-decoration: none; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero h1 { font-size: 2.4rem; }
+    .pipeline { grid-template-columns: 1fr 1fr; }
+    .pipe-stage .arrow { display: none; }
+    .output-grid { grid-template-columns: 1fr; }
+    .lang-grid { grid-template-columns: repeat(4, 1fr); }
+    .vault-layers { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8rem; }
+    .pipeline { grid-template-columns: 1fr; }
+    .lang-grid { grid-template-columns: repeat(3, 1fr); }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <h1>aiframework</h1>
+    <p class="tagline">One command. Your entire repo — scanned, indexed, documented. Claude Code finally understands your project.</p>
+    <div class="hero-cmd"><span class="dim">$</span> aiframework run --target /path/to/your-repo</div>
+  </div>
+</section>
+
+<!-- THE PROBLEM -->
+<section>
+  <div class="container">
+    <span class="section-label">The Problem</span>
+    <h2>AI agents guess. You lose time.</h2>
+    <p class="subtitle">Claude Code, Codex, Cursor — they all scan your repo with 50-80% coverage. They guess file paths. Invent env vars. Every session starts from scratch.</p>
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; align-items:center;">
+      <div style="background:var(--surface); border:1px solid rgba(255,107,107,0.3); border-radius:var(--radius); padding:28px;">
+        <h3 style="color:var(--red); font-size:0.9rem; margin-bottom:12px;">Without aiframework</h3>
+        <ul style="list-style:none; font-size:0.85rem; color:var(--text2); line-height:2;">
+          <li>&#10007; Guesses project structure</li>
+          <li>&#10007; Invents environment variables</li>
+          <li>&#10007; Misses half your functions</li>
+          <li>&#10007; No module dependency awareness</li>
+          <li>&#10007; Every session starts from zero</li>
+        </ul>
+      </div>
+      <div style="text-align:center; font-size:1.5rem; color:var(--text2);">&#8594;</div>
+      <div style="background:var(--surface); border:1px solid rgba(0,210,160,0.3); border-radius:var(--radius); padding:28px;">
+        <h3 style="color:var(--green); font-size:0.9rem; margin-bottom:12px;">With aiframework</h3>
+        <ul style="list-style:none; font-size:0.85rem; color:var(--text2); line-height:2;">
+          <li>&#10003; Exact structure from real files</li>
+          <li>&#10003; Every env var cataloged</li>
+          <li>&#10003; Every function, class, import indexed</li>
+          <li>&#10003; Full module dependency graph</li>
+          <li>&#10003; Persistent knowledge vault</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section style="background:var(--surface2); padding:80px 0;">
+  <div class="container">
+    <span class="section-label">The Pipeline</span>
+    <h2>Four stages. All deterministic.</h2>
+    <p class="subtitle">Click each stage to see what it does.</p>
+
+    <div class="pipeline" id="pipeline">
+      <div class="pipe-stage active" onclick="showStage(0)">
+        <div class="num">1</div>
+        <h3>Discover</h3>
+        <p>10 scanners read your repo</p>
+        <span class="arrow">&#8594;</span>
+      </div>
+      <div class="pipe-stage" onclick="showStage(1)">
+        <div class="num">2</div>
+        <h3>Index</h3>
+        <p>Map every symbol &amp; edge</p>
+        <span class="arrow">&#8594;</span>
+      </div>
+      <div class="pipe-stage" onclick="showStage(2)">
+        <div class="num">3</div>
+        <h3>Generate</h3>
+        <p>Write 19+ files + vault</p>
+        <span class="arrow">&#8594;</span>
+      </div>
+      <div class="pipe-stage" onclick="showStage(3)">
+        <div class="num">4</div>
+        <h3>Verify</h3>
+        <p>36 checks, zero drift</p>
+      </div>
+    </div>
+
+    <div class="stage-detail" id="stage-detail"></div>
+  </div>
+</section>
+
+<!-- CODE INDEX SCHEMA -->
+<section>
+  <div class="container">
+    <span class="section-label">Code Index</span>
+    <h2>Your entire codebase, structured.</h2>
+    <p class="subtitle">The indexer maps every file, function, class, import, and module in your repo — in under 50ms.</p>
+
+    <div class="schema-box">
+      <div class="schema-tabs" id="schema-tabs">
+        <button class="schema-tab active" onclick="showSchema(0)">_meta</button>
+        <button class="schema-tab" onclick="showSchema(1)">files</button>
+        <button class="schema-tab" onclick="showSchema(2)">symbols</button>
+        <button class="schema-tab" onclick="showSchema(3)">edges</button>
+        <button class="schema-tab" onclick="showSchema(4)">modules</button>
+      </div>
+      <div class="schema-content" id="schema-content"></div>
+    </div>
+  </div>
+</section>
+
+<!-- LANGUAGES -->
+<section style="background:var(--surface2); padding:80px 0;">
+  <div class="container">
+    <span class="section-label">Language Support</span>
+    <h2>7 languages. Regex-parsed. No API.</h2>
+    <p class="subtitle">Every function, class, type, and import — extracted deterministically.</p>
+    <div class="lang-grid">
+      <div class="lang-card"><span class="lang-icon">&#128026;</span><div class="lang-name">Bash</div><div class="lang-ext">.sh .bash</div></div>
+      <div class="lang-card"><span class="lang-icon">&#128013;</span><div class="lang-name">Python</div><div class="lang-ext">.py</div></div>
+      <div class="lang-card"><span class="lang-icon">&#9883;</span><div class="lang-name">TypeScript</div><div class="lang-ext">.ts .tsx</div></div>
+      <div class="lang-card"><span class="lang-icon">&#9889;</span><div class="lang-name">JavaScript</div><div class="lang-ext">.js .jsx</div></div>
+      <div class="lang-card"><span class="lang-icon">&#128037;</span><div class="lang-name">Go</div><div class="lang-ext">.go</div></div>
+      <div class="lang-card"><span class="lang-icon">&#9881;</span><div class="lang-name">Rust</div><div class="lang-ext">.rs</div></div>
+      <div class="lang-card"><span class="lang-icon">&#128142;</span><div class="lang-name">Ruby</div><div class="lang-ext">.rb</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT GETS GENERATED -->
+<section>
+  <div class="container">
+    <span class="section-label">Output</span>
+    <h2>What gets generated</h2>
+    <p class="subtitle">19+ files, a knowledge vault, and a code index — all from one command.</p>
+    <div class="output-grid">
+      <div class="output-card">
+        <span class="icon">&#128220;</span>
+        <h3>CLAUDE.md</h3>
+        <p>The single source of truth. 25 sections, 500+ lines. Module map, commands, invariants, architecture hot spots.</p>
+        <div class="file-list">CLAUDE.md</div>
+      </div>
+      <div class="output-card">
+        <span class="icon">&#129504;</span>
+        <h3>Knowledge Vault</h3>
+        <p>22+ wiki pages auto-populated from code index. Module entities, architecture, API reference, concept pages.</p>
+        <div class="file-list">vault/wiki/<br>vault/memory/<br>vault/.vault/</div>
+      </div>
+      <div class="output-card">
+        <span class="icon">&#128202;</span>
+        <h3>Code Index</h3>
+        <p>Every symbol, every import, every dependency edge. Module groupings with fan-in/fan-out analysis.</p>
+        <div class="file-list">.aiframework/code-index.json</div>
+      </div>
+      <div class="output-card">
+        <span class="icon">&#128737;</span>
+        <h3>Git Hooks</h3>
+        <p>Pre-commit (type check, lint) and pre-push (full quality gate + invariant checks). Auto-configured.</p>
+        <div class="file-list">.githooks/pre-commit<br>.githooks/pre-push</div>
+      </div>
+      <div class="output-card">
+        <span class="icon">&#9881;</span>
+        <h3>CI Pipeline</h3>
+        <p>GitHub Actions workflow matching your language. TypeScript, Python, Rust, Go, Ruby, or Bash.</p>
+        <div class="file-list">.github/workflows/ci.yml</div>
+      </div>
+      <div class="output-card">
+        <span class="icon">&#127919;</span>
+        <h3>Skills &amp; Docs</h3>
+        <p>Custom /review and /ship skills. Review specialists. Diataxis docs. Onboarding guide. Changelog.</p>
+        <div class="file-list">.claude/skills/<br>docs/<br>CHANGELOG.md</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VAULT -->
+<section style="background:var(--surface2); padding:80px 0;">
+  <div class="container">
+    <span class="section-label">Knowledge Vault</span>
+    <h2>Three layers. Persistent memory.</h2>
+    <p class="subtitle">A git-based knowledge graph using markdown + YAML frontmatter + wikilinks. Claude remembers across sessions.</p>
+
+    <div class="vault-flow">
+      <span style="color:var(--accent2); font-weight:700;">raw/</span>
+      <span class="arrow-right">&#10145;</span>
+      <span style="color:var(--cyan); font-weight:700;">wiki/</span>
+      <span class="arrow-right">&#10145;</span>
+      <span style="color:var(--green); font-weight:700;">memory/</span>
+      <span style="margin-left:12px; font-size:0.78rem;">(strictly unidirectional)</span>
+    </div>
+
+    <div class="vault-layers">
+      <div class="vault-layer raw">
+        <h3>Raw Layer</h3>
+        <div class="path">vault/raw/</div>
+        <p>Immutable source documents. Human-owned. Drop files here and the agent creates wiki summaries. Never modified by agents.</p>
+      </div>
+      <div class="vault-layer wiki">
+        <h3>Wiki Layer</h3>
+        <div class="path">vault/wiki/</div>
+        <p>Processed knowledge — concepts, entities, comparisons. Auto-populated from the code index: module pages, architecture, API references.</p>
+      </div>
+      <div class="vault-layer memory">
+        <h3>Memory Layer</h3>
+        <div class="path">vault/memory/</div>
+        <p>Operational state — decisions, session notes, status tracking. Variable lifetime. The agent's working memory across sessions.</p>
+      </div>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px;">
+      <h4 style="font-size:0.9rem; margin-bottom:12px;">Vault Tools (11 commands)</h4>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">lint</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">validate</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">orphans</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">stale</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">tag-audit</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">content-audit</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">status</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">stats</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">index-rebuild</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">init-hooks</span>
+        <span style="background:var(--bg); padding:6px 14px; border-radius:8px; font-family:monospace; font-size:0.78rem;">doctor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICK START -->
+<section>
+  <div class="container">
+    <span class="section-label">Get Started</span>
+    <h2>Three steps. Two minutes.</h2>
+    <p class="subtitle">No signup, no API key needed for the core pipeline. Everything is free and deterministic.</p>
+
+    <div class="quickstart">
+      <div class="qs-step">
+        <div class="qs-num">1</div>
+        <div class="qs-content">
+          <h4>Clone aiframework</h4>
+          <p>Get the tool on your machine.</p>
+          <code>git clone https://github.com/evergonlabs/aiframework.git</code>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">2</div>
+        <div class="qs-content">
+          <h4>Run it on your repo</h4>
+          <p>Point it at any project. It scans, indexes, generates, and verifies — all in one command.</p>
+          <code>./bin/aiframework run --target /path/to/your-project</code>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">3</div>
+        <div class="qs-content">
+          <h4>Open Claude Code</h4>
+          <p>Claude reads the generated CLAUDE.md and vault automatically. It now knows your entire project — structure, commands, invariants, module dependencies.</p>
+          <code>cd /path/to/your-project && claude</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">10</div><div class="stat-label">Scanners</div></div>
+      <div class="stat"><div class="stat-num">7</div><div class="stat-label">Languages</div></div>
+      <div class="stat"><div class="stat-num">25</div><div class="stat-label">CLAUDE.md Sections</div></div>
+      <div class="stat"><div class="stat-num">36</div><div class="stat-label">Verify Checks</div></div>
+      <div class="stat"><div class="stat-num">22+</div><div class="stat-label">Vault Pages</div></div>
+      <div class="stat"><div class="stat-num">&lt;50ms</div><div class="stat-label">Index Speed</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p style="margin-bottom:8px;">Built by <a href="https://github.com/evergonlabs">Evergon Labs</a></p>
+    <p>aiframework v0.3.0 &middot; <a href="https://github.com/evergonlabs/aiframework">GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+// Stage data
+const stages = [
+  {
+    title: 'Discover — 10 Scanners',
+    badge: '<span class="badge badge-free">FREE</span>',
+    items: [
+      { name: 'identity.sh', desc: 'Project name, version, description' },
+      { name: 'stack.sh', desc: 'Language, framework, monorepo detection' },
+      { name: 'commands.sh', desc: 'Install, build, test, lint commands' },
+      { name: 'structure.sh', desc: 'Directory tree, file counts, entry points' },
+      { name: 'ci.sh', desc: 'CI provider, workflows, deploy targets' },
+      { name: 'env.sh', desc: 'Env vars from 6 priority sources' },
+      { name: 'quality.sh', desc: 'Linters, formatters, type checkers' },
+      { name: 'domain.sh', desc: '10 domains: auth, DB, API, AI...' },
+      { name: 'user_context.sh', desc: 'Production URLs, team context' },
+      { name: 'code_index.sh', desc: 'Files, symbols, edges, modules' },
+    ]
+  },
+  {
+    title: 'Index — Code Structure Analysis',
+    badge: '<span class="badge badge-free">FREE</span> <span class="badge badge-free">PYTHON</span>',
+    items: [
+      { name: 'Files', desc: 'Every source file with language, size, line count' },
+      { name: 'Symbols', desc: 'Functions, classes, methods, types — name, line, signature, docstring' },
+      { name: 'Imports', desc: 'All import statements resolved to actual file paths' },
+      { name: 'Edges', desc: 'Dependency graph: which file imports which' },
+      { name: 'Modules', desc: 'Directory groupings with role, fan-in, fan-out' },
+      { name: 'Circular deps', desc: 'Detected at the module level automatically' },
+    ]
+  },
+  {
+    title: 'Generate — 7 Generators',
+    badge: '<span class="badge badge-free">FREE</span>',
+    items: [
+      { name: 'claude_md.sh', desc: 'CLAUDE.md with 25 sections + module map' },
+      { name: 'hooks.sh', desc: 'Pre-commit + pre-push quality gates' },
+      { name: 'ci.sh', desc: 'GitHub Actions for your language' },
+      { name: 'skills.sh', desc: '/review + /ship skills + review specialists' },
+      { name: 'docs.sh', desc: 'Diataxis docs + onboarding + contributing' },
+      { name: 'tracking.sh', desc: 'CHANGELOG + VERSION + STATUS' },
+      { name: 'vault.sh', desc: '22+ vault files + auto-populated wiki pages' },
+    ]
+  },
+  {
+    title: 'Verify — 36 Checks',
+    badge: '<span class="badge badge-free">FREE</span>',
+    items: [
+      { name: 'files.sh', desc: 'All 19+ generated files exist' },
+      { name: 'consistency.sh', desc: '15 cross-checks: commands, invariants, ports' },
+      { name: 'security.sh', desc: 'Secret patterns, .env in .gitignore' },
+      { name: 'quality_gate.sh', desc: 'Run commands, check CLAUDE.md quality' },
+    ]
+  }
+];
+
+function showStage(i) {
+  document.querySelectorAll('.pipe-stage').forEach((el, j) => el.classList.toggle('active', j === i));
+  const s = stages[i];
+  let html = `<h4>${s.title} ${s.badge}</h4><div class="detail-grid">`;
+  s.items.forEach(it => {
+    html += `<div class="detail-item"><div class="di-name">${it.name}</div><div class="di-desc">${it.desc}</div></div>`;
+  });
+  html += '</div>';
+  document.getElementById('stage-detail').innerHTML = html;
+}
+
+// Schema data
+const schemas = [
+  { label: '_meta', code: `{
+  <span class="key">"_meta"</span>: {
+    <span class="key">"generated_at"</span>: <span class="str">"2026-04-15T10:30:00Z"</span>,
+    <span class="key">"indexer_version"</span>: <span class="str">"1.0.0"</span>,
+    <span class="key">"target_dir"</span>: <span class="str">"/path/to/your/repo"</span>,
+    <span class="key">"total_files"</span>: <span class="num">47</span>,         <span class="comment">// source files found</span>
+    <span class="key">"total_symbols"</span>: <span class="num">119</span>,      <span class="comment">// functions + classes + types</span>
+    <span class="key">"total_edges"</span>: <span class="num">3</span>,           <span class="comment">// resolved import relationships</span>
+    <span class="key">"languages"</span>: {
+      <span class="str">"python"</span>: <span class="num">18</span>,
+      <span class="str">"bash"</span>: <span class="num">29</span>
+    },
+    <span class="key">"elapsed_ms"</span>: <span class="num">12</span>           <span class="comment">// yes, 12 milliseconds</span>
+  }
+}` },
+  { label: 'files', code: `{
+  <span class="key">"files"</span>: {
+    <span class="key">"lib/indexers/parse.py"</span>: {
+      <span class="key">"language"</span>: <span class="str">"python"</span>,
+      <span class="key">"size_bytes"</span>: <span class="num">18432</span>,
+      <span class="key">"lines"</span>: <span class="num">603</span>,
+      <span class="key">"symbols"</span>: [<span class="str">"index_repo"</span>, <span class="str">"main"</span>, <span class="str">"_parse_file"</span>],
+      <span class="key">"imports"</span>: [<span class="str">"argparse"</span>, <span class="str">"json"</span>, <span class="str">"os"</span>],
+      <span class="key">"exports"</span>: [<span class="str">"index_repo"</span>, <span class="str">"main"</span>]
+    },
+    <span class="comment">// ... one entry per source file</span>
+  }
+}` },
+  { label: 'symbols', code: `{
+  <span class="key">"symbols"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="str">"index_repo"</span>,
+      <span class="key">"kind"</span>: <span class="str">"function"</span>,        <span class="comment">// function | class | method | type</span>
+      <span class="key">"file"</span>: <span class="str">"lib/indexers/parse.py"</span>,
+      <span class="key">"line"</span>: <span class="num">487</span>,
+      <span class="key">"signature"</span>: <span class="str">"def index_repo(target_dir: str, output_path: str | None = None) -> dict[str, Any]"</span>,
+      <span class="key">"docstring"</span>: <span class="str">"Index a repository and optionally write the result to a JSON file."</span>,
+      <span class="key">"visibility"</span>: <span class="str">"public"</span>     <span class="comment">// public | private</span>
+    },
+    <span class="comment">// ... one entry per function/class/type</span>
+  ]
+}` },
+  { label: 'edges', code: `{
+  <span class="key">"edges"</span>: [
+    {
+      <span class="key">"source"</span>: <span class="str">"lib/enhancers/enhance.py"</span>,    <span class="comment">// the file doing the import</span>
+      <span class="key">"target"</span>: <span class="str">"lib/enhancers/config.py"</span>,     <span class="comment">// the file being imported</span>
+      <span class="key">"type"</span>: <span class="str">"import"</span>,
+      <span class="key">"symbols"</span>: [<span class="str">"config"</span>]                    <span class="comment">// what was imported</span>
+    },
+    <span class="comment">// ... one entry per resolved import</span>
+  ]
+
+  <span class="comment">// These edges feed the module dependency graph.</span>
+  <span class="comment">// High fan-in = important module (many things depend on it).</span>
+  <span class="comment">// Circular edges = potential architecture smell.</span>
+}` },
+  { label: 'modules', code: `{
+  <span class="key">"modules"</span>: {
+    <span class="key">"lib/scanners"</span>: {
+      <span class="key">"files"</span>: [<span class="str">"identity.sh"</span>, <span class="str">"stack.sh"</span>, <span class="str">"commands.sh"</span>, <span class="comment">...9 more</span>],
+      <span class="key">"role"</span>: <span class="str">"discovery"</span>,       <span class="comment">// auto-assigned from dir name</span>
+      <span class="key">"fan_in"</span>: <span class="num">1</span>,              <span class="comment">// how many modules import from here</span>
+      <span class="key">"fan_out"</span>: <span class="num">0</span>,             <span class="comment">// how many modules this imports</span>
+      <span class="key">"total_symbols"</span>: <span class="num">14</span>       <span class="comment">// functions + classes in this module</span>
+    },
+    <span class="key">"lib/generators"</span>: {
+      <span class="key">"files"</span>: [<span class="str">"claude_md.sh"</span>, <span class="str">"vault.sh"</span>, <span class="comment">...5 more</span>],
+      <span class="key">"role"</span>: <span class="str">"generation"</span>,
+      <span class="key">"fan_in"</span>: <span class="num">0</span>,
+      <span class="key">"fan_out"</span>: <span class="num">0</span>,
+      <span class="key">"total_symbols"</span>: <span class="num">6</span>
+    },
+    <span class="comment">// ... one entry per directory with source files</span>
+  }
+}` }
+];
+
+function showSchema(i) {
+  document.querySelectorAll('.schema-tab').forEach((el, j) => el.classList.toggle('active', j === i));
+  document.getElementById('schema-content').innerHTML = '<pre style="margin:0;white-space:pre-wrap;">' + schemas[i].code + '</pre>';
+}
+
+// Init
+showStage(0);
+showSchema(0);
+</script>
+</body>
+</html>

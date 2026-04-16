@@ -3,7 +3,7 @@
 **Source of truth for Claude Code in this repository.**
 **Update this file after significant decisions, bug fixes, or architectural changes.**
 
-**Last updated: 2026-04-15**
+**Last updated: 2026-04-16**
 
 ---
 
@@ -13,6 +13,7 @@
 |----------------|------|
 | Understand how to work in this repo | This file (CLAUDE.md) |
 | Debug a recurring issue | `docs/LESSONS_LEARNED.md` (if exists) |
+| Find documentation | `docs/` |
 
 ---
 
@@ -102,11 +103,7 @@ Before marking any new feature complete, verify ALL applicable items:
 
 ## Core Principles
 
-*Core principles will emerge as the project matures. Add principles here when patterns are established.*
-
-1. Code must pass all configured quality gates before merge
-2. Follow bash community conventions and idioms
-3. Never commit secrets, credentials, or API keys — use environment variables
+1. All config via env vars
 
 ---
 
@@ -129,11 +126,31 @@ Before marking any new feature complete, verify ALL applicable items:
 
 ```
 ├── bin/
+├── docs/
+│   ├── decisions/
+│   ├── explanation/
+│   ├── guides/
+│   ├── onboarding/
+│   ├── reference/
 ├── lib/
+│   ├── data/
 │   ├── generators/
+│   ├── indexers/
+│   ├── knowledge/
 │   ├── scanners/
 │   ├── validators/
+├── tests/
 ├── templates/
+├── tools/
+│   ├── learnings/
+│   ├── review-specialists/
+├── vault/
+│   ├── .vault/
+│   ├── docs/
+│   ├── memory/
+│   ├── raw/
+│   ├── templates/
+│   ├── wiki/
 ├── .gitignore
 ```
 
@@ -155,14 +172,25 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
 ---
 
+## CI Workflows
+
+| Workflow | Purpose | Trigger |
+|----------|---------|---------|
+
+---
+
 ## Key Locations
 
+- **Database & Data Layer**: vault/templates/entity-page.md
+- **AI/LLM Integration**: tools/learnings/aiframework-learnings.jsonl
+- **AI/LLM Integration**: tools/review-specialists/ai-llm.md
 - **AI/LLM Integration**: bin/aiframework
+- **AI/LLM Integration**: vault/wiki/concepts/ai.md
 - **Config**: `.gitignore` — Project configuration
 - **Scripts**: `bin/` — CLI entry points and tools
+- **Scripts**: `tools/` — Project scripts
 - **CI**: `.github/` — CI/CD pipeline definitions
-- **Source**: `lib/generators/tracking.sh` — File generator
-- **Source**: `lib/generators/vault.sh` — File generator
+- **Source**: `docs/README.md` — Module documentation
 - **Source**: `lib/scanners/ci.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/commands.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/domain.sh` — Repo analysis scanner
@@ -172,11 +200,20 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - **Source**: `lib/scanners/stack.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/structure.sh` — Repo analysis scanner
 - **Source**: `lib/scanners/user_context.sh` — Repo analysis scanner
-- **Source**: `lib/validators/consistency.sh` — Verification module
+- **Source**: `lib/scanners/code_index.sh` — Code indexer scanner
+- **Source**: `lib/indexers/parse.py` — Code indexer entry point
+- **Source**: `lib/indexers/graph.py` — Dependency graph builder
+- **Source**: `lib/scanners/archetype.sh` — Repo archetype detection
+- **Source**: `lib/knowledge/store.sh` — Cross-repo learning system
+- **Data**: `lib/data/languages.json` — Language registry (20 languages)
+- **Data**: `lib/data/domains.json` — Domain registry (18 domains)
+- **Data**: `lib/data/archetypes.json` — Archetype registry (11 types)
+- **Data**: `lib/data/deploy_targets.json` — Deploy target registry (24 targets)
+- **Tests**: `tests/test_indexer.py` — Indexer unit tests
 - **Source**: `lib/validators/files.sh` — Verification module
 - **Source**: `lib/validators/quality_gate.sh` — Verification module
-- **Source**: `lib/validators/security.sh` — Verification module
-- **Components**: 1 models
+- **Source**: `vault/.vault/scripts/lib-utils.sh` — Utility functions
+- **Components**: 2 models
 
 ---
 
@@ -232,6 +269,7 @@ Run doc-sync check against this matrix:
 | Schema change | CLAUDE.md (Key Locations), migration docs |
 | New dependency | CLAUDE.md (Project Identity), package manifest |
 | New service/module | CLAUDE.md (Key Locations, Project Structure) |
+| Architectural change | `docs/` architecture docs |
 
 ### Stage 8: QA (before every deploy)
 ```
@@ -307,12 +345,11 @@ Before ending ANY session where code was changed, Claude MUST complete:
 
 ## Invariants
 
-### INV-1: LLM trust boundary enforcement
+### INV-1: Database access through ORM only (unknown)
+No raw SQL queries — all database access through the ORM layer.
+
+### INV-2: LLM trust boundary enforcement
 Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content.
-
-
-### INV-2: No secrets in source code
-Never commit API keys, passwords, tokens, or credentials. All secrets must be stored in environment variables or a secrets manager.
 
 
 ---
@@ -343,21 +380,38 @@ Never commit API keys, passwords, tokens, or credentials. All secrets must be st
 
 ## Custom Skills
 
-### `/aiframework-review`
+### `/aif-review`
 Project-specific code review checking all invariants.
 
-### `/aiframework-ship`
+### `/aif-ship`
 Full shipping workflow: verify → review → docs → changelog → commit.
 
-### `/aiframework-learn`
+### `/aif-learn`
 Capture project learnings to persistent storage (JSONL + vault).
+
+### `/aif-evolve`
+Analyze accumulated learnings and patterns. Synthesizes JSONL learnings into CLAUDE.md updates, new rules, and vault entries. Run periodically.
+
+### `/aif-pulse`
+Check for latest Claude Code features, best practices, and ecosystem updates. Discovers new capabilities and suggests project improvements. Run weekly.
 
 ---
 
 ## Review Specialists
 
+### Database & Data Layer
+Trigger paths: vault/templates/entity-page.md
+
+- [ ] All queries go through ORM — no raw SQL
+- [ ] Migrations are reversible (up + down)
+- [ ] Indexes exist for frequently queried columns
+- [ ] N+1 query patterns avoided
+- [ ] Sensitive data is encrypted at rest
+- [ ] Connection pooling configured
+- [ ] Schema changes have migration files
+
 ### AI/LLM Integration
-Trigger paths: bin/aiframework
+Trigger paths: tools/learnings/aiframework-learnings.jsonl, tools/review-specialists/ai-llm.md, bin/aiframework
 
 - [ ] LLM outputs are sanitized before use
 - [ ] Prompt injection defenses in place
@@ -374,7 +428,8 @@ Trigger paths: bin/aiframework
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| AI/LLM Integration | bin/aiframework | CLAUDE.md, docs/ |
+| Database & Data Layer | vault/templates/entity-page.md | CLAUDE.md, docs/ |
+| AI/LLM Integration | tools/learnings/aiframework-learnings.jsonl, tools/review-specialists/ai-llm.md | CLAUDE.md, docs/ |
 
 When any file in a domain's key files changes, update the corresponding docs.
 
@@ -422,7 +477,7 @@ See `vault/.vault/rules/hard-rules.md` for 15 integrity rules enforced by pre-co
 
 Stored in `tools/learnings/aiframework-learnings.jsonl`. Use `/learn` to add new entries.
 
-*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run `/aiframework-learn` to capture it.*
+*Learnings accumulate over time. After fixing a non-obvious bug or discovering a gotcha, run `/aif-learn` to capture it.*
 
 ### Learnings Format (JSONL)
 
@@ -432,7 +487,7 @@ Each line in the learnings file is a JSON object:
 ```
 
 To query: `grep "keyword" tools/learnings/aiframework-learnings.jsonl`
-To add: `/aiframework-learn "description"` or append a JSON line manually.
+To add: `/aif-learn "description"` or append a JSON line manually.
 
 ---
 

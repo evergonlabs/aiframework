@@ -1,45 +1,452 @@
 #!/usr/bin/env bash
 # Generator: CLAUDE.md
 # Reads manifest.json and produces a complete CLAUDE.md
+#
+# Architecture:
+#   generate_claude_md()      — dispatcher: picks lean vs full based on complexity
+#   generate_claude_md_lean() — 80-150 line high-signal output (simple/moderate projects)
+#   generate_claude_md_full() — verbose output (complex/enterprise projects)
 
-generate_claude_md() {
-  local m="$MANIFEST"
-  local out="$TARGET_DIR/CLAUDE.md"
+# --- Shared variable extraction (called by both lean and full) ---
+_extract_claude_md_vars() {
+  _cm_m="$MANIFEST"
+  _cm_out="$TARGET_DIR/CLAUDE.md"
 
-  # Extract values from manifest
-  local name=$(echo "$m" | jq -r '.identity.name')
-  local desc=$(echo "$m" | jq -r '.identity.description // "No description"')
-  local version=$(echo "$m" | jq -r '.identity.version // "0.1.0"')
-  local short=$(echo "$m" | jq -r '.identity.short_name')
-  local lang=$(echo "$m" | jq -r '.stack.language')
-  local fw=$(echo "$m" | jq -r '.stack.framework // "none"')
-  local is_mono=$(echo "$m" | jq -r '.stack.is_monorepo')
-  local gh_url=$(echo "$m" | jq -r '.commands.github_url // "NOT_FOUND"')
-  local local_path=$(echo "$m" | jq -r '.commands.local_path')
-  local install=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
-  local dev_cmd=$(echo "$m" | jq -r '.commands.dev // "NOT_CONFIGURED"')
-  local build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
-  local lint_cmd=$(echo "$m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
-  local format_cmd=$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')
-  local typecheck=$(echo "$m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
-  local test_cmd=$(echo "$m" | jq -r '.commands.test // "NOT_CONFIGURED"')
-  local dev_port=$(echo "$m" | jq -r '.commands.dev_port // empty')
-  local deploy=$(echo "$m" | jq -r '.ci.deploy_target // "none"')
-  local ci_provider=$(echo "$m" | jq -r '.ci.provider // "none"')
-  local today=$(date +%Y-%m-%d)
+  _cm_name=$(echo "$_cm_m" | jq -r '.identity.name')
+  _cm_desc=$(echo "$_cm_m" | jq -r '.identity.description // "No description"')
+  _cm_version=$(echo "$_cm_m" | jq -r '.identity.version // "0.1.0"')
+  _cm_short=$(echo "$_cm_m" | jq -r '.identity.short_name')
+  _cm_lang=$(echo "$_cm_m" | jq -r '.stack.language')
+  _cm_fw=$(echo "$_cm_m" | jq -r '.stack.framework // "none"')
+  _cm_is_mono=$(echo "$_cm_m" | jq -r '.stack.is_monorepo')
+  _cm_gh_url=$(echo "$_cm_m" | jq -r '.commands.github_url // "NOT_FOUND"')
+  _cm_local_path=$(echo "$_cm_m" | jq -r '.commands.local_path')
+  _cm_install=$(echo "$_cm_m" | jq -r '.commands.install // "NOT_CONFIGURED"')
+  _cm_dev_cmd=$(echo "$_cm_m" | jq -r '.commands.dev // "NOT_CONFIGURED"')
+  _cm_build_cmd=$(echo "$_cm_m" | jq -r '.commands.build // "NOT_CONFIGURED"')
+  _cm_lint_cmd=$(echo "$_cm_m" | jq -r '.commands.lint // "NOT_CONFIGURED"')
+  _cm_format_cmd=$(echo "$_cm_m" | jq -r '.commands.format // "NOT_CONFIGURED"')
+  _cm_typecheck=$(echo "$_cm_m" | jq -r '.commands.typecheck // "NOT_CONFIGURED"')
+  _cm_test_cmd=$(echo "$_cm_m" | jq -r '.commands.test // "NOT_CONFIGURED"')
+  _cm_dev_port=$(echo "$_cm_m" | jq -r '.commands.dev_port // empty')
+  _cm_deploy=$(echo "$_cm_m" | jq -r '.ci.deploy_target // "none"')
+  _cm_ci_provider=$(echo "$_cm_m" | jq -r '.ci.provider // "none"')
+  _cm_today=$(date +%Y-%m-%d)
+  _cm_complexity=$(echo "$_cm_m" | jq -r '.archetype.complexity // "moderate"')
+  _cm_domain_count=$(echo "$_cm_m" | jq '.domain.detected_domains | length' 2>/dev/null || echo "0")
+  _cm_key_deps=$(echo "$_cm_m" | jq -r '.stack.key_dependencies | if length > 10 then .[0:10] | join(", ") + "..." else join(", ") end // "none"' 2>/dev/null || echo "none")
+  _cm_arch_type=$(echo "$_cm_m" | jq -r '.archetype.type // "unknown"')
+  _cm_arch_maturity=$(echo "$_cm_m" | jq -r '.archetype.maturity // "unknown"')
+}
 
-  # Domain count (used in multiple sections)
-  local domain_count
-  domain_count=$(echo "$m" | jq '.domain.detected_domains | length' 2>/dev/null || echo "0")
+# --- Generate .claude/rules/workflow.md ---
+_generate_workflow_rules() {
+  local rules_dir="$TARGET_DIR/.claude/rules"
+  mkdir -p "$rules_dir"
+  local rules_out="$rules_dir/workflow.md"
 
-  # Key dependencies
-  local key_deps
-  key_deps=$(echo "$m" | jq -r '.stack.key_dependencies | if length > 10 then .[0:10] | join(", ") + "..." else join(", ") end // "none"' 2>/dev/null || echo "none")
+  # Language-specific QA rules
+  local qa_rules_block=""
+  local qa_data_file="$ROOT_DIR/lib/data/languages.json"
+  if [[ -f "$qa_data_file" ]] && command -v jq &>/dev/null; then
+    local qa_rules
+    qa_rules=$(jq -r --arg l "$_cm_lang" '.languages[$l].qa_rules[]? // empty' "$qa_data_file" 2>/dev/null)
+    if [[ -n "$qa_rules" ]]; then
+      local lang_display
+      lang_display=$(echo "$_cm_lang" | sed 's/^./\U&/; s/csharp/C#/; s/cpp/C++/')
+      qa_rules_block=$'\n'"### ${lang_display} QA Rules"$'\n'
+      while IFS= read -r rule; do
+        [[ -z "$rule" ]] && continue
+        qa_rules_block+="- ${rule}"$'\n'
+      done <<< "$qa_rules"
+    fi
+  fi
+
+  cat > "$rules_out" << 'WORKFLOW_RULES'
+---
+description: "Workflow rules for development process — auto-loaded by Claude"
+globs: "**/*"
+---
+
+# Workflow Rules
+
+## Plan vs Execute
+- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan — don't keep pushing
+- When given a task with clear scope: start executing immediately
+- When hitting a wall (3+ failed attempts), stop and re-plan approach
+
+## Autonomous Iteration
+- Execute fix → verify with tests → if broken, fix again → loop until clean
+- Iterate autonomously: don't ask for hand-holding on fixable issues
+- Commit after each logical group of verified fixes
+
+## Git Safety
+- After fixes: `git add` + `git commit` — do NOT push until user says so
+- NEVER push to main without explicit user confirmation
+- NEVER commit after every small change — batch related changes into logical commits
+- Prefer fewer, larger commits over many small ones
+
+## Verification Before Done
+- Never mark a task complete without proving it works
+- Run verification commands — never assume it compiles
+- Never claim "done" without running the actual verification command
+
+## Subagent Strategy
+- Use subagents for research, exploration, and parallel analysis
+- Limit to 6-8 agents per wave maximum
+- After each wave: summarize results, commit, then start next wave
+
+## QA Auto-Fix
+When QA discovers issues, ALL must be automatically fixed:
+1. Run tests — collect all failures
+2. Fix each failure: identify root cause → fix implementation (never skip a test)
+3. Run type check → must pass
+4. Run tests again — all must pass
+5. Commit
+
+## Documentation Auto-Sync
+After ANY feature implementation, refactor, or significant change:
+1. CLAUDE.md — if change adds invariants, new key locations, new commands
+2. docs/ — update relevant doc files
+
+## Changelog Update
+After marking any feature complete and before pushing:
+1. Update CHANGELOG.md with user-facing description of changes
+2. Bump VERSION file (PATCH for fixes, MINOR for features, MAJOR for breaking)
+
+## New Feature Checklist
+- [ ] Feature works as specified
+- [ ] Edge cases handled
+- [ ] Error states covered
+- [ ] Tests added for new functionality
+- [ ] Documentation updated if needed
+- [ ] No regressions in existing functionality
+WORKFLOW_RULES
+
+  # Append language-specific QA rules if any
+  if [[ -n "$qa_rules_block" ]]; then
+    echo "$qa_rules_block" >> "$rules_out"
+  fi
+
+  log_ok ".claude/rules/workflow.md written"
+
+  # Generate path-scoped testing rules (only if test framework detected)
+  if [[ "$_cm_test_cmd" != "NOT_CONFIGURED" ]]; then
+    local testing_rules="$rules_dir/testing.md"
+    if [[ ! -f "$testing_rules" ]]; then
+      cat > "$testing_rules" << 'TESTING_RULES'
+---
+paths:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/test_*"
+  - "**/tests/**"
+---
+
+# Testing Rules
+
+- Tests must be deterministic — no flaky tests
+- Mock external services, not internal modules
+- Each test file tests one module
+- Test names describe the expected behavior
+TESTING_RULES
+      log_ok ".claude/rules/testing.md written"
+    fi
+  fi
+
+  # Generate path-scoped security rules (only if auth/api domain detected)
+  local all_domains=""
+  all_domains=$(echo "$_cm_m" | jq -r '.domain.detected_domains[]? | .name' 2>/dev/null || true)
+  if echo "$all_domains" | grep -qE '(auth|api)'; then
+    local security_rules="$rules_dir/security.md"
+    if [[ ! -f "$security_rules" ]]; then
+      cat > "$security_rules" << 'SECURITY_RULES'
+---
+paths:
+  - "**/auth/**"
+  - "**/api/**"
+  - "**/middleware/**"
+---
+
+# Security Rules
+
+- Never log sensitive data (tokens, passwords, PII)
+- Validate all input at system boundaries
+- Use parameterized queries — never string concatenation for SQL
+- API keys must come from environment variables
+SECURITY_RULES
+      log_ok ".claude/rules/security.md written"
+    fi
+  fi
+}
+
+# --- Lean CLAUDE.md generator (80-150 lines, high-signal only) ---
+generate_claude_md_lean() {
+  _extract_claude_md_vars
+
+  local m="$_cm_m" out="$_cm_out"
+  local name="$_cm_name" desc="$_cm_desc" short="$_cm_short"
+  local lang="$_cm_lang" fw="$_cm_fw"
+  local install="$_cm_install" dev_cmd="$_cm_dev_cmd" build_cmd="$_cm_build_cmd"
+  local lint_cmd="$_cm_lint_cmd" format_cmd="$_cm_format_cmd" typecheck="$_cm_typecheck"
+  local test_cmd="$_cm_test_cmd" dev_port="$_cm_dev_port"
+  local deploy="$_cm_deploy" today="$_cm_today"
+  local domain_count="$_cm_domain_count" key_deps="$_cm_key_deps"
+  local arch_type="$_cm_arch_type" arch_maturity="$_cm_arch_maturity"
+  local complexity="$_cm_complexity"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    log_info "[DRY RUN] Would write lean CLAUDE.md to $out"
+    return 0
+  fi
+
+  # --- Generate .claude/rules/workflow.md (offload workflow rules) ---
+  _generate_workflow_rules
+
+  # --- Build lean CLAUDE.md ---
+  cat > "$out" << CLAUDEMD
+# CLAUDE.md — ${name}
+
+$(if [[ "$desc" != "NOT_FOUND" && "$desc" != "No description" && -n "$desc" ]]; then echo "> ${desc}. Stack: ${lang}/${fw}."; else echo "> Stack: ${lang}/${fw}."; fi)
+
+## Commands
+
+\`\`\`bash
+CLAUDEMD
+
+  # Only emit configured commands
+  [[ "$install" != "NOT_CONFIGURED" ]] && echo "# Install"$'\n'"${install}"$'\n' >> "$out"
+  [[ "$lint_cmd" != "NOT_CONFIGURED" ]] && echo "# Lint"$'\n'"${lint_cmd}"$'\n' >> "$out"
+  [[ "$typecheck" != "NOT_CONFIGURED" ]] && echo "# Type check"$'\n'"${typecheck}"$'\n' >> "$out"
+  [[ "$test_cmd" != "NOT_CONFIGURED" ]] && echo "# Test"$'\n'"${test_cmd}"$'\n' >> "$out"
+  [[ "$build_cmd" != "NOT_CONFIGURED" ]] && echo "# Build"$'\n'"${build_cmd}"$'\n' >> "$out"
+  [[ "$dev_cmd" != "NOT_CONFIGURED" ]] && echo "# Dev"$'\n'"${dev_cmd}"$'\n' >> "$out"
+  [[ "$format_cmd" != "NOT_CONFIGURED" ]] && echo "# Format"$'\n'"${format_cmd}"$'\n' >> "$out"
+
+  # If nothing configured
+  local _any_cmd=false
+  [[ "$install" != "NOT_CONFIGURED" || "$lint_cmd" != "NOT_CONFIGURED" || "$typecheck" != "NOT_CONFIGURED" || "$test_cmd" != "NOT_CONFIGURED" || "$build_cmd" != "NOT_CONFIGURED" ]] && _any_cmd=true
+  if [[ "$_any_cmd" == false ]]; then
+    echo "# No commands configured yet" >> "$out"
+  fi
+
+  echo '```' >> "$out"
+  echo "" >> "$out"
+
+  # --- Invariants ---
+  echo "## Invariants" >> "$out"
+  echo "" >> "$out"
+
+  if [[ "$domain_count" -gt 0 ]]; then
+    local inv_num=1
+    echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r domain; do
+      case "$domain" in
+        auth)
+          echo "- **INV-${inv_num}**: Auth guards on all protected endpoints"
+          ;;
+        database)
+          local orm_val
+          orm_val=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "database") | .orm // "unknown"')
+          echo "- **INV-${inv_num}**: Database access through ORM only (${orm_val})"
+          ;;
+        api)
+          echo "- **INV-${inv_num}**: Input validation on all API endpoints"
+          ;;
+        ai)
+          echo "- **INV-${inv_num}**: LLM trust boundary — validate all AI output"
+          ;;
+        sandbox)
+          echo "- **INV-${inv_num}**: Sandbox isolation for code execution"
+          ;;
+      esac
+      ((inv_num++)) || true
+    done >> "$out"
+  fi
+
+  # Ensure at least 1 invariant
+  local inv_count
+  inv_count=$(grep -c 'INV-' "$out" 2>/dev/null || echo "0")
+  if [[ "$inv_count" -lt 1 ]]; then
+    echo "- **INV-1**: No secrets in source code — use environment variables" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Architecture one-liner ---
+  echo "## Architecture" >> "$out"
+  echo "" >> "$out"
+
+  if [[ "$arch_type" != "unknown" && "$arch_type" != "null" ]]; then
+    echo "- **Archetype**: ${arch_type} (${arch_maturity}, ${complexity})" >> "$out"
+  fi
+
+  # Entry points
+  local entries
+  entries=$(echo "$m" | jq -r '.structure.entry_points[]' 2>/dev/null)
+  if [[ -n "$entries" ]]; then
+    local entries_inline
+    entries_inline=$(echo "$entries" | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+    echo "- **Entry points**: ${entries_inline}" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Key Locations (top 10, compact) ---
+  echo "## Key Locations" >> "$out"
+  echo "" >> "$out"
+
+  local loc_count=0
+
+  # Domain-specific locations (top paths)
+  echo "$m" | jq -r '.domain.detected_domains[]? | "- **\(.display)**: \(.paths[:3][]? // empty)"' 2>/dev/null >> "$out" || true
+  loc_count=$((loc_count + $(echo "$m" | jq '[.domain.detected_domains[]?.paths[:3][]?] | length' 2>/dev/null || echo "0")))
+
+  # Script dirs
+  local kl_script_dirs
+  kl_script_dirs=$(echo "$m" | jq -r '.structure.script_dirs[]' 2>/dev/null)
+  if [[ -n "$kl_script_dirs" ]] && [[ "$loc_count" -lt 10 ]]; then
+    while IFS= read -r sdir; do
+      [[ -z "$sdir" ]] && continue
+      echo "- **Scripts**: \`${sdir}/\`" >> "$out"
+      ((loc_count++)) || true
+      [[ "$loc_count" -ge 10 ]] && break
+    done <<< "$kl_script_dirs"
+  fi
+
+  # CI dirs
+  local kl_ci_dirs
+  kl_ci_dirs=$(echo "$m" | jq -r '.structure.ci_dirs[]' 2>/dev/null)
+  if [[ -n "$kl_ci_dirs" ]] && [[ "$loc_count" -lt 10 ]]; then
+    while IFS= read -r cidir; do
+      [[ -z "$cidir" ]] && continue
+      echo "- **CI**: \`${cidir}/\`" >> "$out"
+      ((loc_count++)) || true
+      [[ "$loc_count" -ge 10 ]] && break
+    done <<< "$kl_ci_dirs"
+  fi
+
+  # Repo Map (PageRank top files) — compact
+  local code_index_path="${OUTPUT_DIR}/code-index.json"
+  if [[ -f "$code_index_path" ]] && command -v jq &>/dev/null; then
+    local top_files
+    top_files=$(jq -r '._meta.top_files // [] | .[:10][] | "- `\(.[0])`"' "$code_index_path" 2>/dev/null)
+    if [[ -n "$top_files" ]]; then
+      echo "" >> "$out"
+      echo "**Most important files** (by dependency rank):" >> "$out"
+      echo "$top_files" >> "$out"
+    fi
+  fi
+
+  if [[ "$loc_count" == "0" ]]; then
+    echo "*Key locations will be added as the project develops.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Environment Variables ---
+  echo "## Environment Variables" >> "$out"
+  echo "" >> "$out"
+
+  local env_count
+  env_count=$(echo "$m" | jq '.env.variables | length' 2>/dev/null || echo "0")
+
+  if [[ "$env_count" -gt 0 ]]; then
+    echo "| Variable | Required | Description |" >> "$out"
+    echo "|----------|----------|-------------|" >> "$out"
+    echo "$m" | jq -r '.env.variables[] | "| \(.name) | \(if .required then "Yes" else "No" end) | \(.description // "-") |"' 2>/dev/null >> "$out"
+  else
+    echo "*None discovered. Add variables here when .env.example is created.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Gotchas / Learnings ---
+  echo "## Gotchas" >> "$out"
+  echo "" >> "$out"
+
+  local learnings_file="$TARGET_DIR/tools/learnings/${short}-learnings.jsonl"
+  if [[ -f "$learnings_file" ]] && [[ -s "$learnings_file" ]]; then
+    # Show last 5 learnings as bullet points
+    tail -5 "$learnings_file" | while IFS= read -r line; do
+      local summary
+      summary=$(echo "$line" | jq -r '.summary // empty' 2>/dev/null)
+      [[ -n "$summary" ]] && echo "- ${summary}"
+    done >> "$out"
+  else
+    echo "*No gotchas captured yet. Use \`/${short}-learn\` to record non-obvious discoveries.*" >> "$out"
+  fi
+
+  echo "" >> "$out"
+
+  # --- Custom Skills ---
+  cat >> "$out" << SKILLS
+## Custom Skills
+
+- \`/${short}-review\` — Project-specific code review
+- \`/${short}-ship\` — Full shipping workflow
+- \`/${short}-learn\` — Capture learnings to persistent storage
+
+SKILLS
+
+  # --- Vault quick reference (compact) ---
+  cat >> "$out" << 'VAULT'
+## Vault
+
+Knowledge persists in `vault/` across sessions. Check `vault/memory/status.md` at session start.
+
+```bash
+vault/.vault/scripts/vault-tools.sh doctor   # Full diagnostic
+vault/.vault/scripts/vault-tools.sh lint     # Quality scan
+```
+
+VAULT
+
+  # --- Self-evolution instructions ---
+  cat >> "$out" << FOOTER
+## Self-Evolution
+
+This file auto-evolves. Rules of thumb:
+- **Same mistake twice** → add to Invariants above
+- **Applies only to certain files** → create \`.claude/rules/<domain>.md\` with \`paths:\` frontmatter
+- **Multi-step workflow** → create \`.claude/skills/<name>/SKILL.md\`
+- **Run \`/aif-evolve\` periodically** to synthesize learnings into rules
+- **This file should get shorter** — migrate content to rules and skills as patterns stabilize
+- **Run \`aiframework refresh\`** when dependencies or structure change
+
+---
+
+*Generated: ${today} by aiframework v$(cat "$ROOT_DIR/VERSION"). Run \`aiframework refresh\` to update. Lean mode (${complexity}).*
+FOOTER
+
+  log_ok "CLAUDE.md (lean) written to $out"
+}
+
+# --- Full CLAUDE.md generator (verbose, for complex/enterprise projects) ---
+generate_claude_md_full() {
+  _extract_claude_md_vars
+
+  # Map shared vars to local names used by the existing code
+  local m="$_cm_m" out="$_cm_out"
+  local name="$_cm_name" desc="$_cm_desc" version="$_cm_version" short="$_cm_short"
+  local lang="$_cm_lang" fw="$_cm_fw" is_mono="$_cm_is_mono"
+  local gh_url="$_cm_gh_url" local_path="$_cm_local_path"
+  local install="$_cm_install" dev_cmd="$_cm_dev_cmd" build_cmd="$_cm_build_cmd"
+  local lint_cmd="$_cm_lint_cmd" format_cmd="$_cm_format_cmd" typecheck="$_cm_typecheck"
+  local test_cmd="$_cm_test_cmd" dev_port="$_cm_dev_port"
+  local deploy="$_cm_deploy" ci_provider="$_cm_ci_provider" today="$_cm_today"
+  local complexity="$_cm_complexity"
+  local emit_full=true
+  local domain_count="$_cm_domain_count"
+  local key_deps="$_cm_key_deps"
 
   if [[ "$DRY_RUN" == true ]]; then
     log_info "[DRY RUN] Would write CLAUDE.md to $out"
     return 0
   fi
+
+  # Also generate workflow rules for full mode
+  _generate_workflow_rules
 
   cat > "$out" << CLAUDEMD
 # CLAUDE.md — ${name}
@@ -146,45 +553,62 @@ When QA discovers issues, ALL must be automatically fixed:
 5. Commit
 CLAUDEMD
 
-  # Language-specific QA rules
-  case "$lang" in
-    typescript|javascript)
-      cat >> "$out" << 'QABLOCK'
+  # Language-specific QA rules — data-driven from languages.json
+  local qa_data_file="$ROOT_DIR/lib/data/languages.json"
+  if [[ -f "$qa_data_file" ]] && command -v jq &>/dev/null; then
+    local qa_rules
+    qa_rules=$(jq -r --arg l "$lang" '.languages[$l].qa_rules[]? // empty' "$qa_data_file" 2>/dev/null)
+    if [[ -n "$qa_rules" ]]; then
+      local lang_display
+      lang_display=$(echo "$lang" | sed 's/^./\U&/; s/csharp/C#/; s/cpp/C++/')
+      echo "" >> "$out"
+      echo "**${lang_display} QA Rules:**" >> "$out"
+      while IFS= read -r rule; do
+        [[ -z "$rule" ]] && continue
+        echo "- ${rule}" >> "$out"
+      done <<< "$qa_rules"
+    fi
+  else
+    # Fallback: keep existing case block
+    case "$lang" in
+      typescript|javascript)
+        cat >> "$out" << 'QABLOCK'
 
 **TypeScript QA Rules:**
 - NEVER use `as any` — use proper types or generics
 - NEVER use `@ts-ignore` — fix the underlying type error
 - NEVER use `// @ts-expect-error` without a description of why
 QABLOCK
-      ;;
-    rust)
-      cat >> "$out" << 'QABLOCK'
+        ;;
+      rust)
+        cat >> "$out" << 'QABLOCK'
 
 **Rust QA Rules:**
 - NEVER use `unsafe` blocks without explicit justification in comments
 - NEVER use `#[allow(dead_code)]` — remove unused code instead
 - NEVER use `unwrap()` in production code — use proper error handling
 QABLOCK
-      ;;
-    python)
-      cat >> "$out" << 'QABLOCK'
+        ;;
+      python)
+        cat >> "$out" << 'QABLOCK'
 
 **Python QA Rules:**
 - NEVER use `type: ignore` without a justification comment explaining why
 - NEVER use bare `except:` — always catch specific exceptions
 - NEVER use `# noqa` without specifying the rule being suppressed
 QABLOCK
-      ;;
-    go)
-      cat >> "$out" << 'QABLOCK'
+        ;;
+      go)
+        cat >> "$out" << 'QABLOCK'
 
 **Go QA Rules:**
 - NEVER use `//nolint` without a justification comment explaining why
 - NEVER ignore errors — always handle or explicitly document why ignored
 - NEVER use `interface{}` without justification — prefer typed alternatives
 QABLOCK
-      ;;
-  esac
+        ;;
+    esac
+  fi
 
   cat >> "$out" << 'CLAUDEMD'
 
@@ -662,6 +1086,82 @@ CLAUDEMD
 
   echo "" >> "$out"
 
+  # --- Module Map (from code-index.json) ---
+  local code_index_path="${OUTPUT_DIR}/code-index.json"
+  if [[ -f "$code_index_path" ]] && command -v jq >/dev/null 2>&1; then
+    local module_count
+    module_count=$(jq '.modules | length' "$code_index_path" 2>/dev/null || echo "0")
+    if [[ "$module_count" -gt 0 ]]; then
+      echo "---" >> "$out"
+      echo "" >> "$out"
+      echo "## Module Map" >> "$out"
+      echo "" >> "$out"
+      echo "| Module | Role | Files | Key Symbols | Depends On |" >> "$out"
+      echo "|--------|------|-------|-------------|------------|" >> "$out"
+
+      # Read modules and build table rows
+      jq -r '
+        . as $root |
+        .modules | to_entries[] |
+        .key as $mod |
+        .value as $data |
+        ($data.files | length) as $fcount |
+        ([$root.symbols[] | select(.file | startswith($mod + "/")) | .name] | .[0:3] | join(", ")) as $syms |
+        ([$root.edges[] | select(.source | startswith($mod + "/")) | .target | split("/")[0:2] | join("/")] | unique | join(", ")) as $deps |
+        "| \($mod) | \($data.role // "-") | \($fcount) | \(if $syms == "" then "-" else $syms end) | \(if $deps == "" then "-" else $deps end) |"
+      ' "$code_index_path" 2>/dev/null >> "$out"
+
+      echo "" >> "$out"
+
+      # --- Architecture Hot Spots ---
+      echo "### Architecture Hot Spots" >> "$out"
+      echo "" >> "$out"
+
+      # Highest fan-in: module with most incoming edges
+      local highest_fan_in
+      highest_fan_in=$(jq -r '
+        .modules | to_entries | sort_by(-.value.fan_in) | .[0] |
+        if .value.fan_in > 0 then
+          "- **Highest fan-in**: `\(.key)` (imported by \(.value.fan_in) modules)"
+        else empty end
+      ' "$code_index_path" 2>/dev/null)
+      if [[ -n "$highest_fan_in" ]]; then
+        echo "$highest_fan_in" >> "$out"
+      fi
+
+      # Most complex: module with most symbols
+      local most_complex
+      most_complex=$(jq -r '
+        .modules | to_entries | sort_by(-.value.total_symbols) | .[0] |
+        if .value.total_symbols > 0 then
+          "- **Most complex**: `\(.key)` (\(.value.total_symbols) symbols across \(.value.files | length) files)"
+        else empty end
+      ' "$code_index_path" 2>/dev/null)
+      if [[ -n "$most_complex" ]]; then
+        echo "$most_complex" >> "$out"
+      fi
+
+      echo "" >> "$out"
+    fi
+  fi
+
+  # --- Repo Map (from code-index.json PageRank) ---
+  local code_index_path_rm="${OUTPUT_DIR}/code-index.json"
+  if [[ -f "$code_index_path_rm" ]] && command -v jq &>/dev/null; then
+    local top_files
+    top_files=$(jq -r '._meta.top_files // [] | .[:15][] | "- `\(.[0])` (score: \(.[1]))"' "$code_index_path_rm" 2>/dev/null)
+    if [[ -n "$top_files" ]]; then
+      echo "---" >> "$out"
+      echo "" >> "$out"
+      echo "## Repo Map (Most Important Files)" >> "$out"
+      echo "" >> "$out"
+      echo "> Files ranked by architectural importance (how many other files depend on them)." >> "$out"
+      echo "" >> "$out"
+      echo "$top_files" >> "$out"
+      echo "" >> "$out"
+    fi
+  fi
+
   # --- API Contract Rules (Edit 8) ---
   local has_api_domain
   has_api_domain=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "api") | .name' 2>/dev/null)
@@ -941,7 +1441,57 @@ PIPELINE2
     echo "" >> "$out"
   fi
 
+  # --- Enhanced Invariants (from _enhance) ---
+  local enhance_invariants
+  enhance_invariants=$(echo "$m" | jq -r '._enhance.enhancements[]? | select(.source == "framework-agent") | select(.title != null) | .title + ": " + .description' 2>/dev/null || true)
+  if [[ -n "$enhance_invariants" ]]; then
+    inv_count=$(grep -c '### INV-' "$out" 2>/dev/null || echo "0")
+    echo "" >> "$out"
+    echo "> *The following invariants were discovered by AI-powered enhancement:*" >> "$out"
+    echo "" >> "$out"
+    while IFS= read -r inv_line; do
+      ((inv_count++)) || true
+      local inv_title="${inv_line%%:*}"
+      local inv_desc="${inv_line#*: }"
+      echo "### INV-${inv_count}: ${inv_title}" >> "$out"
+      echo "${inv_desc}" >> "$out"
+      echo "" >> "$out"
+    done <<< "$enhance_invariants"
+  fi
+
   echo "" >> "$out"
+
+  # --- Archetype-specific section ---
+  local arch_type
+  arch_type=$(echo "$m" | jq -r '.archetype.type // "unknown"')
+  local arch_maturity
+  arch_maturity=$(echo "$m" | jq -r '.archetype.maturity // "unknown"')
+  if [[ "$arch_type" != "unknown" && "$arch_type" != "null" ]]; then
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## Project Profile" >> "$out"
+    echo "" >> "$out"
+    echo "- **Archetype**: ${arch_type}" >> "$out"
+    echo "- **Maturity**: ${arch_maturity}" >> "$out"
+    echo "- **Complexity**: $(echo "$m" | jq -r '.archetype.complexity // "unknown"')" >> "$out"
+    echo "" >> "$out"
+
+    # Add archetype-specific invariants from archetypes.json
+    local arch_data="$ROOT_DIR/lib/data/archetypes.json"
+    if [[ -f "$arch_data" ]]; then
+      local extra_inv
+      extra_inv=$(jq -r --arg a "$arch_type" '.archetypes[$a].extra_invariants[]? // empty' "$arch_data" 2>/dev/null)
+      if [[ -n "$extra_inv" ]]; then
+        echo "### Archetype Invariants" >> "$out"
+        echo "" >> "$out"
+        while IFS= read -r inv; do
+          [[ -z "$inv" ]] && continue
+          echo "- ${inv}" >> "$out"
+        done <<< "$extra_inv"
+        echo "" >> "$out"
+      fi
+    fi
+  fi
 
   # --- Environment Variables ---
   echo "---" >> "$out"
@@ -1193,6 +1743,39 @@ SKILLS
     echo "" >> "$out"
   fi
 
+  # --- Enhancement Summary (from _enhance) ---
+  local enhance_count
+  enhance_count=$(echo "$m" | jq '._enhance.enhancements | length' 2>/dev/null || echo "0")
+  if [[ "$enhance_count" -gt 0 ]]; then
+    echo "---" >> "$out"
+    echo "" >> "$out"
+    echo "## Enhancement Summary" >> "$out"
+    echo "" >> "$out"
+    echo "> This manifest was enriched by AI-powered analysis (\`aiframework enhance\`)." >> "$out"
+    echo "" >> "$out"
+    local enh_date
+    enh_date=$(echo "$m" | jq -r '._enhance.enhanced_at // "unknown"' 2>/dev/null)
+    local enh_gaps
+    enh_gaps=$(echo "$m" | jq -r '._enhance.gaps_analyzed // 0' 2>/dev/null)
+    local enh_cost
+    enh_cost=$(echo "$m" | jq -r '._enhance.budget_spent_cents // 0' 2>/dev/null)
+    echo "| Metric | Value |" >> "$out"
+    echo "|--------|-------|" >> "$out"
+    echo "| Enhanced | ${enh_date} |" >> "$out"
+    echo "| Gaps analyzed | ${enh_gaps} |" >> "$out"
+    echo "| Findings | ${enhance_count} |" >> "$out"
+    echo "| Cost | ${enh_cost}c |" >> "$out"
+    echo "" >> "$out"
+
+    # List enhancement sources
+    local enh_sources
+    enh_sources=$(echo "$m" | jq -r '._enhance.enhancements[].source' 2>/dev/null | sort -u)
+    if [[ -n "$enh_sources" ]]; then
+      echo "**Sources:** ${enh_sources//$'\n'/, }" >> "$out"
+      echo "" >> "$out"
+    fi
+  fi
+
   # --- Persistent Memory Vault (always included — vault is generated at step 7/7) ---
   cat >> "$out" << 'VAULT_SECTION'
 ---
@@ -1255,32 +1838,43 @@ Each line in the learnings file is a JSON object:
 To query: \`grep "keyword" tools/learnings/${short}-learnings.jsonl\`
 To add: \`/${short}-learn "description"\` or append a JSON line manually.
 
+LEARNINGS
+
+  # --- gstack Browser Integration — only if gstack is installed and emit_full ---
+  if [[ "$emit_full" == true ]] && [[ -d "$HOME/.claude/skills/gstack" ]]; then
+    cat >> "$out" << 'GSTACK'
 ---
 
 ## gstack Browser Integration
 
-If gstack is installed (\`~/.claude/skills/gstack/\`), use \`\$B\` commands for browser interactions:
-- \`\$B\` is ~20x faster than Playwright MCP (~100ms vs ~2-5s)
-- Uses ref-based element selection (\`@e1\`, \`@e2\`) instead of CSS selectors
+If gstack is installed (`~/.claude/skills/gstack/`), use `$B` commands for browser interactions:
+- `$B` is ~20x faster than Playwright MCP (~100ms vs ~2-5s)
+- Uses ref-based element selection (`@e1`, `@e2`) instead of CSS selectors
 - Persistent Chromium daemon — cookies/tabs/login persist between commands
 
 ### Command Reference
 
 | Command | Usage | Description |
 |---------|-------|-------------|
-| \`goto\` | \`\$B goto <url>\` | Navigate to a URL |
-| \`snapshot\` | \`\$B snapshot\` | Get page structure with element refs |
-| \`click\` | \`\$B click @e1\` | Click an element by ref |
-| \`fill\` | \`\$B fill @e1 "text"\` | Fill an input field |
-| \`screenshot\` | \`\$B screenshot\` | Capture a screenshot |
-| \`console\` | \`\$B console\` | Read browser console logs |
-| \`network\` | \`\$B network\` | Read network requests/responses |
-| \`text\` | \`\$B text @e1\` | Get text content of an element |
-| \`html\` | \`\$B html @e1\` | Get HTML content of an element |
-| \`responsive\` | \`\$B responsive <width>\` | Set viewport width for responsive testing |
-| \`diff\` | \`\$B diff\` | Compare current page with previous snapshot |
-| \`chain\` | \`\$B chain "click @e1" "fill @e2 text" "screenshot"\` | Chain multiple commands |
+| `goto` | `$B goto <url>` | Navigate to a URL |
+| `snapshot` | `$B snapshot` | Get page structure with element refs |
+| `click` | `$B click @e1` | Click an element by ref |
+| `fill` | `$B fill @e1 "text"` | Fill an input field |
+| `screenshot` | `$B screenshot` | Capture a screenshot |
+| `console` | `$B console` | Read browser console logs |
+| `network` | `$B network` | Read network requests/responses |
+| `text` | `$B text @e1` | Get text content of an element |
+| `html` | `$B html @e1` | Get HTML content of an element |
+| `responsive` | `$B responsive <width>` | Set viewport width for responsive testing |
+| `diff` | `$B diff` | Compare current page with previous snapshot |
+| `chain` | `$B chain "click @e1" "fill @e2 text" "screenshot"` | Chain multiple commands |
 
+GSTACK
+  fi
+
+  # --- Session Start Protocol — only for moderate/complex/enterprise projects ---
+  if [[ "$emit_full" == true ]]; then
+    cat >> "$out" << SESSIONPROTO
 ---
 
 ## Session Start Protocol
@@ -1294,9 +1888,14 @@ At the start of each session:
 6. If a STATUS.md file exists — read it for multi-phase task progress
 7. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
+SESSIONPROTO
+  fi
+
+  # --- Footer ---
+  cat >> "$out" << FOOTER
 ---
 
-*Last updated: ${today}. Session: Initial automation setup via aiframework.*
+*Generated: ${today} by aiframework v$(cat "$ROOT_DIR/VERSION"). Run \`aiframework refresh\` to update.*
 
 <!-- CLAUDE.md Guidance:
 - Update this file after significant decisions, bug fixes, or architectural changes
@@ -1310,10 +1909,11 @@ Session ${today}: Initial CLAUDE.md generation via aiframework.
 Key decisions: Automated project analysis and documentation generation.
 Blockers: None.
 -->
-LEARNINGS
+FOOTER
 
-  # --- Execution Matrices (Edit 19) ---
-  cat >> "$out" << 'MATRICES'
+  # --- Execution Matrices (Edit 19) — only for moderate/complex/enterprise projects ---
+  if [[ "$emit_full" == true ]]; then
+    cat >> "$out" << 'MATRICES'
 
 ---
 
@@ -1382,6 +1982,19 @@ LEARNINGS
 | QA regression | Investigate with `/investigate`, add regression test |
 
 MATRICES
+  fi
 
-  log_ok "CLAUDE.md written to $out"
+  log_ok "CLAUDE.md (full) written to $out"
+}
+
+# --- Dispatcher: picks lean vs full based on project complexity ---
+generate_claude_md() {
+  local complexity
+  complexity=$(echo "$MANIFEST" | jq -r '.archetype.complexity // "moderate"')
+
+  if [[ "$complexity" == "complex" || "$complexity" == "enterprise" ]]; then
+    generate_claude_md_full
+  else
+    generate_claude_md_lean
+  fi
 }

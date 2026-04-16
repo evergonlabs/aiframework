@@ -4,6 +4,93 @@
 
 scan_domain() {
   set +eo pipefail
+  local m="$MANIFEST"
+  local domains_file="$ROOT_DIR/lib/data/domains.json"
+  local detected_domains="[]"
+  local all_invariants="[]"
+  local all_security="[]"
+
+  # ── Data-driven domain detection (optimized: single jq precompute) ──
+  if [[ -f "$domains_file" ]] && command -v jq &>/dev/null; then
+    local lang
+    lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
+    local key_deps
+    key_deps=$(echo "$m" | jq -r '.stack.key_dependencies[]?' 2>/dev/null || true)
+
+    # Precompute: extract all domain patterns in one jq call
+    local domain_patterns
+    domain_patterns=$(jq -r '.domains | to_entries[] | .key as $k | .value.display as $d | (.value.file_patterns[]? // empty | "\($k)\t\($d)\tfile\t\(.)")' "$domains_file" 2>/dev/null || true)
+
+    local domain_deps
+    domain_deps=$(jq -r --arg l "$lang" '.domains | to_entries[] | .key as $k | (.value.dependency_markers[$l][]? // empty | "\($k)\tdep\t\(.)")' "$domains_file" 2>/dev/null || true)
+
+    # Track which domains matched (using a string list for bash 3 compat)
+    local matched_list=""
+
+    # Check file patterns (single find per pattern, fast)
+    if [[ -n "$domain_patterns" ]]; then
+      while IFS=$'\t' read -r dk dd ptype pattern; do
+        [[ -z "$dk" ]] && continue
+        echo "$matched_list" | grep -qw "$dk" && continue
+        # Handle glob patterns: **/auth/** → -path "*/auth/*", auth* → -name "auth*"
+        local find_result=""
+        if [[ "$pattern" == **"/"** ]]; then
+          # Path pattern: convert **/X/** to */X/*
+          local path_pat
+          path_pat=$(echo "$pattern" | sed 's|\*\*/|*/|g; s|/\*\*|/*|g')
+          find_result=$(find "$TARGET_DIR" -maxdepth 4 -path "*/$path_pat" -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -print -quit 2>/dev/null)
+        else
+          find_result=$(find "$TARGET_DIR" -maxdepth 4 -name "$pattern" -not -path '*node_modules*' -not -path '*/.git/*' -not -path '*/vault/*' -print -quit 2>/dev/null)
+        fi
+        if [[ -n "$find_result" ]]; then
+          matched_list="$matched_list $dk"
+        fi
+      done <<< "$domain_patterns"
+    fi
+
+    # Check dependency markers
+    if [[ -n "$domain_deps" && -n "$key_deps" ]]; then
+      while IFS=$'\t' read -r dk _ptype dep_marker; do
+        [[ -z "$dk" ]] && continue
+        echo "$matched_list" | grep -qw "$dk" && continue
+        if echo "$key_deps" | grep -q "$dep_marker"; then
+          matched_list="$matched_list $dk"
+        fi
+      done <<< "$domain_deps"
+    fi
+
+    # Build results from matches
+    if [[ -n "$matched_list" ]]; then
+      for dk in $matched_list; do
+        local dd
+        dd=$(jq -r --arg d "$dk" '.domains[$d].display // $d' "$domains_file")
+        local paths
+        paths=$(find "$TARGET_DIR" -maxdepth 3 -not -path '*node_modules*' -not -path '*/.git/*' -name "*${dk}*" 2>/dev/null | head -5 | sed "s|^$TARGET_DIR/||" | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+
+        detected_domains=$(echo "$detected_domains" | jq \
+          --arg name "$dk" --arg display "$dd" --argjson paths "$paths" \
+          '. + [{"name": $name, "display": $display, "paths": $paths}]')
+
+        local inv sec
+        inv=$(jq -c --arg d "$dk" '[.domains[$d].invariants[]?.text // empty]' "$domains_file" 2>/dev/null || echo "[]")
+        sec=$(jq -c --arg d "$dk" '[.domains[$d].security_concerns[]? // empty]' "$domains_file" 2>/dev/null || echo "[]")
+        all_invariants=$(echo "$all_invariants" | jq --argjson inv "$inv" '. + $inv')
+        all_security=$(echo "$all_security" | jq --argjson sec "$sec" '. + $sec')
+      done
+
+      MANIFEST=$(echo "$MANIFEST" | jq \
+        --argjson domains "$detected_domains" \
+        --argjson invariants "$all_invariants" \
+        --argjson security "$all_security" \
+        '. + { "domain": { "detected_domains": $domains, "invariants": ($invariants | unique), "security_concerns": ($security | unique), "component_counts": {} } }')
+
+      [[ "$VERBOSE" == true ]] && log_info "Detected $(echo "$detected_domains" | jq 'length') domains (data-driven)"
+      set -eo pipefail
+      return 0
+    fi
+  fi
+
+  # ── Existing hardcoded detection below (fallback) ──
   local domains="[]"
   local invariants="[]"
   local security_concerns="[]"

@@ -11,18 +11,55 @@ scan_stack() {
   local monorepo_libs="[]"
 
   # --- Language Detection ---
-  if [[ -f "$TARGET_DIR/Cargo.toml" ]]; then
-    language="rust"
-  elif [[ -f "$TARGET_DIR/go.mod" ]]; then
-    language="go"
-  elif [[ -f "$TARGET_DIR/tsconfig.json" || -f "$TARGET_DIR/tsconfig.base.json" ]]; then
+  # Data-driven detection from languages.json (preferred)
+  local data_file="$ROOT_DIR/lib/data/languages.json"
+  local detected_languages=()
+  if [[ -f "$data_file" ]] && command -v jq &>/dev/null; then
+    for lang_key in $(jq -r '.languages | keys[]' "$data_file"); do
+      local lang_found=false
+      for marker in $(jq -r --arg l "$lang_key" '.languages[$l].marker_files[]' "$data_file"); do
+        # Handle glob patterns in marker files (e.g., *.csproj)
+        if [[ "$marker" == *"*"* ]]; then
+          # shellcheck disable=SC2086
+          if compgen -G "$TARGET_DIR"/$marker >/dev/null 2>&1; then
+            lang_found=true
+            break
+          fi
+        elif [[ -f "$TARGET_DIR/$marker" ]]; then
+          lang_found=true
+          break
+        fi
+      done
+      if [[ "$lang_found" == true ]]; then
+        detected_languages+=("$lang_key")
+      fi
+    done
+    # Set primary language to the first match (backward compat)
+    if [[ ${#detected_languages[@]} -gt 0 ]]; then
+      language="${detected_languages[0]}"
+    fi
+  fi
+
+  # TypeScript upgrade: if tsconfig.json exists, promote javascript → typescript
+  if [[ "$language" == "javascript" ]] && [[ -f "$TARGET_DIR/tsconfig.json" || -f "$TARGET_DIR/tsconfig.base.json" ]]; then
     language="typescript"
-  elif [[ -f "$TARGET_DIR/pyproject.toml" || -f "$TARGET_DIR/setup.py" || -f "$TARGET_DIR/requirements.txt" || -f "$TARGET_DIR/Pipfile" ]]; then
-    language="python"
-  elif [[ -f "$TARGET_DIR/Gemfile" ]]; then
-    language="ruby"
-  elif [[ -f "$TARGET_DIR/package.json" ]]; then
-    language="javascript"
+  fi
+
+  # Hardcoded fallback: if data-driven detection found nothing
+  if [[ "$language" == "unknown" ]]; then
+    if [[ -f "$TARGET_DIR/Cargo.toml" ]]; then
+      language="rust"
+    elif [[ -f "$TARGET_DIR/go.mod" ]]; then
+      language="go"
+    elif [[ -f "$TARGET_DIR/tsconfig.json" || -f "$TARGET_DIR/tsconfig.base.json" ]]; then
+      language="typescript"
+    elif [[ -f "$TARGET_DIR/pyproject.toml" || -f "$TARGET_DIR/setup.py" || -f "$TARGET_DIR/requirements.txt" || -f "$TARGET_DIR/Pipfile" ]]; then
+      language="python"
+    elif [[ -f "$TARGET_DIR/Gemfile" ]]; then
+      language="ruby"
+    elif [[ -f "$TARGET_DIR/package.json" ]]; then
+      language="javascript"
+    fi
   fi
 
   # Bash/Shell detection: if no language found but project has many .sh files
@@ -35,82 +72,116 @@ scan_stack() {
   fi
 
   # --- Framework Detection ---
-  case "$language" in
-    python)
-      if [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
-        local deps
-        deps=$(cat "$TARGET_DIR/pyproject.toml" 2>/dev/null)
-        if echo "$deps" | grep -qi 'fastapi'; then framework="fastapi"
-        elif echo "$deps" | grep -qi 'django'; then framework="django"
-        elif echo "$deps" | grep -qi 'flask'; then framework="flask"
-        elif echo "$deps" | grep -qi 'starlette'; then framework="starlette"
+  # Data-driven detection from languages.json (preferred)
+  if [[ -f "$data_file" ]] && command -v jq &>/dev/null && [[ -n "$language" && "$language" != "unknown" ]]; then
+    for fw_key in $(jq -r --arg l "$language" '.languages[$l].frameworks // {} | keys[]' "$data_file" 2>/dev/null); do
+      local fw_matched=false
+      # Check dependency_markers against manifest files
+      for marker in $(jq -r --arg l "$language" --arg f "$fw_key" \
+        '.languages[$l].frameworks[$f].detection.dependency_markers[]? // empty' "$data_file" 2>/dev/null); do
+        # Search across common manifest files for the dependency marker
+        if grep -rq "$marker" "$TARGET_DIR/package.json" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/pyproject.toml" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/requirements.txt" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/Pipfile" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/go.mod" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/Cargo.toml" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/Gemfile" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/composer.json" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/pom.xml" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/build.gradle" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/build.gradle.kts" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/build.sbt" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/mix.exs" 2>/dev/null \
+          || grep -rq "$marker" "$TARGET_DIR/pubspec.yaml" 2>/dev/null; then
+          framework="$fw_key"
+          fw_matched=true
+          break
         fi
-      fi
-      if [[ "$framework" == "none" && -f "$TARGET_DIR/requirements.txt" ]]; then
-        local reqs
-        reqs=$(cat "$TARGET_DIR/requirements.txt" 2>/dev/null)
-        if echo "$reqs" | grep -qi 'fastapi'; then framework="fastapi"
-        elif echo "$reqs" | grep -qi 'django'; then framework="django"
-        elif echo "$reqs" | grep -qi 'flask'; then framework="flask"
+      done
+      $fw_matched && break
+    done
+  fi
+
+  # Hardcoded fallback: if data-driven framework detection found nothing
+  if [[ "$framework" == "none" ]]; then
+    case "$language" in
+      python)
+        if [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
+          local deps
+          deps=$(cat "$TARGET_DIR/pyproject.toml" 2>/dev/null)
+          if echo "$deps" | grep -qi 'fastapi'; then framework="fastapi"
+          elif echo "$deps" | grep -qi 'django'; then framework="django"
+          elif echo "$deps" | grep -qi 'flask'; then framework="flask"
+          elif echo "$deps" | grep -qi 'starlette'; then framework="starlette"
+          fi
         fi
-      fi
-      ;;
-    typescript|javascript)
-      if [[ -f "$TARGET_DIR/package.json" ]]; then
-        local pkg
-        pkg=$(cat "$TARGET_DIR/package.json" 2>/dev/null)
-        if echo "$pkg" | jq -e '.dependencies.next // .devDependencies.next' >/dev/null 2>&1; then
-          framework="nextjs"
-        elif echo "$pkg" | jq -e '.dependencies["@nestjs/core"] // .devDependencies["@nestjs/core"]' >/dev/null 2>&1; then
-          framework="nestjs"
-        elif echo "$pkg" | jq -e '.dependencies.nuxt // .devDependencies.nuxt' >/dev/null 2>&1; then
-          framework="nuxt"
-        elif echo "$pkg" | jq -e '.dependencies.vue // .devDependencies.vue' >/dev/null 2>&1; then
-          framework="vue"
-        elif echo "$pkg" | jq -e '.dependencies.react // .devDependencies.react' >/dev/null 2>&1; then
-          framework="react"
-        elif echo "$pkg" | jq -e '.dependencies.express // .devDependencies.express' >/dev/null 2>&1; then
-          framework="express"
-        elif echo "$pkg" | jq -e '.dependencies.hono // .devDependencies.hono' >/dev/null 2>&1; then
-          framework="hono"
-        elif echo "$pkg" | jq -e '.dependencies.svelte // .devDependencies.svelte' >/dev/null 2>&1; then
-          framework="svelte"
+        if [[ "$framework" == "none" && -f "$TARGET_DIR/requirements.txt" ]]; then
+          local reqs
+          reqs=$(cat "$TARGET_DIR/requirements.txt" 2>/dev/null)
+          if echo "$reqs" | grep -qi 'fastapi'; then framework="fastapi"
+          elif echo "$reqs" | grep -qi 'django'; then framework="django"
+          elif echo "$reqs" | grep -qi 'flask'; then framework="flask"
+          fi
         fi
-      fi
-      ;;
-    go)
-      if [[ -f "$TARGET_DIR/go.mod" ]]; then
-        local gomod
-        gomod=$(cat "$TARGET_DIR/go.mod" 2>/dev/null)
-        if echo "$gomod" | grep -q 'gin-gonic/gin'; then framework="gin"
-        elif echo "$gomod" | grep -q 'labstack/echo'; then framework="echo"
-        elif echo "$gomod" | grep -q 'go-chi/chi'; then framework="chi"
-        elif echo "$gomod" | grep -q 'gofiber/fiber'; then framework="fiber"
+        ;;
+      typescript|javascript)
+        if [[ -f "$TARGET_DIR/package.json" ]]; then
+          local pkg
+          pkg=$(cat "$TARGET_DIR/package.json" 2>/dev/null)
+          if echo "$pkg" | jq -e '.dependencies.next // .devDependencies.next' >/dev/null 2>&1; then
+            framework="nextjs"
+          elif echo "$pkg" | jq -e '.dependencies["@nestjs/core"] // .devDependencies["@nestjs/core"]' >/dev/null 2>&1; then
+            framework="nestjs"
+          elif echo "$pkg" | jq -e '.dependencies.nuxt // .devDependencies.nuxt' >/dev/null 2>&1; then
+            framework="nuxt"
+          elif echo "$pkg" | jq -e '.dependencies.vue // .devDependencies.vue' >/dev/null 2>&1; then
+            framework="vue"
+          elif echo "$pkg" | jq -e '.dependencies.react // .devDependencies.react' >/dev/null 2>&1; then
+            framework="react"
+          elif echo "$pkg" | jq -e '.dependencies.express // .devDependencies.express' >/dev/null 2>&1; then
+            framework="express"
+          elif echo "$pkg" | jq -e '.dependencies.hono // .devDependencies.hono' >/dev/null 2>&1; then
+            framework="hono"
+          elif echo "$pkg" | jq -e '.dependencies.svelte // .devDependencies.svelte' >/dev/null 2>&1; then
+            framework="svelte"
+          fi
         fi
-      fi
-      ;;
-    ruby)
-      if [[ -f "$TARGET_DIR/Gemfile" ]]; then
-        local gemfile_content
-        gemfile_content=$(cat "$TARGET_DIR/Gemfile" 2>/dev/null)
-        if echo "$gemfile_content" | grep -qi "rails"; then framework="rails"
-        elif echo "$gemfile_content" | grep -qi "sinatra"; then framework="sinatra"
-        elif echo "$gemfile_content" | grep -qi "hanami"; then framework="hanami"
+        ;;
+      go)
+        if [[ -f "$TARGET_DIR/go.mod" ]]; then
+          local gomod
+          gomod=$(cat "$TARGET_DIR/go.mod" 2>/dev/null)
+          if echo "$gomod" | grep -q 'gin-gonic/gin'; then framework="gin"
+          elif echo "$gomod" | grep -q 'labstack/echo'; then framework="echo"
+          elif echo "$gomod" | grep -q 'go-chi/chi'; then framework="chi"
+          elif echo "$gomod" | grep -q 'gofiber/fiber'; then framework="fiber"
+          fi
         fi
-      fi
-      ;;
-    rust)
-      if [[ -f "$TARGET_DIR/Cargo.toml" ]]; then
-        local cargo
-        cargo=$(cat "$TARGET_DIR/Cargo.toml" 2>/dev/null)
-        if echo "$cargo" | grep -q 'actix-web'; then framework="actix"
-        elif echo "$cargo" | grep -q 'axum'; then framework="axum"
-        elif echo "$cargo" | grep -q 'rocket'; then framework="rocket"
-        elif echo "$cargo" | grep -q 'warp'; then framework="warp"
+        ;;
+      ruby)
+        if [[ -f "$TARGET_DIR/Gemfile" ]]; then
+          local gemfile_content
+          gemfile_content=$(cat "$TARGET_DIR/Gemfile" 2>/dev/null)
+          if echo "$gemfile_content" | grep -qi "rails"; then framework="rails"
+          elif echo "$gemfile_content" | grep -qi "sinatra"; then framework="sinatra"
+          elif echo "$gemfile_content" | grep -qi "hanami"; then framework="hanami"
+          fi
         fi
-      fi
-      ;;
-  esac
+        ;;
+      rust)
+        if [[ -f "$TARGET_DIR/Cargo.toml" ]]; then
+          local cargo
+          cargo=$(cat "$TARGET_DIR/Cargo.toml" 2>/dev/null)
+          if echo "$cargo" | grep -q 'actix-web'; then framework="actix"
+          elif echo "$cargo" | grep -q 'axum'; then framework="axum"
+          elif echo "$cargo" | grep -q 'rocket'; then framework="rocket"
+          elif echo "$cargo" | grep -q 'warp'; then framework="warp"
+          fi
+        fi
+        ;;
+    esac
+  fi
 
   # --- Monorepo Detection ---
   # JS/TS workspaces
@@ -209,7 +280,8 @@ scan_stack() {
   if [[ -f "$TARGET_DIR/package.json" ]]; then
     key_deps=$(jq '[(.dependencies // {} | keys[]), (.devDependencies // {} | keys[])]' "$TARGET_DIR/package.json" 2>/dev/null || echo "[]")
   elif [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
-    key_deps=$(grep -A 100 '^\[project\]' "$TARGET_DIR/pyproject.toml" 2>/dev/null | grep -A 50 'dependencies' | grep '"' | sed 's/.*"\([^"]*\)".*/\1/' | head -20 | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+    key_deps=$(grep -A 100 '^\[project\]' "$TARGET_DIR/pyproject.toml" 2>/dev/null | grep -A 50 'dependencies' | grep '"' | sed 's/.*"\([^"]*\)".*/\1/' | head -20 | jq -R '.' | jq -s '.' 2>/dev/null || true)
+    [[ -z "$key_deps" || "$key_deps" == "null" ]] && key_deps="[]"
   fi
 
   # --- Node version ---
@@ -228,12 +300,19 @@ scan_stack() {
   if [[ -f "$TARGET_DIR/.python-version" ]]; then
     python_version=$(cat "$TARGET_DIR/.python-version" 2>/dev/null | tr -d '[:space:]')
   elif [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
-    python_version=$(grep 'requires-python' "$TARGET_DIR/pyproject.toml" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    python_version=$(grep 'requires-python' "$TARGET_DIR/pyproject.toml" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1 || true)
   fi
   [[ -z "$python_version" ]] && python_version="3.12"
 
+  # Build languages JSON array
+  local langs_json="[]"
+  if [[ ${#detected_languages[@]} -gt 0 ]]; then
+    langs_json=$(printf '%s\n' "${detected_languages[@]}" | jq -R . | jq -s .)
+  fi
+
   MANIFEST=$(echo "$MANIFEST" | jq \
     --arg lang "$language" \
+    --argjson langs "$langs_json" \
     --arg fw "$framework" \
     --argjson mono "$is_monorepo" \
     --arg mono_tool "$monorepo_tool" \
@@ -246,6 +325,7 @@ scan_stack() {
     '. + {
       "stack": {
         "language": $lang,
+        "languages": $langs,
         "framework": $fw,
         "is_monorepo": $mono,
         "monorepo_tool": ($mono_tool | if . == "" then null else . end),

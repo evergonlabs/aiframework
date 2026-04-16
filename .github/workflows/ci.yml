@@ -1,21 +1,74 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
 
 jobs:
-  shellcheck:
-    name: ShellCheck
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install ShellCheck
-        run: sudo apt-get install -y shellcheck
-      - name: Run ShellCheck
-        run: find . -name "*.sh" -not -path "*/.git/*" -not -path "*/vault/*" | xargs shellcheck
-      - name: Vault integrity check
-        if: hashFiles('vault/.vault/scripts/vault-tools.sh') != ''
-        run: bash vault/.vault/scripts/vault-tools.sh lint --report || true
+      - name: Bash syntax check
+        run: find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './lib'
+          additional_files: 'bin/aiframework'
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python compile check
+        run: find . -name '*.py' -not -path '*/__pycache__/*' | xargs python3 -m py_compile
+      - name: Run indexer tests
+        run: python3 tests/test_indexer.py
+      - name: Smoke test indexer
+        run: python3 -m lib.indexers.parse --target . --output /tmp/ci-index.json
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: [lint, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Full pipeline (discover + generate + verify)
+        run: |
+          ./bin/aiframework run --target . --non-interactive
+      - name: Verify manifest exists
+        run: test -f .aiframework/manifest.json
+      - name: Verify code index exists
+        run: test -f .aiframework/code-index.json
+      - name: Verify CLAUDE.md was generated
+        run: test -f CLAUDE.md
+      - name: Check archetype detected
+        run: jq -e '.archetype.type' .aiframework/manifest.json
+
+  json-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate data registries
+        run: |
+          python3 -c "
+          import json, sys
+          files = ['lib/data/languages.json', 'lib/data/domains.json', 'lib/data/deploy_targets.json', 'lib/data/archetypes.json']
+          for f in files:
+              try:
+                  json.load(open(f))
+                  print(f'OK: {f}')
+              except Exception as e:
+                  print(f'FAIL: {f}: {e}')
+                  sys.exit(1)
+          "

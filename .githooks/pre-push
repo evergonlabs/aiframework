@@ -6,9 +6,21 @@ echo "  aiframework Pre-Push Quality Gate"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+# Check if aiframework files are stale
+ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+if [[ -f ".aiframework/.file_hashes" ]]; then
+  # shellcheck source=../lib/freshness/track.sh
+  source "$ROOT_DIR/lib/freshness/track.sh" 2>/dev/null || true
+  drift=$(freshness_check_drift "." 2>/dev/null || echo "unknown")
+  if [[ "$drift" == drifted:* ]]; then
+    echo -e "\033[1;33m[WARN]\033[0m  aiframework: key files changed since last scan"
+    echo "         Run: aiframework refresh"
+  fi
+fi
+
 CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
 
-SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$"
+SKIP_PATTERNS="^docs/|^scripts/|^tools/|^\.github/|^\.githooks/|^CLAUDE\.md$|^CONTRIBUTING\.md$|^SETUP-DEV\.md$|^STATUS\.md$|^CHANGELOG\.md$|^VERSION$|^AUTOMATION-PLAYBOOK.*$|^LICENSE$|^README\.md$|^\.env|^\.gitignore$|^docs/"
 
 NEEDS_CHECK=false
 for file in $CHANGED_FILES; do
@@ -38,6 +50,13 @@ fi
 # Invariant checks — domain-specific
 CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
 INVARIANT_FAIL=false
+# INV-2: Database invariant: no raw SQL strings in changed files
+for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
+  if [ -f "$f" ] && grep -nE '(SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|DROP\s+TABLE)' "$f" | grep -vE '(migration|seed|\.sql$)' > /dev/null 2>&1; then
+    echo "  WARNING: $f may contain raw SQL — use ORM or query builder"
+    INVARIANT_FAIL=true
+  fi
+done
 # INV: AI/LLM trust boundary: check for unsanitized LLM output usage
 for f in $(echo "$CHANGED" | grep -vE '\.(md|txt|yml|yaml|json)$'); do
   if [ -f "$f" ] && grep -nE '(innerHTML|dangerouslySetInnerHTML|eval\(|exec\()' "$f" > /dev/null 2>&1; then

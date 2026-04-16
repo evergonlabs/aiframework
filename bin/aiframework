@@ -6,9 +6,16 @@
 #   aiframework discover [--target <path>] [--output <path>]
 #   aiframework generate [--manifest <path>] [--target <path>]
 #   aiframework verify  [--target <path>] [--manifest <path>]
+#   aiframework refresh [--target <path>]   # lightweight: re-discover + generate only if drift detected
 #   aiframework run     [--target <path>]   # discover + generate + verify in sequence
 
 set -euo pipefail
+
+# Bash 4+ recommended but not required — core features work on bash 3.2+
+if [[ ${BASH_VERSINFO[0]:-3} -lt 4 ]]; then
+  echo "Note: bash 4+ recommended for best results. You have bash ${BASH_VERSION:-3.2}."
+  echo "  macOS: brew install bash"
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
@@ -46,7 +53,10 @@ Commands:
   discover    Scan a repo and produce manifest.json (deterministic, 100% coverage)
   generate    Read manifest.json and generate CLAUDE.md + all supporting files
   verify      Validate generated files against manifest (zero drift check)
+  refresh     Lightweight update: re-discover + regenerate only if drift detected
+  index       Build code index for the target repo (standalone)
   run         Full pipeline: discover → generate → verify
+  stats       Show cross-repo knowledge store statistics
 
 Options:
   --target <path>      Target repo to analyze (default: current directory)
@@ -55,12 +65,17 @@ Options:
   --dry-run            Show what would be generated without writing files
   --verbose            Show detailed scanner output
   --non-interactive    Skip all user prompts (set all user_context to null)
+  --no-index           Skip the code index step during discover
   --help               Show this help
+
+Note: Enhancement is done via the /aif-enhance skill in Claude Code — no API key needed.
 
 Examples:
   aiframework discover --target /path/to/repo
+  aiframework discover --target /path/to/repo --no-index
   aiframework generate --manifest .aiframework/manifest.json
   aiframework verify
+  aiframework index --target /path/to/repo
   aiframework run --target /path/to/my-project
 EOF
 }
@@ -73,6 +88,7 @@ OUTPUT_DIR=""
 DRY_RUN=false
 VERBOSE=false
 NON_INTERACTIVE=false
+NO_INDEX=false
 
 parse_args() {
   if [[ $# -eq 0 ]]; then
@@ -97,6 +113,7 @@ parse_args() {
       --dry-run)   DRY_RUN=true; shift ;;
       --verbose)   VERBOSE=true; shift ;;
       --non-interactive) NON_INTERACTIVE=true; shift ;;
+      --no-index)  NO_INDEX=true; shift ;;
       --help|-h)   usage; exit 0 ;;
       *)           log_error "Unknown option: $1"; usage; exit 1 ;;
     esac
@@ -119,7 +136,14 @@ parse_args() {
 
 # Export for scanner/generator/validator modules
 export TARGET_DIR MANIFEST_PATH OUTPUT_DIR DRY_RUN VERBOSE NON_INTERACTIVE
+export NO_INDEX
 export LIB_DIR TEMPLATES_DIR ROOT_DIR
+
+# Knowledge store (cross-repo learning)
+source "$LIB_DIR/knowledge/store.sh"
+
+# Freshness tracking (drift detection)
+source "$LIB_DIR/freshness/track.sh"
 
 cmd_discover() {
   banner
@@ -138,41 +162,51 @@ cmd_discover() {
   source "$LIB_DIR/scanners/quality.sh"
   source "$LIB_DIR/scanners/domain.sh"
   source "$LIB_DIR/scanners/user_context.sh"
+  source "$LIB_DIR/scanners/code_index.sh"
+  source "$LIB_DIR/scanners/archetype.sh"
 
   # Initialize manifest
   MANIFEST="{}"
 
   # Run each scanner — each appends to MANIFEST
-  log_step "1/9 Project Identity"
+  log_step "1/11 Project Identity"
   scan_identity
 
-  log_step "2/9 Stack Detection"
+  log_step "2/11 Stack Detection"
   scan_stack
 
-  log_step "3/9 Commands & Package Manager"
+  log_step "3/11 Commands & Package Manager"
   scan_commands
 
-  log_step "4/9 Directory Structure"
+  log_step "4/11 Directory Structure"
   scan_structure
 
-  log_step "5/9 CI/CD & Deploy"
+  log_step "5/11 CI/CD & Deploy"
   scan_ci
 
-  log_step "6/9 Environment Variables"
+  log_step "6/11 Environment Variables"
   scan_env
 
-  log_step "7/9 Quality Tools"
+  log_step "7/11 Quality Tools"
   scan_quality
 
-  log_step "8/9 Domain-Specific Concerns"
+  log_step "8/11 Domain-Specific Concerns"
   scan_domain
 
-  log_step "9/9 User Context"
+  log_step "9/11 User Context"
   scan_user_context
+
+  if [[ "$NO_INDEX" != "true" ]]; then
+    log_step "10/11 Code Index"
+    scan_code_index
+  fi
+
+  log_step "11/11 Archetype Detection"
+  scan_archetype
 
   # Add metadata
   MANIFEST=$(echo "$MANIFEST" | jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    --arg ver "1.0.0" \
+    --arg ver "$(cat "$ROOT_DIR/VERSION")" \
     --arg target "$TARGET_DIR" \
     '. + {
       "_meta": {
@@ -185,6 +219,12 @@ cmd_discover() {
 
   # Write manifest
   echo "$MANIFEST" | jq '.' > "$MANIFEST_PATH"
+
+  # Save file hashes for drift detection
+  freshness_save_hashes "$TARGET_DIR"
+
+  # Record profile in knowledge store
+  knowledge_record_profile "$MANIFEST"
 
   echo ""
   log_ok "Manifest written to $MANIFEST_PATH"
@@ -225,6 +265,7 @@ cmd_generate() {
   source "$LIB_DIR/generators/docs.sh"
   source "$LIB_DIR/generators/tracking.sh"
   source "$LIB_DIR/generators/vault.sh"
+  source "$LIB_DIR/generators/vault_ingest.sh"
 
   local generated=0
 
@@ -271,6 +312,7 @@ cmd_verify() {
   source "$LIB_DIR/validators/consistency.sh"
   source "$LIB_DIR/validators/security.sh"
   source "$LIB_DIR/validators/quality_gate.sh"
+  source "$LIB_DIR/validators/freshness.sh"
 
   local total_checks=0
   local passed=0
@@ -286,6 +328,7 @@ cmd_verify() {
   validate_consistency
   validate_security
   validate_quality_gate
+  validate_freshness
 
   echo -e "${BOLD}└──────────────────────────────┴──────────┴─────────────────────────────┘${NC}"
   echo ""
@@ -297,6 +340,53 @@ cmd_verify() {
     exit 1
   else
     log_ok "Verification PASSED"
+  fi
+}
+
+cmd_index() {
+  banner
+  log_step "INDEX — Building code index for $TARGET_DIR"
+  echo ""
+  mkdir -p "$OUTPUT_DIR"
+  source "$LIB_DIR/scanners/code_index.sh"
+  scan_code_index
+  echo ""
+  log_ok "Code index written to $OUTPUT_DIR/code-index.json"
+}
+
+cmd_stats() {
+  banner
+  log_step "STATS — Cross-repo knowledge store"
+  echo ""
+  knowledge_stats
+  echo ""
+}
+
+cmd_refresh() {
+  banner
+  log_step "REFRESH — Checking for drift and updating if needed"
+  echo ""
+
+  local drift_result
+  drift_result=$(freshness_check_drift "$TARGET_DIR")
+
+  if [[ "$drift_result" == "clean" ]]; then
+    log_ok "No drift detected — files are up to date"
+    return 0
+  elif [[ "$drift_result" == "no-baseline" ]]; then
+    log_warn "No baseline found — running full discover"
+    cmd_discover
+    cmd_generate
+    return 0
+  else
+    local drifted_files="${drift_result#drifted:}"
+    log_warn "Drift detected in:$drifted_files"
+    log_info "Re-running discover + generate..."
+    echo ""
+    cmd_discover
+    echo ""
+    cmd_generate
+    return 0
   fi
 }
 
@@ -339,6 +429,9 @@ case "$COMMAND" in
   discover)  cmd_discover ;;
   generate)  cmd_generate ;;
   verify)    cmd_verify ;;
+  refresh)   cmd_refresh ;;
+  index)     cmd_index ;;
+  stats)     cmd_stats ;;
   run)       cmd_run ;;
   *)         log_error "Unknown command: $COMMAND"; usage; exit 1 ;;
 esac

@@ -11,6 +11,76 @@ scan_quality() {
   local hook_system="" hook_dir=""
   local missing_tools=()
 
+  # --- Data-driven quality tool detection from languages.json ---
+  local qual_data="$ROOT_DIR/lib/data/languages.json"
+  local data_driven_quality=false
+  if [[ -f "$qual_data" ]] && command -v jq &>/dev/null; then
+    local lang
+    lang=$(echo "$MANIFEST" | jq -r '.stack.language // "unknown"')
+    if [[ "$lang" != "unknown" ]]; then
+      # Find matching package manager and extract tool names from commands
+      for pm_key in $(jq -r --arg l "$lang" '.languages[$l].package_managers // {} | keys[]' "$qual_data" 2>/dev/null); do
+        local pm_lock pm_marker
+        pm_lock=$(jq -r --arg l "$lang" --arg p "$pm_key" '.languages[$l].package_managers[$p].lock_file // empty' "$qual_data" 2>/dev/null)
+        pm_marker=$(jq -r --arg l "$lang" --arg p "$pm_key" '.languages[$l].package_managers[$p].manifest // empty' "$qual_data" 2>/dev/null)
+
+        if [[ -n "$pm_lock" && -f "$TARGET_DIR/$pm_lock" ]] || [[ -n "$pm_marker" && -f "$TARGET_DIR/$pm_marker" ]]; then
+          local pm_cmds
+          pm_cmds=$(jq -c --arg l "$lang" --arg p "$pm_key" '.languages[$l].package_managers[$p].commands // {}' "$qual_data" 2>/dev/null)
+
+          # Extract linter tool name from lint command
+          if [[ -z "$linter_tool" ]]; then
+            local lint_cmd_str
+            lint_cmd_str=$(echo "$pm_cmds" | jq -r '.lint // empty' 2>/dev/null)
+            if [[ -n "$lint_cmd_str" ]]; then
+              # Extract the core tool name (last token before flags, strip runner prefixes)
+              local extracted_tool
+              extracted_tool=$(echo "$lint_cmd_str" | sed 's/^.*run //' | sed 's/^.*exec //' | awk '{print $1}')
+              if [[ -n "$extracted_tool" ]]; then
+                linter_tool="$extracted_tool"
+                linter_config="data-driven"
+                data_driven_quality=true
+              fi
+            fi
+          fi
+
+          # Extract formatter tool name from format command
+          if [[ -z "$formatter_tool" ]]; then
+            local fmt_cmd_str
+            fmt_cmd_str=$(echo "$pm_cmds" | jq -r '.format // empty' 2>/dev/null)
+            if [[ -n "$fmt_cmd_str" ]]; then
+              local extracted_fmt
+              extracted_fmt=$(echo "$fmt_cmd_str" | sed 's/^.*run //' | sed 's/^.*exec //' | sed 's/^bunx //' | sed 's/^npx //' | awk '{print $1}')
+              if [[ -n "$extracted_fmt" ]]; then
+                formatter_tool="$extracted_fmt"
+                formatter_config="data-driven"
+                data_driven_quality=true
+              fi
+            fi
+          fi
+
+          # Extract test tool name from test command
+          if [[ -z "$test_tool" ]]; then
+            local test_cmd_str
+            test_cmd_str=$(echo "$pm_cmds" | jq -r '.test // empty' 2>/dev/null)
+            if [[ -n "$test_cmd_str" ]]; then
+              local extracted_test
+              extracted_test=$(echo "$test_cmd_str" | sed 's/^.*run //' | sed 's/^.*exec //' | awk '{print $1}')
+              if [[ -n "$extracted_test" ]]; then
+                test_tool="$extracted_test"
+                test_config="data-driven"
+                # shellcheck disable=SC2034
+                data_driven_quality=true
+              fi
+            fi
+          fi
+
+          break
+        fi
+      done
+    fi
+  fi
+
   # --- Linter ---
   # ESLint
   for f in .eslintrc.js .eslintrc.json .eslintrc.yml .eslintrc.yaml .eslintrc eslint.config.js eslint.config.mjs eslint.config.cjs eslint.config.ts; do

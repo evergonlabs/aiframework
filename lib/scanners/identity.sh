@@ -19,13 +19,13 @@ scan_identity() {
 
   if [[ -f "$TARGET_DIR/Cargo.toml" ]]; then
     local cargo_name
-    cargo_name=$(grep -m1 '^name' "$TARGET_DIR/Cargo.toml" | sed 's/name *= *"\(.*\)"/\1/' 2>/dev/null)
+    cargo_name=$(grep -m1 '^name' "$TARGET_DIR/Cargo.toml" 2>/dev/null | sed 's/name *= *"\(.*\)"/\1/' || true)
     [[ -n "$cargo_name" ]] && name="$cargo_name"
   fi
 
   if [[ -f "$TARGET_DIR/pyproject.toml" ]]; then
     local py_name
-    py_name=$(grep -m1 '^name' "$TARGET_DIR/pyproject.toml" | sed 's/name *= *"\(.*\)"/\1/' 2>/dev/null)
+    py_name=$(grep -m1 '^name' "$TARGET_DIR/pyproject.toml" 2>/dev/null | sed 's/name *= *"\(.*\)"/\1/' || true)
     [[ -n "$py_name" ]] && name="$py_name"
   fi
 
@@ -45,7 +45,7 @@ scan_identity() {
       gemspec_file=$(ls "$TARGET_DIR"/*.gemspec 2>/dev/null | head -1)
       if [[ -n "$gemspec_file" ]]; then
         local spec_name
-        spec_name=$(grep -m1 '\.name' "$gemspec_file" | grep -oE '"[^"]*"|'\''[^'\'']*'\''' | tr -d '\"'\''' 2>/dev/null)
+        spec_name=$(grep -m1 '\.name' "$gemspec_file" 2>/dev/null | grep -oE '"[^"]*"|'\''[^'\'']*'\''' | tr -d '\"'\''' || true)
         [[ -n "$spec_name" ]] && name="$spec_name"
       fi
     fi
@@ -54,8 +54,8 @@ scan_identity() {
   # --- Docker image name from Makefile ---
   local docker_image_name=""
   if [[ -f "$TARGET_DIR/Makefile" ]]; then
-    docker_image_name=$(grep -oE 'docker build\s+.*-t\s+([^ ]+)' "$TARGET_DIR/Makefile" 2>/dev/null | grep -oE '\-t\s+([^ ]+)' | sed 's/-t\s*//' | head -1)
-    [[ -z "$docker_image_name" ]] && docker_image_name=$(grep -oE 'docker\s+build\s+.*-t\s+([^ ]+)' "$TARGET_DIR/Makefile" 2>/dev/null | grep -oE '\-t\s+\S+' | sed 's/-t //' | head -1)
+    docker_image_name=$(grep -oE 'docker build\s+.*-t\s+([^ ]+)' "$TARGET_DIR/Makefile" 2>/dev/null | grep -oE '\-t\s+([^ ]+)' | sed 's/-t\s*//' | head -1 || true)
+    [[ -z "$docker_image_name" ]] && docker_image_name=$(grep -oE 'docker\s+build\s+.*-t\s+([^ ]+)' "$TARGET_DIR/Makefile" 2>/dev/null | grep -oE '\-t\s+\S+' | sed 's/-t //' | head -1 || true)
   fi
 
   # Docker image name from CI workflows
@@ -72,11 +72,11 @@ scan_identity() {
   fi
 
   if [[ -z "$description" && -f "$TARGET_DIR/pyproject.toml" ]]; then
-    description=$(grep -m1 '^description' "$TARGET_DIR/pyproject.toml" | sed 's/description *= *"\(.*\)"/\1/' 2>/dev/null)
+    description=$(grep -m1 '^description' "$TARGET_DIR/pyproject.toml" 2>/dev/null | sed 's/description *= *"\(.*\)"/\1/' || true)
   fi
 
   if [[ -z "$description" && -f "$TARGET_DIR/Cargo.toml" ]]; then
-    description=$(grep -m1 '^description' "$TARGET_DIR/Cargo.toml" | sed 's/description *= *"\(.*\)"/\1/' 2>/dev/null)
+    description=$(grep -m1 '^description' "$TARGET_DIR/Cargo.toml" 2>/dev/null | sed 's/description *= *"\(.*\)"/\1/' || true)
   fi
 
   if [[ -z "$description" && -f "$TARGET_DIR/README.md" ]]; then
@@ -92,11 +92,11 @@ scan_identity() {
   fi
 
   if [[ -z "$version" && -f "$TARGET_DIR/pyproject.toml" ]]; then
-    version=$(grep -m1 '^version' "$TARGET_DIR/pyproject.toml" | sed 's/version *= *"\(.*\)"/\1/' 2>/dev/null)
+    version=$(grep -m1 '^version' "$TARGET_DIR/pyproject.toml" 2>/dev/null | sed 's/version *= *"\(.*\)"/\1/' || true)
   fi
 
   if [[ -z "$version" && -f "$TARGET_DIR/Cargo.toml" ]]; then
-    version=$(grep -m1 '^version' "$TARGET_DIR/Cargo.toml" | sed 's/version *= *"\(.*\)"/\1/' 2>/dev/null)
+    version=$(grep -m1 '^version' "$TARGET_DIR/Cargo.toml" 2>/dev/null | sed 's/version *= *"\(.*\)"/\1/' || true)
   fi
 
   if [[ -z "$version" && -f "$TARGET_DIR/VERSION" ]]; then
@@ -113,8 +113,8 @@ scan_identity() {
   local dockerfile_base=""
   local dockerfile_port=""
   if [[ -f "$TARGET_DIR/Dockerfile" ]]; then
-    dockerfile_base=$(grep -m1 '^FROM' "$TARGET_DIR/Dockerfile" | awk '{print $2}' 2>/dev/null)
-    dockerfile_port=$(grep -m1 'EXPOSE' "$TARGET_DIR/Dockerfile" | awk '{print $2}' 2>/dev/null)
+    dockerfile_base=$(grep -m1 '^FROM' "$TARGET_DIR/Dockerfile" 2>/dev/null | awk '{print $2}' || true)
+    dockerfile_port=$(grep -m1 'EXPOSE' "$TARGET_DIR/Dockerfile" 2>/dev/null | awk '{print $2}' || true)
   fi
 
   # --- Docker Compose services ---
@@ -126,7 +126,8 @@ scan_identity() {
     done
     if [[ -n "$compose_file" ]]; then
       # Extract service names from docker-compose
-      compose_services=$(grep -E '^\s{2}\w+:' "$compose_file" 2>/dev/null | sed 's/:.*//' | sed 's/^ *//' | jq -R '.' | jq -s '.' 2>/dev/null || echo "[]")
+      compose_services=$(grep -E '^\s{2}\w+:' "$compose_file" 2>/dev/null | sed 's/:.*//' | sed 's/^ *//' | jq -R '.' | jq -s '.' 2>/dev/null || true)
+      [[ -z "$compose_services" || "$compose_services" == "null" ]] && compose_services="[]"
     fi
   fi
 

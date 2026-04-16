@@ -1,0 +1,571 @@
+{
+  "$schema": "archetype-registry/v1",
+  "$description": "Data-driven repo archetype detection registry for aiframework. Each archetype defines detection signals and CLAUDE.md customization rules.",
+  "archetypes": {
+    "library": {
+      "display": "Library / Package",
+      "description": "Reusable library or package published to a registry",
+      "signals": {
+        "file_patterns": ["*.gemspec", "setup.py", "setup.cfg", "lib/**", "src/**"],
+        "manifest_fields": {
+          "package.json": ["main", "module", "exports", "types", "typings", "files"],
+          "pyproject.toml": ["project.classifiers", "tool.poetry.packages"],
+          "Cargo.toml": ["lib"]
+        },
+        "negative_signals": ["Dockerfile", "docker-compose.yml", "vercel.json", "fly.toml"],
+        "heuristics": [
+          "Has exports/main field in package.json",
+          "Has lib/ or src/ but no app/ or pages/",
+          "Has .gemspec or setup.py"
+        ]
+      },
+      "extra_sections": {
+        "Publishing": {
+          "description": "How to publish a new version",
+          "template": "```bash\n# Bump version\n# Run tests\n# Publish to registry\n```"
+        },
+        "API Stability": {
+          "description": "Semantic versioning policy and breaking change process",
+          "template": "This library follows semver. Breaking changes require a MAJOR version bump and migration guide."
+        }
+      },
+      "skip_sections": ["Deploy", "CI Workflows"],
+      "extra_invariants": [
+        {
+          "id": "LIB-1",
+          "rule": "All public API changes must follow semantic versioning",
+          "severity": "high"
+        },
+        {
+          "id": "LIB-2",
+          "rule": "All public functions/types must have documentation with examples",
+          "severity": "medium"
+        },
+        {
+          "id": "LIB-3",
+          "rule": "No runtime dependencies on specific frameworks — keep the library generic",
+          "severity": "medium"
+        }
+      ],
+      "maturity_weight": 0.8
+    },
+    "cli-tool": {
+      "display": "CLI Tool",
+      "description": "Command-line application or developer tool",
+      "signals": {
+        "file_patterns": ["bin/*", "cmd/**", "cli/**", "src/cli*", "src/main*"],
+        "manifest_fields": {
+          "package.json": ["bin"],
+          "Cargo.toml": ["[[bin]]"],
+          "pyproject.toml": ["project.scripts", "tool.poetry.scripts"]
+        },
+        "negative_signals": ["pages/", "app/", "public/", "static/"],
+        "heuristics": [
+          "Has bin/ directory with executables",
+          "Has bin field in package.json",
+          "Has [[bin]] section in Cargo.toml",
+          "Has argparse/clap/cobra usage"
+        ]
+      },
+      "extra_sections": {
+        "Usage": {
+          "description": "CLI usage examples",
+          "template": "```bash\n# Basic usage\n<command> [options] <args>\n\n# Common workflows\n```"
+        },
+        "Installation": {
+          "description": "How to install the CLI tool",
+          "template": "```bash\n# Install from source\n# Install from registry\n```"
+        }
+      },
+      "skip_sections": ["Deploy"],
+      "extra_invariants": [
+        {
+          "id": "CLI-1",
+          "rule": "All commands must have --help output with usage examples",
+          "severity": "medium"
+        },
+        {
+          "id": "CLI-2",
+          "rule": "Exit codes must be meaningful — 0 for success, non-zero for specific error categories",
+          "severity": "medium"
+        },
+        {
+          "id": "CLI-3",
+          "rule": "All user-facing output must go to stdout, errors/warnings to stderr",
+          "severity": "low"
+        }
+      ],
+      "maturity_weight": 0.7
+    },
+    "web-app": {
+      "display": "Web Application",
+      "description": "Server-rendered or client-side web application",
+      "signals": {
+        "file_patterns": [
+          "pages/**", "app/**", "views/**",
+          "public/**", "static/**",
+          "components/**", "layouts/**",
+          "*.html", "*.css", "*.scss"
+        ],
+        "manifest_fields": {
+          "package.json": ["next", "nuxt", "gatsby", "@angular/core", "svelte"]
+        },
+        "negative_signals": [],
+        "heuristics": [
+          "Has pages/ or app/ directory with UI components",
+          "Has React/Vue/Svelte/Angular in dependencies",
+          "Has public/ or static/ directory with assets"
+        ]
+      },
+      "extra_sections": {
+        "Local Development": {
+          "description": "How to run the app locally",
+          "template": "```bash\n# Install dependencies\n# Start dev server\n# Access at http://localhost:PORT\n```"
+        },
+        "Browser Support": {
+          "description": "Supported browsers and versions",
+          "template": "Modern evergreen browsers (Chrome, Firefox, Safari, Edge)."
+        }
+      },
+      "skip_sections": [],
+      "extra_invariants": [
+        {
+          "id": "WEB-1",
+          "rule": "All pages must be accessible (WCAG 2.1 AA minimum)",
+          "severity": "high"
+        },
+        {
+          "id": "WEB-2",
+          "rule": "No secrets in client-side bundles — all sensitive config via server-side env vars",
+          "severity": "critical"
+        },
+        {
+          "id": "WEB-3",
+          "rule": "All forms must have client-side and server-side validation",
+          "severity": "medium"
+        }
+      ],
+      "maturity_weight": 1.0
+    },
+    "api-service": {
+      "display": "API Service",
+      "description": "Backend API service (REST, GraphQL, gRPC)",
+      "signals": {
+        "file_patterns": [
+          "routes/**", "controllers/**", "handlers/**",
+          "api/**", "endpoints/**",
+          "middleware/**", "serializers/**",
+          "openapi.*", "swagger.*", "schema.graphql"
+        ],
+        "manifest_fields": {
+          "package.json": ["express", "fastify", "@nestjs/core", "hono", "koa"],
+          "pyproject.toml": ["fastapi", "django", "flask"],
+          "Cargo.toml": ["actix-web", "axum", "rocket"]
+        },
+        "negative_signals": ["pages/", "components/", "public/index.html"],
+        "heuristics": [
+          "Has routes/ or controllers/ directory",
+          "Has OpenAPI/Swagger spec files",
+          "Has web framework in dependencies but no frontend components"
+        ]
+      },
+      "extra_sections": {
+        "API Documentation": {
+          "description": "Where to find API docs and how to generate them",
+          "template": "API documentation is available at `/docs` (Swagger) or `/redoc`."
+        },
+        "Authentication": {
+          "description": "How API authentication works",
+          "template": "Bearer token in Authorization header. See auth docs for token generation."
+        }
+      },
+      "skip_sections": [],
+      "extra_invariants": [
+        {
+          "id": "SVC-1",
+          "rule": "All endpoints must be documented in OpenAPI/GraphQL schema",
+          "severity": "medium"
+        },
+        {
+          "id": "SVC-2",
+          "rule": "All endpoints must have request/response validation",
+          "severity": "high"
+        },
+        {
+          "id": "SVC-3",
+          "rule": "Health check endpoint must exist at /health or /healthz",
+          "severity": "medium"
+        }
+      ],
+      "maturity_weight": 1.0
+    },
+    "full-stack": {
+      "display": "Full-Stack Application",
+      "description": "Application with both frontend and backend components",
+      "signals": {
+        "file_patterns": [
+          "frontend/**", "backend/**",
+          "client/**", "server/**",
+          "web/**", "api/**",
+          "apps/**"
+        ],
+        "manifest_fields": {},
+        "negative_signals": [],
+        "heuristics": [
+          "Has both frontend/ and backend/ directories",
+          "Has both client/ and server/ directories",
+          "Has both UI components and API routes in the same repo"
+        ]
+      },
+      "extra_sections": {
+        "Architecture": {
+          "description": "How frontend and backend components interact",
+          "template": "Frontend communicates with backend via REST/GraphQL API. See architecture docs for data flow."
+        },
+        "Local Development": {
+          "description": "How to run the full stack locally",
+          "template": "```bash\n# Start backend\n# Start frontend\n# Or use docker-compose for everything\n```"
+        }
+      },
+      "skip_sections": [],
+      "extra_invariants": [
+        {
+          "id": "FS-1",
+          "rule": "Frontend and backend must be independently deployable",
+          "severity": "medium"
+        },
+        {
+          "id": "FS-2",
+          "rule": "API contracts between frontend and backend must be typed (OpenAPI, GraphQL schema, tRPC)",
+          "severity": "high"
+        }
+      ],
+      "maturity_weight": 1.2
+    },
+    "monorepo": {
+      "display": "Monorepo",
+      "description": "Multi-package repository with shared tooling",
+      "signals": {
+        "file_patterns": [
+          "packages/**", "apps/**", "libs/**",
+          "modules/**", "services/**",
+          "lerna.json", "pnpm-workspace.yaml",
+          "nx.json", "turbo.json"
+        ],
+        "manifest_fields": {
+          "package.json": ["workspaces"]
+        },
+        "negative_signals": [],
+        "heuristics": [
+          "Has packages/ or apps/ with multiple package.json files",
+          "Has workspace configuration (lerna, pnpm, turborepo, nx)",
+          "Multiple go.mod files in subdirectories"
+        ]
+      },
+      "extra_sections": {
+        "Workspace Structure": {
+          "description": "Map of packages/apps and their purposes",
+          "template": "| Package | Purpose | Dependencies |\n|---------|---------|-------------|\n| ... | ... | ... |"
+        },
+        "Cross-Package Development": {
+          "description": "How to work across packages",
+          "template": "Use workspace links for local development. Run `<tool> build` from root for full rebuild."
+        }
+      },
+      "skip_sections": [],
+      "extra_invariants": [
+        {
+          "id": "MONO-1",
+          "rule": "Shared dependencies must be hoisted to root — no duplicate versions across packages",
+          "severity": "medium"
+        },
+        {
+          "id": "MONO-2",
+          "rule": "Each package must have its own test suite — no cross-package test dependencies",
+          "severity": "medium"
+        },
+        {
+          "id": "MONO-3",
+          "rule": "Package boundaries must be respected — import only through public API",
+          "severity": "high"
+        }
+      ],
+      "maturity_weight": 1.5
+    },
+    "data-pipeline": {
+      "display": "Data Pipeline",
+      "description": "ETL, data processing, or data engineering project",
+      "signals": {
+        "file_patterns": [
+          "dags/**", "pipelines/**", "etl/**",
+          "transforms/**", "models/**/*.sql",
+          "dbt_project.yml", "profiles.yml",
+          "airflow/**", "dagster/**", "prefect/**",
+          "notebooks/**", "*.ipynb"
+        ],
+        "manifest_fields": {
+          "pyproject.toml": ["apache-airflow", "dagster", "prefect", "dbt-core", "pyspark"],
+          "requirements.txt": ["apache-airflow", "dagster", "prefect", "dbt-core"]
+        },
+        "negative_signals": [],
+        "heuristics": [
+          "Has dags/ directory (Airflow)",
+          "Has dbt_project.yml",
+          "Has pipelines/ with transformation logic",
+          "Heavy use of pandas, spark, or SQL files"
+        ]
+      },
+      "extra_sections": {
+        "Pipeline Architecture": {
+          "description": "Data flow from source to destination",
+          "template": "Source -> Ingestion -> Transform -> Load -> Serve"
+        },
+        "Data Sources": {
+          "description": "External data sources and their refresh schedules",
+          "template": "| Source | Type | Refresh | Owner |\n|--------|------|---------|-------|\n| ... | ... | ... | ... |"
+        }
+      },
+      "skip_sections": ["Browser Support"],
+      "extra_invariants": [
+        {
+          "id": "DATA-1",
+          "rule": "All pipelines must be idempotent — safe to re-run without duplicating data",
+          "severity": "critical"
+        },
+        {
+          "id": "DATA-2",
+          "rule": "All data transformations must have data quality checks (row counts, null checks, schema validation)",
+          "severity": "high"
+        },
+        {
+          "id": "DATA-3",
+          "rule": "PII data must be masked or encrypted in non-production environments",
+          "severity": "critical"
+        }
+      ],
+      "maturity_weight": 1.1
+    },
+    "ml-project": {
+      "display": "Machine Learning Project",
+      "description": "ML model training, evaluation, and serving",
+      "signals": {
+        "file_patterns": [
+          "models/**", "training/**", "inference/**",
+          "experiments/**", "notebooks/**",
+          "*.ipynb", "*.pkl", "*.pt", "*.h5",
+          "MLproject", "conda.yml",
+          "serving/**", "predict/**"
+        ],
+        "manifest_fields": {
+          "pyproject.toml": ["torch", "tensorflow", "scikit-learn", "transformers", "mlflow", "wandb"],
+          "requirements.txt": ["torch", "tensorflow", "scikit-learn", "transformers"]
+        },
+        "negative_signals": [],
+        "heuristics": [
+          "Has training scripts with model definitions",
+          "Has Jupyter notebooks with experiments",
+          "Heavy use of numpy, pandas, torch, tensorflow",
+          "Has MLflow or W&B integration"
+        ]
+      },
+      "extra_sections": {
+        "Model Registry": {
+          "description": "Where models are stored and versioned",
+          "template": "Models are tracked in MLflow/W&B. Production models are stored in <registry>."
+        },
+        "Experiment Tracking": {
+          "description": "How to track and compare experiments",
+          "template": "Use MLflow/W&B for experiment tracking. All experiments must log metrics, parameters, and artifacts."
+        },
+        "Data Requirements": {
+          "description": "Training data sources and preprocessing steps",
+          "template": "See data/ directory for dataset documentation and preprocessing scripts."
+        }
+      },
+      "skip_sections": ["Browser Support", "API Documentation"],
+      "extra_invariants": [
+        {
+          "id": "ML-1",
+          "rule": "All experiments must be tracked with reproducible parameters and metrics",
+          "severity": "high"
+        },
+        {
+          "id": "ML-2",
+          "rule": "Model artifacts must be versioned — no overwriting production models",
+          "severity": "critical"
+        },
+        {
+          "id": "ML-3",
+          "rule": "Training data must never leak into test/validation sets",
+          "severity": "critical"
+        }
+      ],
+      "maturity_weight": 1.3
+    },
+    "mobile-app": {
+      "display": "Mobile Application",
+      "description": "iOS, Android, or cross-platform mobile app",
+      "signals": {
+        "file_patterns": [
+          "android/**", "ios/**",
+          "*.xcodeproj", "*.xcworkspace",
+          "AndroidManifest.xml",
+          "lib/**/*.dart", "pubspec.yaml",
+          "App.tsx", "App.js",
+          "app.json", "eas.json"
+        ],
+        "manifest_fields": {
+          "package.json": ["react-native", "expo"],
+          "pubspec.yaml": ["flutter"]
+        },
+        "negative_signals": [],
+        "heuristics": [
+          "Has android/ and ios/ directories",
+          "Has React Native or Flutter configuration",
+          "Has Xcode project files",
+          "Has AndroidManifest.xml"
+        ]
+      },
+      "extra_sections": {
+        "Build & Release": {
+          "description": "How to build and release the app",
+          "template": "```bash\n# iOS build\n# Android build\n# Release to stores\n```"
+        },
+        "Device Testing": {
+          "description": "How to test on devices and simulators",
+          "template": "Test on physical devices before release. Minimum OS versions: iOS 15+, Android 10+."
+        }
+      },
+      "skip_sections": ["Browser Support"],
+      "extra_invariants": [
+        {
+          "id": "MOB-1",
+          "rule": "No API keys or secrets in client-side code — use server-side token exchange",
+          "severity": "critical"
+        },
+        {
+          "id": "MOB-2",
+          "rule": "All network calls must handle offline state gracefully",
+          "severity": "high"
+        },
+        {
+          "id": "MOB-3",
+          "rule": "Sensitive data must use platform secure storage (Keychain/Keystore) — not SharedPreferences/UserDefaults",
+          "severity": "critical"
+        }
+      ],
+      "maturity_weight": 1.1
+    },
+    "infrastructure": {
+      "display": "Infrastructure / DevOps",
+      "description": "Infrastructure as Code, CI/CD, or platform engineering",
+      "signals": {
+        "file_patterns": [
+          "*.tf", "*.hcl",
+          "ansible/**", "playbooks/**",
+          "helm/**", "charts/**",
+          "k8s/**", "kubernetes/**",
+          "Pulumi.*", "cdk.json",
+          "modules/**/*.tf"
+        ],
+        "manifest_fields": {},
+        "negative_signals": ["src/", "lib/", "app/"],
+        "heuristics": [
+          "Primarily Terraform/HCL files",
+          "Has Ansible playbooks and roles",
+          "Has Helm charts or Kubernetes manifests",
+          "Has Pulumi or CDK configuration"
+        ]
+      },
+      "extra_sections": {
+        "Environment Matrix": {
+          "description": "Mapping of environments and their configurations",
+          "template": "| Environment | Purpose | Access | Region |\n|------------|---------|--------|--------|\n| dev | Development | Team | us-east-1 |\n| staging | Pre-production | Team | us-east-1 |\n| prod | Production | Restricted | us-east-1, eu-west-1 |"
+        },
+        "Runbook": {
+          "description": "Common operational procedures",
+          "template": "See docs/runbook/ for incident response and operational procedures."
+        }
+      },
+      "skip_sections": ["Testing", "API Documentation"],
+      "extra_invariants": [
+        {
+          "id": "INFRA-1",
+          "rule": "All infrastructure changes must go through plan/review before apply — no manual changes",
+          "severity": "critical"
+        },
+        {
+          "id": "INFRA-2",
+          "rule": "All secrets must be managed through a secrets manager — no plaintext secrets in IaC",
+          "severity": "critical"
+        },
+        {
+          "id": "INFRA-3",
+          "rule": "All resources must be tagged with owner, environment, and cost-center",
+          "severity": "medium"
+        }
+      ],
+      "maturity_weight": 0.9
+    },
+    "documentation-site": {
+      "display": "Documentation Site",
+      "description": "Documentation, knowledge base, or static content site",
+      "signals": {
+        "file_patterns": [
+          "docs/**", "content/**",
+          "*.mdx", "docusaurus.config.*",
+          "mkdocs.yml", "book.toml",
+          "vitepress/**", ".vitepress/**",
+          "astro.config.*"
+        ],
+        "manifest_fields": {
+          "package.json": ["@docusaurus/core", "vitepress", "nextra", "starlight"]
+        },
+        "negative_signals": ["src/api/", "routes/", "controllers/"],
+        "heuristics": [
+          "Primarily Markdown/MDX content",
+          "Has documentation framework (Docusaurus, VitePress, MkDocs)",
+          "Has content/ or docs/ as primary directory"
+        ]
+      },
+      "extra_sections": {
+        "Content Guidelines": {
+          "description": "How to write and organize documentation",
+          "template": "Follow the style guide in docs/STYLE_GUIDE.md. Use MDX for interactive components."
+        },
+        "Navigation": {
+          "description": "How the sidebar/navigation is structured",
+          "template": "Navigation is auto-generated from directory structure. Override in sidebar config."
+        }
+      },
+      "skip_sections": ["Testing", "API Documentation", "Authentication", "Deploy"],
+      "extra_invariants": [
+        {
+          "id": "DOCS-1",
+          "rule": "All internal links must be validated — no broken links",
+          "severity": "medium"
+        },
+        {
+          "id": "DOCS-2",
+          "rule": "All code examples must be tested or verified — no stale snippets",
+          "severity": "medium"
+        }
+      ],
+      "maturity_weight": 0.5
+    }
+  },
+  "detection_order": [
+    "monorepo",
+    "infrastructure",
+    "documentation-site",
+    "mobile-app",
+    "ml-project",
+    "data-pipeline",
+    "full-stack",
+    "web-app",
+    "api-service",
+    "cli-tool",
+    "library"
+  ],
+  "detection_notes": "Archetypes are checked in order. First match wins, but monorepo can combine with other archetypes (e.g., monorepo + web-app). The detection_order prioritizes more specific archetypes before generic ones."
+}
