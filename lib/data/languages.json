@@ -393,7 +393,7 @@
     },
     "c": {
       "display": "C",
-      "marker_files": ["CMakeLists.txt", "Makefile", "configure.ac", "meson.build"],
+      "marker_files": ["CMakeLists.txt", "configure.ac", "meson.build"],
       "extensions": [".c", ".h"],
       "package_managers": {
         "cmake": {
@@ -428,7 +428,7 @@
     },
     "cpp": {
       "display": "C++",
-      "marker_files": ["CMakeLists.txt", "Makefile", "conanfile.txt", "vcpkg.json"],
+      "marker_files": ["CMakeLists.txt", "conanfile.txt", "vcpkg.json"],
       "extensions": [".cpp", ".cxx", ".cc", ".hpp", ".hxx", ".hh"],
       "package_managers": {
         "cmake": {

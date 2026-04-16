@@ -2,7 +2,7 @@
 
 > <div align="center">
 
-**Stack:** c / none
+**Stack:** bash / none
 
 ## Build & Test
 
@@ -11,32 +11,32 @@
 NOT_CONFIGURED
 
 # Build
-make
+NOT_CONFIGURED
 
 # Test
 make test
 
 # Lint
-cppcheck --enable=all .
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
 
 # Type check
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
 # Format
-clang-format -i
+NOT_CONFIGURED
 
 ```
 
 ## Architecture
 
-- **Type:** api-service (mature, complex)
+- **Type:** api-service (active, complex)
 - **Key directories:** bin, docs, lib, templates, tests
 
 ## Code Style
 
-- All heap allocations must have corresponding frees — verify with Valgrind or AddressSanitizer
-- All user-facing buffers must use bounds-checked functions (snprintf, strncpy) — no strcpy/sprintf
-- All public headers must use include guards or #pragma once
+- All scripts must pass shellcheck with zero warnings
+- All scripts must start with set -euo pipefail for strict error handling
+- All user-supplied variables must be quoted — no unquoted $VAR expansions
 
 ## Security
 

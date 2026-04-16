@@ -19,10 +19,9 @@ Rules: No secrets in code — use environment variables.
 
 ### Stage 4: VERIFY (after every code change — ALWAYS)
 ```bash
-cppcheck --enable=all .              # Must pass with 0 errors
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck              # Must pass with 0 errors
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n         # Must pass
 make test              # Must pass
-make             # Must compile/build
 ```
 
 > Run `vault/.vault/scripts/vault-tools.sh lint` to verify vault integrity.
@@ -122,6 +121,6 @@ When any file in a domain's key files changes, update the corresponding docs.
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| Authentication & Authorization |  | CLAUDE.md, docs/ |
+| Authentication & Authorization | tools/review-specialists/auth.md | CLAUDE.md, docs/ |
 | API Layer | tools/review-specialists/api.md | CLAUDE.md, docs/ |
 

@@ -1,6 +1,6 @@
 # Architecture Reference — aiframework
 
-> **Stack:** c / none
+> **Stack:** bash / none
 
 
 ## Project Structure
@@ -52,26 +52,26 @@
 
 > Files ranked by architectural importance (how many other files depend on them).
 
-- `lib/indexers/graph.py` (score: 0.0029615384615384616)
-- `lib/indexers/registry.py` (score: 0.0029615384615384616)
 - `lib/indexers/__init__.py` (score: 0.0029615384615384616)
+- `lib/indexers/registry.py` (score: 0.0029615384615384616)
+- `lib/indexers/graph.py` (score: 0.0029615384615384616)
+- `tests/test_indexer.py` (score: 0.002307692307692308)
+- `lib/scanners/archetype.sh` (score: 0.002307692307692308)
+- `lib/indexers/lang_python.py` (score: 0.002307692307692308)
+- `lib/scanners/structure.sh` (score: 0.002307692307692308)
+- `lib/validators/quality_gate.sh` (score: 0.002307692307692308)
 - `lib/indexers/parsers/python.py` (score: 0.002307692307692308)
-- `lib/scanners/identity.sh` (score: 0.002307692307692308)
-- `lib/indexers/lang_bash.py` (score: 0.002307692307692308)
+- `lib/scanners/domain.sh` (score: 0.002307692307692308)
+- `lib/generators/skills.sh` (score: 0.002307692307692308)
+- `lib/generators/preserve.sh` (score: 0.002307692307692308)
+- `run.sh` (score: 0.002307692307692308)
 - `lib/indexers/lang_go.py` (score: 0.002307692307692308)
-- `lib/indexers/lang_rust.py` (score: 0.002307692307692308)
-- `lib/validators/consistency.sh` (score: 0.002307692307692308)
-- `lib/indexers/parsers/go.py` (score: 0.002307692307692308)
-- `lib/freshness/track.sh` (score: 0.002307692307692308)
-- `discover.sh` (score: 0.002307692307692308)
-- `lib/indexers/parse.py` (score: 0.002307692307692308)
-- `lib/generators/agents_md.sh` (score: 0.002307692307692308)
-- `lib/validators/freshness.sh` (score: 0.002307692307692308)
+- `lib/indexers/parsers/ruby.py` (score: 0.002307692307692308)
 
 ## Core Principles
 
 1. Code must pass all configured quality gates before merge
-2. Follow c community conventions and idioms
+2. Follow bash community conventions and idioms
 3. Never commit secrets, credentials, or API keys — use environment variables
 
 ## CI Workflows

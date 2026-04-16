@@ -58,8 +58,8 @@ After marking any feature complete and before pushing:
 - [ ] Documentation updated if needed
 - [ ] No regressions in existing functionality
 
-### C QA Rules
-- All heap allocations must have corresponding frees — verify with Valgrind or AddressSanitizer
-- All user-facing buffers must use bounds-checked functions (snprintf, strncpy) — no strcpy/sprintf
-- All public headers must use include guards or #pragma once
+### Bash QA Rules
+- All scripts must pass shellcheck with zero warnings
+- All scripts must start with set -euo pipefail for strict error handling
+- All user-supplied variables must be quoted — no unquoted $VAR expansions
 

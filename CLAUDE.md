@@ -1,24 +1,18 @@
 # CLAUDE.md — aiframework
 
-> <div align="center">. Stack: c/none.
+> <div align="center">. Stack: bash/none.
 
 ## Commands
 
 ```bash
 # Lint
-cppcheck --enable=all .
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
 
 # Type check
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 
 # Test
 make test
-
-# Build
-make
-
-# Format
-clang-format -i
 
 ```
 
@@ -29,26 +23,27 @@ clang-format -i
 
 ## Architecture
 
-- **Archetype**: api-service (mature, complex)
+- **Archetype**: api-service (active, complex)
 
 ## Key Locations
 
+- **Authentication & Authorization**: tools/review-specialists/auth.md
 - **API Layer**: tools/review-specialists/api.md
 - **Scripts**: `bin/`
 - **Scripts**: `tools/`
 - **CI**: `.github/`
 
 **Most important files** (by dependency rank):
-- `lib/indexers/graph.py`
-- `lib/indexers/registry.py`
 - `lib/indexers/__init__.py`
+- `lib/indexers/registry.py`
+- `lib/indexers/graph.py`
+- `tests/test_indexer.py`
+- `lib/scanners/archetype.sh`
+- `lib/indexers/lang_python.py`
+- `lib/scanners/structure.sh`
+- `lib/validators/quality_gate.sh`
 - `lib/indexers/parsers/python.py`
-- `lib/scanners/identity.sh`
-- `lib/indexers/lang_bash.py`
-- `lib/indexers/lang_go.py`
-- `lib/indexers/lang_rust.py`
-- `lib/validators/consistency.sh`
-- `lib/indexers/parsers/go.py`
+- `lib/scanners/domain.sh`
 
 ## Environment Variables
 
@@ -61,10 +56,6 @@ clang-format -i
 - Lean vs full CLAUDE.md dispatch based on archetype complexity
 - Data registries in lib/data/ are the source of truth for detection
 - Python 3.10+ required, not 3.9+ — match/case syntax used in indexer
-
-## Testing
-
-- **Framework:** make | **Run:** `make test` | **Pattern:** test_*.py / *_test.py | **Files:** 2
 
 ## Makefile
 
@@ -113,7 +104,9 @@ This file auto-evolves. Rules of thumb:
 
 ---
 
-*Generated: 2026-04-16 by aiframework v1.1.0. Run `aiframework refresh` to update. Lean mode (complex).*
+*Generated: 2026-04-17 by aiframework v1.1.0. Run `aiframework refresh` to update. Lean mode (complex).*
+
+
 
 
 

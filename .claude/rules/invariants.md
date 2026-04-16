@@ -11,7 +11,7 @@ Every endpoint accepting user input must validate and sanitize before processing
 ## Project Profile
 
 - **Archetype**: api-service
-- **Maturity**: mature
+- **Maturity**: active
 - **Complexity**: complex
 
 ### Archetype Invariants
@@ -25,7 +25,7 @@ Every endpoint accepting user input must validate and sanitize before processing
 ## Review Specialists
 
 ### Authentication & Authorization
-Trigger paths: 
+Trigger paths: tools/review-specialists/auth.md
 
 - [ ] All protected endpoints have auth middleware
 - [ ] Session tokens are validated on every request
