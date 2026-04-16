@@ -1430,7 +1430,7 @@ lint_hr002_frontmatter() {
 
     if ! has_frontmatter "$file"; then
       log_fail "HR-002: Missing frontmatter: $rel"
-      ((errors++))
+      errors=$((errors + 1))
       continue
     fi
 
@@ -1439,7 +1439,7 @@ lint_hr002_frontmatter() {
       val=$(get_frontmatter_field "$file" "$field")
       if [[ -z "$val" && "$field" != "tags" ]]; then
         log_fail "HR-002: Missing field '$field' in: $rel"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     done
 
@@ -1448,7 +1448,7 @@ lint_hr002_frontmatter() {
     tag_count=$(get_frontmatter_tags "$file" | grep -c . || true)
     if [[ "$tag_count" -eq 0 ]]; then
       log_fail "HR-002: No tags found in: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find "$vault_root/wiki" "$vault_root/memory" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -1477,11 +1477,11 @@ lint_hr003_approved_tags() {
       [[ -z "$tag" ]] && continue
       if ! validate_tag "$tag" "$approved"; then
         log_fail "HR-003: Unapproved tag '$tag' in: $rel"
-        ((errors++))
+        errors=$((errors + 1))
       fi
       if ! validate_tag_format "$tag"; then
         log_fail "HR-003: Invalid tag format '$tag' in: $rel (must be prefix/value)"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     done < <(get_frontmatter_tags "$file")
   done < <(find "$vault_root/wiki" "$vault_root/memory" -name "*.md" -type f -print0 2>/dev/null)
@@ -1506,10 +1506,10 @@ lint_hr004_wiki_length() {
 
     if [[ $lines -gt 400 ]]; then
       log_fail "HR-004: BLOCK — $rel has $lines lines (max 400)"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ $lines -gt 200 ]]; then
       log_warn "HR-004: WARN — $rel has $lines lines (target < 200)"
-      ((warnings++))
+      warnings=$((warnings + 1))
     fi
   done < <(find "$vault_root/wiki" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -1534,7 +1534,7 @@ lint_hr005_code_length() {
 
     if [[ $lines -gt 600 ]]; then
       log_fail "HR-005: BLOCK — $rel has $lines lines (max 600)"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ $lines -gt 400 ]]; then
       log_warn "HR-005: WARN — $rel has $lines lines (target < 400)"
     fi
@@ -1561,7 +1561,7 @@ lint_hr006_unique_titles() {
 
     if [[ -n "${seen_titles[$title]+_}" ]]; then
       log_fail "HR-006: Duplicate title '$title' in: $rel (first seen in: ${seen_titles[$title]})"
-      ((errors++))
+      errors=$((errors + 1))
     else
       seen_titles["$title"]="$rel"
     fi
@@ -1592,7 +1592,7 @@ lint_hr008_index_registration() {
 
     if ! is_indexed "$rel" "$index_file"; then
       log_fail "HR-008: Unregistered page: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find "$vault_root/wiki" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -1613,7 +1613,7 @@ lint_hr010_binary_quarantine() {
       local rel
       rel=$(rel_path "$file" "$vault_root")
       log_fail "HR-010: Non-md/json file in wiki/memory: $rel"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find "$vault_root/wiki" "$vault_root/memory" -type f -print0 2>/dev/null)
 
@@ -1622,7 +1622,7 @@ lint_hr010_binary_quarantine() {
     local rel
     rel=$(rel_path "$link" "$vault_root")
     log_fail "HR-010: Symlink detected in wiki/memory: $rel"
-    ((errors++))
+    errors=$((errors + 1))
   done < <(find "$vault_root/wiki" "$vault_root/memory" -type l -print0 2>/dev/null)
 
   if [[ $errors -eq 0 ]]; then
@@ -1701,17 +1701,17 @@ lint_all() {
   local vault_root="$1"
   local total_errors=0
 
-  lint_hr001_raw_immutability "$vault_root" || ((total_errors++))
-  lint_hr002_frontmatter "$vault_root"      || ((total_errors++))
-  lint_hr003_approved_tags "$vault_root"     || ((total_errors++))
-  lint_hr004_wiki_length "$vault_root"       || ((total_errors++))
-  lint_hr005_code_length "$vault_root"       || ((total_errors++))
-  lint_hr006_unique_titles "$vault_root"     || ((total_errors++))
-  lint_hr008_index_registration "$vault_root"|| ((total_errors++))
-  lint_hr010_binary_quarantine "$vault_root" || ((total_errors++))
-  lint_hr011_vault_protection "$vault_root"  || ((total_errors++))
-  lint_hr012_config_protection "$vault_root" || ((total_errors++))
-  lint_hr014_no_deletion "$vault_root"       || ((total_errors++))
+  lint_hr001_raw_immutability "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr002_frontmatter "$vault_root"      || total_errors=$((total_errors + 1))
+  lint_hr003_approved_tags "$vault_root"     || total_errors=$((total_errors + 1))
+  lint_hr004_wiki_length "$vault_root"       || total_errors=$((total_errors + 1))
+  lint_hr005_code_length "$vault_root"       || total_errors=$((total_errors + 1))
+  lint_hr006_unique_titles "$vault_root"     || total_errors=$((total_errors + 1))
+  lint_hr008_index_registration "$vault_root"|| total_errors=$((total_errors + 1))
+  lint_hr010_binary_quarantine "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr011_vault_protection "$vault_root"  || total_errors=$((total_errors + 1))
+  lint_hr012_config_protection "$vault_root" || total_errors=$((total_errors + 1))
+  lint_hr014_no_deletion "$vault_root"       || total_errors=$((total_errors + 1))
 
   return $total_errors
 }
@@ -1830,7 +1830,7 @@ cmd_validate() {
       log_pass "Field present: $field"
     else
       log_fail "Missing required field: $field"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done
 
@@ -1849,12 +1849,12 @@ cmd_validate() {
         log_pass "  Tag OK: $tag"
       else
         log_fail "  Unapproved tag: $tag"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     done < <(get_frontmatter_tags "$file")
   else
     log_fail "No tags found"
-    ((errors++))
+    errors=$((errors + 1))
   fi
 
   # Check line count
@@ -1862,7 +1862,7 @@ cmd_validate() {
   lines=$(count_lines "$file")
   if [[ $lines -gt 400 ]]; then
     log_fail "Line count: $lines (BLOCK limit: 400)"
-    ((errors++))
+    errors=$((errors + 1))
   elif [[ $lines -gt 200 ]]; then
     log_warn "Line count: $lines (WARN limit: 200)"
   else
@@ -1910,7 +1910,7 @@ cmd_orphans() {
 
     if ! echo "$index_content" | grep -qF "$rel"; then
       log_warn "Orphan (not in index): $rel"
-      ((orphan_count++))
+      orphan_count=$((orphan_count + 1))
     fi
   done < <(find "$WIKI_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -1930,7 +1930,7 @@ cmd_orphans() {
 
     if ! echo "$all_links" | grep -qxF "$slug"; then
       log_warn "No inbound links: $slug ($(rel_path "$file" "$VAULT_ROOT"))"
-      ((orphan_count++))
+      orphan_count=$((orphan_count + 1))
     fi
   done < <(find "$WIKI_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -1979,7 +1979,7 @@ cmd_stale() {
       local updated
       updated=$(get_frontmatter_field "$file" "updated")
       log_warn "STALE: $rel — ${age}d old (max: ${max_age}d, updated: ${updated:-unknown})"
-      ((stale_count++))
+      stale_count=$((stale_count + 1))
     fi
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -2021,11 +2021,11 @@ cmd_tag_audit() {
 "
       if ! validate_tag "$tag" "$approved"; then
         log_fail "Unapproved: '$tag' in $rel"
-        ((invalid_count++))
+        invalid_count=$((invalid_count + 1))
       fi
       if ! validate_tag_format "$tag"; then
         log_fail "Bad format: '$tag' in $rel"
-        ((invalid_count++))
+        invalid_count=$((invalid_count + 1))
       fi
     done < <(get_frontmatter_tags "$file")
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" -name "*.md" -type f -print0 2>/dev/null)
@@ -2043,7 +2043,7 @@ cmd_tag_audit() {
   local unused_count=0
   while IFS= read -r tag; do
     if ! echo "$used_tags" | grep -qxF "$tag"; then
-      ((unused_count++))
+      unused_count=$((unused_count + 1))
     fi
   done <<< "$approved"
   log_info "$unused_count approved tags are not yet in use"
@@ -2098,7 +2098,7 @@ cmd_content_audit() {
     for i in "${!patterns[@]}"; do
       if echo "$content" | grep -qP "${patterns[$i]}" 2>/dev/null; then
         log_fail "${pattern_names[$i]} in: $rel"
-        ((issues++))
+        issues=$((issues + 1))
       fi
     done
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" "$VAULT_ROOT/raw" -name "*.md" -type f -print0 2>/dev/null)
@@ -2124,7 +2124,7 @@ cmd_status() {
   for dir in "${dirs[@]}"; do
     if [[ ! -d "$VAULT_ROOT/$dir" ]]; then
       log_fail "Missing: $dir/"
-      ((missing++))
+      missing=$((missing + 1))
     fi
   done
 
@@ -2182,9 +2182,9 @@ cmd_stats() {
   done
   local special=0
   for f in index.md log.md; do
-    [[ -f "$WIKI_DIR/$f" ]] && ((special++))
+    [[ -f "$WIKI_DIR/$f" ]] && special=$((special + 1))
   done
-  [[ -f "$MEMORY_DIR/status.md" ]] && ((special++))
+  [[ -f "$MEMORY_DIR/status.md" ]] && special=$((special + 1))
   echo "  Special files: $special"
   echo "  Total: $((total + special))"
 
@@ -2219,7 +2219,7 @@ cmd_stats() {
     local wl
     wl=$(count_wikilinks "$file")
     total_links=$((total_links + wl))
-    ((total_pages++))
+    total_pages=$((total_pages + 1))
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
   if [[ $total_pages -gt 0 ]]; then
@@ -2337,15 +2337,15 @@ cmd_doctor() {
   echo ""
 
   echo ">>> Lint (all hard rules)"
-  cmd_lint || ((issues++))
+  cmd_lint || issues=$((issues + 1))
   echo ""
 
   echo ">>> Tag Audit"
-  cmd_tag_audit || ((issues++))
+  cmd_tag_audit || issues=$((issues + 1))
   echo ""
 
   echo ">>> Content Audit"
-  cmd_content_audit || ((issues++))
+  cmd_content_audit || issues=$((issues + 1))
   echo ""
 
   echo ">>> Orphan Check"
@@ -2462,7 +2462,7 @@ raw_changes=$(git diff --cached --name-only -- "vault/raw/" 2>/dev/null || true)
 if [[ -n "$raw_changes" ]]; then
   log_fail "HR-001: Cannot modify files in raw/ (immutable)"
   echo "$raw_changes" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-001: raw/ immutability"
 fi
@@ -2476,7 +2476,7 @@ if [[ -n "$staged_md" ]]; then
       first_line=$(head -1 "$file")
       if [[ "$first_line" != "---" ]]; then
         log_fail "HR-002: Missing YAML frontmatter in: $file"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     fi
   done <<< "$staged_md"
@@ -2496,7 +2496,7 @@ if type -t lint_hr003_approved_tags &>/dev/null && [[ -n "$staged_md" ]]; then
         [[ -z "$tag" ]] && continue
         if ! validate_tag "$tag" "$approved"; then
           log_fail "HR-003: Unapproved tag '$tag' in: $file"
-          ((tag_errors++))
+          tag_errors=$((tag_errors + 1))
         fi
       done < <(get_frontmatter_tags "$file")
     done <<< "$staged_md"
@@ -2520,7 +2520,7 @@ if [[ -n "$new_wiki" ]]; then
         # Also check staged version of index
         if ! git diff --cached -- "$index_file" 2>/dev/null | grep -qF "$rel"; then
           log_fail "HR-008: New file not in index: $rel"
-          ((errors++))
+          errors=$((errors + 1))
         fi
       fi
     done <<< "$new_wiki"
@@ -2535,7 +2535,7 @@ vault_changes=$(git diff --cached --name-only -- "vault/.vault/rules/" "vault/.v
 if [[ -n "$vault_changes" ]]; then
   log_fail "HR-011: Changes to protected .vault/ paths require human review:"
   echo "$vault_changes" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-011: .vault/ protection intact"
 fi
@@ -2545,7 +2545,7 @@ config_changes=$(git diff --cached --name-only -- "CLAUDE.md" "AGENTS.md" ".clau
 if [[ -n "$config_changes" ]]; then
   log_fail "HR-012: Changes to agent config files require human review:"
   echo "$config_changes" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-012: Agent config protection intact"
 fi
@@ -2562,7 +2562,7 @@ vault_deletions=$(git diff --cached --diff-filter=D --name-only -- "vault/" 2>/d
 if [[ -n "$vault_deletions" ]]; then
   log_fail "HR-014: File deletions not allowed (use status: archived instead):"
   echo "$vault_deletions" | sed 's/^/  /'
-  ((errors++))
+  errors=$((errors + 1))
 else
   log_pass "HR-014: No file deletions"
 fi

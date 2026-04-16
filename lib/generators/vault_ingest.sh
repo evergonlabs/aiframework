@@ -34,7 +34,7 @@ vault_auto_ingest() {
     # Copy to raw/ (immutable deposit)
     if [[ ! -f "$raw_dest" ]]; then
       cp "$src" "$raw_dest"
-      ((ingested++))
+      ingested=$((ingested + 1))
 
       # Create source summary in wiki/sources/
       local title
@@ -130,7 +130,7 @@ Auto-generated analysis of **${name}** (${lang}/${fw}, ${files} files).
 - [[project-overview]]
 - [[tech-stack]]
 MANSRCEOF
-    ((ingested++))
+    ingested=$((ingested + 1))
   fi
 
   # Update index.md with new source pages

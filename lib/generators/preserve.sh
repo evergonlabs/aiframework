@@ -38,7 +38,7 @@ _backup_file() {
     local norm_file norm_target
     norm_file=$(cd "$(dirname "$file")" 2>/dev/null && echo "$(pwd)/$(basename "$file")" || echo "$file")
     norm_target=$(cd "$TARGET_DIR" 2>/dev/null && pwd || echo "$TARGET_DIR")
-    local rel="${norm_file#$norm_target/}"
+    local rel="${norm_file#"$norm_target"/}"
     local backup_path="$_PRESERVE_BACKUP_DIR/$rel"
     mkdir -p "$(dirname "$backup_path")"
     cp "$file" "$backup_path"

@@ -109,11 +109,11 @@ _store_user_context() {
     }')
 
   local filled=0
-  [[ "$production_url" != "null" ]] && ((filled++))
-  [[ "$active_workstream" != "null" ]] && ((filled++))
-  [[ "$credentials_location" != "null" ]] && ((filled++))
-  [[ "$team_conventions" != "null" ]] && ((filled++))
-  [[ "$known_pitfalls" != "null" ]] && ((filled++))
+  [[ "$production_url" != "null" ]] && filled=$((filled + 1))
+  [[ "$active_workstream" != "null" ]] && filled=$((filled + 1))
+  [[ "$credentials_location" != "null" ]] && filled=$((filled + 1))
+  [[ "$team_conventions" != "null" ]] && filled=$((filled + 1))
+  [[ "$known_pitfalls" != "null" ]] && filled=$((filled + 1))
 
   log_ok "User context: $filled/5 fields populated"
 }

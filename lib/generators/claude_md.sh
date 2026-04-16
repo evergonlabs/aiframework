@@ -263,7 +263,7 @@ CLAUDEMD
           echo "- **INV-${inv_num}**: Sandbox isolation for code execution"
           ;;
       esac
-      ((inv_num++)) || true
+      inv_num=$((inv_num + 1))
     done >> "$out"
   fi
 
@@ -658,25 +658,25 @@ _emit_project_identity() {
     while IFS= read -r principle; do
       [[ -z "$principle" ]] && continue
       echo "${cp_num}. ${principle}" >> "$out"
-      ((cp_num++)) || true
+      cp_num=$((cp_num + 1))
     done <<< "$core_principles"
   else
     echo "*Core principles will emerge as the project matures. Add principles here when patterns are established.*" >> "$out"
     echo "" >> "$out"
     local cp_num=1
     echo "${cp_num}. Code must pass all configured quality gates before merge" >> "$out"
-    ((cp_num++)) || true
+    cp_num=$((cp_num + 1))
     if [[ -n "$lang" && "$lang" != "unknown" ]]; then
       echo "${cp_num}. Follow ${lang} community conventions and idioms" >> "$out"
-      ((cp_num++)) || true
+      cp_num=$((cp_num + 1))
     else
       echo "${cp_num}. Keep scripts simple, readable, and well-documented" >> "$out"
-      ((cp_num++)) || true
+      cp_num=$((cp_num + 1))
     fi
     # Ensure at least 3 core principles
     if [[ "$cp_num" -lt 4 ]]; then
       echo "${cp_num}. Never commit secrets, credentials, or API keys — use environment variables" >> "$out"
-      ((cp_num++)) || true
+      cp_num=$((cp_num + 1))
     fi
   fi
 
@@ -1471,7 +1471,7 @@ _emit_invariants_and_config() {
           echo ""
           ;;
       esac
-      ((inv_num++)) || true
+      inv_num=$((inv_num + 1))
     done >> "$out"
   else
     echo "*No invariants discovered yet. As the project matures, invariants will be added here when patterns emerge. Use \`/learn\` to capture rules as they are discovered.*" >> "$out"
@@ -1497,7 +1497,7 @@ _emit_invariants_and_config() {
     echo "> *The following invariants were discovered by AI-powered enhancement:*" >> "$out"
     echo "" >> "$out"
     while IFS= read -r inv_line; do
-      ((inv_count++)) || true
+      inv_count=$((inv_count + 1))
       local inv_title="${inv_line%%:*}"
       local inv_desc="${inv_line#*: }"
       echo "### INV-${inv_count}: ${inv_title}" >> "$out"

@@ -261,7 +261,7 @@ validate_consistency() {
       local var_name
       var_name=$(echo "$m" | jq -r ".env.variables[$i].name // empty" 2>/dev/null)
       [[ -z "$var_name" ]] && continue
-      ((env_checked++))
+      env_checked=$((env_checked + 1))
 
       local found_in_file=false
       # Check .env.example
@@ -286,7 +286,7 @@ validate_consistency() {
       fi
 
       if ! $found_in_file; then
-        ((env_missing++))
+        env_missing=$((env_missing + 1))
         missing_vars="${missing_vars:+$missing_vars, }$var_name"
       fi
     done

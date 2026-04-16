@@ -104,7 +104,7 @@ cmd_validate() {
       log_pass "Field present: $field"
     else
       log_fail "Missing required field: $field"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done
 
@@ -123,12 +123,12 @@ cmd_validate() {
         log_pass "  Tag OK: $tag"
       else
         log_fail "  Unapproved tag: $tag"
-        ((errors++))
+        errors=$((errors + 1))
       fi
     done < <(get_frontmatter_tags "$file")
   else
     log_fail "No tags found"
-    ((errors++))
+    errors=$((errors + 1))
   fi
 
   # Check line count
@@ -136,7 +136,7 @@ cmd_validate() {
   lines=$(count_lines "$file")
   if [[ $lines -gt 400 ]]; then
     log_fail "Line count: $lines (BLOCK limit: 400)"
-    ((errors++))
+    errors=$((errors + 1))
   elif [[ $lines -gt 200 ]]; then
     log_warn "Line count: $lines (WARN limit: 200)"
   else
@@ -184,7 +184,7 @@ cmd_orphans() {
 
     if ! echo "$index_content" | grep -qF "$rel"; then
       log_warn "Orphan (not in index): $rel"
-      ((orphan_count++))
+      orphan_count=$((orphan_count + 1))
     fi
   done < <(find "$WIKI_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -204,7 +204,7 @@ cmd_orphans() {
 
     if ! echo "$all_links" | grep -qxF "$slug"; then
       log_warn "No inbound links: $slug ($(rel_path "$file" "$VAULT_ROOT"))"
-      ((orphan_count++))
+      orphan_count=$((orphan_count + 1))
     fi
   done < <(find "$WIKI_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -253,7 +253,7 @@ cmd_stale() {
       local updated
       updated=$(get_frontmatter_field "$file" "updated")
       log_warn "STALE: $rel — ${age}d old (max: ${max_age}d, updated: ${updated:-unknown})"
-      ((stale_count++))
+      stale_count=$((stale_count + 1))
     fi
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
@@ -295,11 +295,11 @@ cmd_tag_audit() {
 "
       if ! validate_tag "$tag" "$approved"; then
         log_fail "Unapproved: '$tag' in $rel"
-        ((invalid_count++))
+        invalid_count=$((invalid_count + 1))
       fi
       if ! validate_tag_format "$tag"; then
         log_fail "Bad format: '$tag' in $rel"
-        ((invalid_count++))
+        invalid_count=$((invalid_count + 1))
       fi
     done < <(get_frontmatter_tags "$file")
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" -name "*.md" -type f -print0 2>/dev/null)
@@ -317,7 +317,7 @@ cmd_tag_audit() {
   local unused_count=0
   while IFS= read -r tag; do
     if ! echo "$used_tags" | grep -qxF "$tag"; then
-      ((unused_count++))
+      unused_count=$((unused_count + 1))
     fi
   done <<< "$approved"
   log_info "$unused_count approved tags are not yet in use"
@@ -372,7 +372,7 @@ cmd_content_audit() {
     for i in "${!patterns[@]}"; do
       if echo "$content" | grep -qP "${patterns[$i]}" 2>/dev/null; then
         log_fail "${pattern_names[$i]} in: $rel"
-        ((issues++))
+        issues=$((issues + 1))
       fi
     done
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" "$VAULT_ROOT/raw" -name "*.md" -type f -print0 2>/dev/null)
@@ -398,7 +398,7 @@ cmd_status() {
   for dir in "${dirs[@]}"; do
     if [[ ! -d "$VAULT_ROOT/$dir" ]]; then
       log_fail "Missing: $dir/"
-      ((missing++))
+      missing=$((missing + 1))
     fi
   done
 
@@ -456,9 +456,9 @@ cmd_stats() {
   done
   local special=0
   for f in index.md log.md; do
-    [[ -f "$WIKI_DIR/$f" ]] && ((special++))
+    [[ -f "$WIKI_DIR/$f" ]] && special=$((special + 1))
   done
-  [[ -f "$MEMORY_DIR/status.md" ]] && ((special++))
+  [[ -f "$MEMORY_DIR/status.md" ]] && special=$((special + 1))
   echo "  Special files: $special"
   echo "  Total: $((total + special))"
 
@@ -493,7 +493,7 @@ cmd_stats() {
     local wl
     wl=$(count_wikilinks "$file")
     total_links=$((total_links + wl))
-    ((total_pages++))
+    total_pages=$((total_pages + 1))
   done < <(find "$WIKI_DIR" "$MEMORY_DIR" -name "*.md" -type f -print0 2>/dev/null)
 
   if [[ $total_pages -gt 0 ]]; then
@@ -611,15 +611,15 @@ cmd_doctor() {
   echo ""
 
   echo ">>> Lint (all hard rules)"
-  cmd_lint || ((issues++))
+  cmd_lint || issues=$((issues + 1))
   echo ""
 
   echo ">>> Tag Audit"
-  cmd_tag_audit || ((issues++))
+  cmd_tag_audit || issues=$((issues + 1))
   echo ""
 
   echo ">>> Content Audit"
-  cmd_content_audit || ((issues++))
+  cmd_content_audit || issues=$((issues + 1))
   echo ""
 
   echo ">>> Orphan Check"

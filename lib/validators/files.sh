@@ -9,12 +9,12 @@ report_row() {
 
   local status_color
   case "$status" in
-    PASS)  status_color="${GREEN}PASS${NC}" ; ((passed++)) ;;
-    FAIL)  status_color="${RED}FAIL${NC}"   ; ((failed++)) ;;
-    WARN)  status_color="${YELLOW}WARN${NC}" ; ((warnings++)) ;;
+    PASS)  status_color="${GREEN}PASS${NC}" ; passed=$((passed + 1)) ;;
+    FAIL)  status_color="${RED}FAIL${NC}"   ; failed=$((failed + 1)) ;;
+    WARN)  status_color="${YELLOW}WARN${NC}" ; warnings=$((warnings + 1)) ;;
     SKIP)  status_color="${BLUE}SKIP${NC}"  ;;
   esac
-  ((total_checks++))
+  total_checks=$((total_checks + 1))
 
   printf "│ %-28s │ %-17b │ %-27s │\n" "$check" "$status_color" "$details"
 }
@@ -50,7 +50,7 @@ validate_files() {
 
   for f in "${expected_files[@]}"; do
     if [[ -f "$TARGET_DIR/$f" ]]; then
-      ((found++))
+      found=$((found + 1))
     else
       report_row "$f" "FAIL" "File missing"
     fi
@@ -66,7 +66,7 @@ validate_files() {
   local dir_found=0
   local dir_total=${#expected_dirs[@]}
   for d in "${expected_dirs[@]}"; do
-    [[ -d "$TARGET_DIR/$d" ]] && ((dir_found++))
+    [[ -d "$TARGET_DIR/$d" ]] && dir_found=$((dir_found + 1))
   done
 
   if [[ $dir_found -eq $dir_total ]]; then
@@ -224,7 +224,7 @@ validate_files() {
   local vault_found=0
   local vault_total=${#vault_dirs[@]}
   for vd in "${vault_dirs[@]}"; do
-    [[ -d "$TARGET_DIR/$vd" ]] && ((vault_found++))
+    [[ -d "$TARGET_DIR/$vd" ]] && vault_found=$((vault_found + 1))
   done
 
   if [[ $vault_found -eq $vault_total ]]; then
@@ -247,7 +247,7 @@ validate_files() {
   local vf_found=0
   local vf_total=${#vault_files[@]}
   for vf in "${vault_files[@]}"; do
-    [[ -f "$TARGET_DIR/$vf" ]] && ((vf_found++))
+    [[ -f "$TARGET_DIR/$vf" ]] && vf_found=$((vf_found + 1))
   done
 
   if [[ $vf_found -eq $vf_total ]]; then

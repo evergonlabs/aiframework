@@ -155,9 +155,9 @@ SKIPDOC
   # Count gates
   local gate_num=0
   local total_gates=0
-  [[ "$lint_cmd" != "NOT_CONFIGURED" ]] && ((total_gates++))
-  [[ "$test_cmd" != "NOT_CONFIGURED" ]] && ((total_gates++))
-  [[ "$build_cmd" != "NOT_CONFIGURED" ]] && ((total_gates++))
+  [[ "$lint_cmd" != "NOT_CONFIGURED" ]] && total_gates=$((total_gates + 1))
+  [[ "$test_cmd" != "NOT_CONFIGURED" ]] && total_gates=$((total_gates + 1))
+  [[ "$build_cmd" != "NOT_CONFIGURED" ]] && total_gates=$((total_gates + 1))
 
   cat > "$TARGET_DIR/.githooks/pre-push" << PREPUSH_HEAD
 #!/bin/bash
@@ -188,7 +188,7 @@ PREPUSH_HEAD
 
   # Add gates
   if [[ "$lint_cmd" != "NOT_CONFIGURED" ]]; then
-    ((gate_num++))
+    gate_num=$((gate_num + 1))
     # Extract core lint tool for availability check
     local lint_tool
     lint_tool=$(echo "$lint_cmd" | grep -oE 'shellcheck|eslint|ruff|clippy|golangci-lint|rubocop' | head -1)
@@ -224,7 +224,7 @@ GATE
   fi
 
   if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
-    ((gate_num++))
+    gate_num=$((gate_num + 1))
     cat >> "$TARGET_DIR/.githooks/pre-push" << GATE
 # Gate ${gate_num}: Test
 echo "  [${gate_num}/${total_gates}] Testing..."
@@ -240,7 +240,7 @@ GATE
   fi
 
   if [[ "$build_cmd" != "NOT_CONFIGURED" ]]; then
-    ((gate_num++))
+    gate_num=$((gate_num + 1))
     cat >> "$TARGET_DIR/.githooks/pre-push" << GATE
 # Gate ${gate_num}: Build
 echo "  [${gate_num}/${total_gates}] Building..."

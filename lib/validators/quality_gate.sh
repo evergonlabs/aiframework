@@ -122,7 +122,7 @@ validate_quality_gate() {
         break
       fi
       if $in_key_locations && [[ "$line" =~ ^-[[:space:]]\*\* ]]; then
-        ((key_loc_count++))
+        key_loc_count=$((key_loc_count + 1))
       fi
     done < "$TARGET_DIR/CLAUDE.md"
 

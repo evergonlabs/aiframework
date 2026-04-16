@@ -132,7 +132,7 @@ SKILLMD
         echo ""
         ;;
     esac
-    ((inv_num++)) || true
+    inv_num=$((inv_num + 1))
   done >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
 
   # Count how many INV- entries were written and ensure at least 2

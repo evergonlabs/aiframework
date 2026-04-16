@@ -319,25 +319,25 @@ cmd_generate() {
   local generated=0
 
   log_step "1/7 Generating CLAUDE.md"
-  generate_claude_md && ((generated++)) || true
+  generate_claude_md && generated=$((generated + 1)) || true
 
   log_step "2/7 Generating git hooks"
-  generate_hooks && ((generated++)) || true
+  generate_hooks && generated=$((generated + 1)) || true
 
   log_step "3/7 Generating CI workflow"
-  generate_ci && ((generated++)) || true
+  generate_ci && generated=$((generated + 1)) || true
 
   log_step "4/7 Generating custom skills"
-  generate_skills && ((generated++)) || true
+  generate_skills && generated=$((generated + 1)) || true
 
   log_step "5/7 Generating documentation scaffold"
-  generate_docs && ((generated++)) || true
+  generate_docs && generated=$((generated + 1)) || true
 
   log_step "6/7 Generating tracking files"
-  generate_tracking && ((generated++)) || true
+  generate_tracking && generated=$((generated + 1)) || true
 
   log_step "7/7 Generating agentic memory vault"
-  generate_vault && ((generated++)) || true
+  generate_vault && generated=$((generated + 1)) || true
 
   echo ""
   log_ok "Generated $generated/7 file groups"
