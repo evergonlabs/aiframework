@@ -46,8 +46,8 @@ bridge_jsonl_to_sheal() {
       category=$(printf '%s' "$line" | jq -r '.category // "pattern"' 2>/dev/null)
       detail=$(printf '%s' "$line" | jq -r '.detail // ""' 2>/dev/null)
 
-      # Check for duplicates by searching title: field specifically (not body)
-      if grep -rqF -- "title: ${summary}" "$sheal_dir" 2>/dev/null; then
+      # Check for duplicates by searching quoted title field (matches written format)
+      if grep -rqF -- "title: \"${summary}\"" "$sheal_dir" 2>/dev/null; then
         continue
       fi
 
@@ -229,7 +229,7 @@ bridge_retros_to_vault() {
     local tmp_status
     tmp_status=$(mktemp "$(dirname "$vault_status")/.status.XXXXXX" 2>/dev/null || mktemp)
     # Trap to clean up temp file on failure
-    trap "rm -f \"$tmp_status\"" RETURN
+    trap 'rm -f "$tmp_status"' RETURN
 
     awk '
       /^## Recent Retro Insights$/ { skip=1; next }
