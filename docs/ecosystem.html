@@ -8,54 +8,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #ffffff;
-    --surface: #f7f8fa;
-    --surface2: #eef0f4;
-    --border: #dfe2e8;
-    --text: #1a1a2e;
-    --muted: #5c6370;
-    --accent: #5b21b6;
-    --accent-soft: #ede9fe;
-    --green: #047857;
-    --green-soft: #ecfdf5;
-    --blue: #1d4ed8;
-    --blue-soft: #eff6ff;
-    --amber: #b45309;
-    --amber-soft: #fffbeb;
-    --rose: #be123c;
-    --rose-soft: #fff1f2;
+    --bg: #0c0c10;
+    --surface: #141418;
+    --surface2: #1c1c24;
+    --border: #2a2a36;
+    --text: #e8e8f0;
+    --muted: #8b8ba0;
+    --accent: #a78bfa;
+    --accent-soft: rgba(167,139,250,0.12);
+    --green: #34d399;
+    --green-soft: rgba(52,211,153,0.1);
+    --blue: #60a5fa;
+    --blue-soft: rgba(96,165,250,0.1);
+    --amber: #fbbf24;
+    --amber-soft: rgba(251,191,36,0.1);
+    --rose: #fb7185;
+    --rose-soft: rgba(251,113,133,0.1);
     --radius: 10px;
     --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-    --shadow: 0 2px 8px rgba(0,0,0,0.06);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0c0c10;
-      --surface: #141418;
-      --surface2: #1c1c24;
-      --border: #2a2a36;
-      --text: #e8e8f0;
-      --muted: #8b8ba0;
-      --accent: #a78bfa;
-      --accent-soft: rgba(167,139,250,0.12);
-      --green: #34d399;
-      --green-soft: rgba(52,211,153,0.1);
-      --blue: #60a5fa;
-      --blue-soft: rgba(96,165,250,0.1);
-      --amber: #fbbf24;
-      --amber-soft: rgba(251,191,36,0.1);
-      --rose: #fb7185;
-      --rose-soft: rgba(251,113,133,0.1);
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
-      --shadow: 0 2px 8px rgba(0,0,0,0.3);
-      --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
-    }
-    nav { background: rgba(12,12,16,0.92); }
-    pre { background: #1a1a28; }
-    .tbl th { background: var(--surface2); }
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
@@ -68,7 +42,7 @@
   .w { max-width: 980px; margin: 0 auto; padding: 0 24px; }
 
   /* Nav */
-  nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 0; }
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(12,12,16,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 0; }
   nav .w { display: flex; align-items: center; justify-content: space-between; }
   nav .logo { font-family: var(--mono); font-weight: 700; font-size: 1rem; color: var(--accent); letter-spacing: -0.02em; }
   nav .logo span { color: var(--muted); font-weight: 400; }
