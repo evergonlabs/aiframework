@@ -31,6 +31,32 @@
     --shadow: 0 2px 8px rgba(0,0,0,0.06);
     --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
   }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0c10;
+      --surface: #141418;
+      --surface2: #1c1c24;
+      --border: #2a2a36;
+      --text: #e8e8f0;
+      --muted: #8b8ba0;
+      --accent: #a78bfa;
+      --accent-soft: rgba(167,139,250,0.12);
+      --green: #34d399;
+      --green-soft: rgba(52,211,153,0.1);
+      --blue: #60a5fa;
+      --blue-soft: rgba(96,165,250,0.1);
+      --amber: #fbbf24;
+      --amber-soft: rgba(251,191,36,0.1);
+      --rose: #fb7185;
+      --rose-soft: rgba(251,113,133,0.1);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+      --shadow: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    nav { background: rgba(12,12,16,0.92); }
+    pre { background: #1a1a28; }
+    .tbl th { background: var(--surface2); }
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
   a { color: var(--accent); text-decoration: none; }
@@ -338,7 +364,7 @@ git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gsta
   <div class="w">
     <div class="tag-label">// status</div>
     <h2 class="sec-title">Production readiness</h2>
-    <p class="sec-desc">335 independent expert reviews across 6 audit rounds. 90 automated tests. Here is what is verified and what still needs community testing.</p>
+    <p class="sec-desc">Extensively self-tested with automated checks passing. Here is what is verified and what still needs community testing.</p>
 
     <div class="status-box">
       <h3>Current Status</h3>
