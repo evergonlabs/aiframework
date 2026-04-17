@@ -463,7 +463,7 @@ LEARNMD
   local agents_file="$TARGET_DIR/AGENTS.md"
   if [[ ! -f "$agents_file" ]]; then
     local _agents_desc
-    _agents_desc=$(echo "$m" | jq -r '.identity.description // ""')
+    _agents_desc=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.identity.description // ""')")
     if [[ "$_agents_desc" == "NOT_FOUND" || "$_agents_desc" == "No description" || -z "$_agents_desc" ]]; then
       _agents_desc="${name} — ${lang} project"
     fi
@@ -488,7 +488,7 @@ LEARNMD
 
       # 2. Testing
       local _test_fw
-      _test_fw=$(echo "$m" | jq -r '.quality.test_framework.tool // empty')
+      _test_fw=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.quality.test_framework.tool // empty')")
       if [[ -n "$_test_fw" || "$test_cmd" != "NOT_CONFIGURED" ]]; then
         echo "## Testing"
         echo ""
@@ -504,7 +504,7 @@ LEARNMD
       [[ "$fw" != "none" && -n "$fw" ]] && echo "- Use ${fw} patterns and APIs"
       [[ "$lint" != "NOT_CONFIGURED" ]] && echo "- Lint: \`${lint}\`"
       local _fmt
-      _fmt=$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')
+      _fmt=$(_sanitize_manifest_val "$(echo "$m" | jq -r '.commands.format // "NOT_CONFIGURED"')")
       [[ "$_fmt" != "NOT_CONFIGURED" ]] && echo "- Format: \`${_fmt}\`"
       echo ""
 
@@ -625,6 +625,9 @@ LEARNMD
         local mono_hooks=""
         local mono_first=true
         while IFS= read -r app; do
+          [[ -z "$app" ]] && continue
+          # Sanitize app name — allowlist alphanumeric, dash, underscore, dot only
+          app=$(printf '%s' "$app" | tr -dc 'a-zA-Z0-9_.-')
           [[ -z "$app" ]] && continue
           # Check if this app has a tsconfig
           if [[ -f "$TARGET_DIR/apps/${app}/tsconfig.json" || -f "$TARGET_DIR/packages/${app}/tsconfig.json" ]]; then

@@ -76,11 +76,13 @@ bridge_jsonl_to_sheal() {
       num=$(printf "%03d" "$max_num")
       local out_file="$sheal_dir/LEARN-${num}-${slug}.md"
 
-      # Write markdown safely — single-quoted heredoc prevents shell expansion
-      # Then use printf for the variable parts
+      # Write markdown safely using printf (no heredoc, no shell expansion)
+      # Strip newlines from summary to prevent YAML frontmatter injection
+      local safe_summary
+      safe_summary=$(printf '%s' "$summary" | tr -d '\n' | tr -d '\r')
       {
         printf '%s\n' "---"
-        printf 'title: %s\n' "$summary"
+        printf 'title: %s\n' "$safe_summary"
         printf 'category: %s\n' "$sheal_category"
         printf '%s\n' "severity: medium"
         printf '%s\n' "status: active"
@@ -156,8 +158,9 @@ bridge_sheal_to_jsonl() {
       continue
     fi
 
-    # Check for duplicates by fixed-string summary match in JSONL
-    if grep -Fq -- "$title" "$jsonl_file" 2>/dev/null; then
+    # Check for duplicates by searching the summary field specifically
+    if grep -Fq -- "\"summary\":\"${title}\"" "$jsonl_file" 2>/dev/null || \
+       grep -Fq -- "\"summary\": \"${title}\"" "$jsonl_file" 2>/dev/null; then
       continue
     fi
 
@@ -173,8 +176,8 @@ bridge_sheal_to_jsonl() {
 
     [[ -z "$date_val" ]] && date_val=$(date +%Y-%m-%d)
 
-    # Trim trailing whitespace from body using printf (not echo, preserves backslashes)
-    body=$(printf '%s' "$body" | sed 's/[[:space:]]*$//')
+    # Trim trailing whitespace and cap body length (prevent unbounded memory in jq)
+    body=$(printf '%s' "$body" | sed 's/[[:space:]]*$//' | cut -c1-10000)
 
     # Build JSON safely via jq --arg (INV-1 compliant)
     jq -n \
@@ -222,7 +225,7 @@ bridge_retros_to_vault() {
     local tmp_status
     tmp_status=$(mktemp "$(dirname "$vault_status")/.status.XXXXXX" 2>/dev/null || mktemp)
     # Trap to clean up temp file on failure
-    trap "rm -f '$tmp_status'" RETURN
+    trap "rm -f \"$tmp_status\"" RETURN
 
     awk '
       /^## Recent Retro Insights$/ { skip=1; next }
@@ -250,8 +253,8 @@ bridge_retros_to_vault() {
         local retro_name
         retro_name=$(basename "$retro_file" .md)
         printf '### %s\n' "${retro_name}"
-        # Extract key learnings (first 10 lines of body after frontmatter)
-        sed -n '/^---$/,/^---$/!p' "$retro_file" | head -10
+        # Extract key learnings (first 10 lines of body after frontmatter, portable awk)
+        awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print; if(++n>=10) exit}' "$retro_file"
         echo ""
       done <<< "$recent_retros"
     } >> "$vault_status"

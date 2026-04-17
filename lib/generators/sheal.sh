@@ -73,10 +73,14 @@ generate_sheal() {
 
   # --- 3c: Run sheal rules to inject learnings ---
   if command -v sheal &>/dev/null; then
-    if timeout 15 sheal rules --project "$TARGET_DIR" 2>/dev/null; then
+    local _rules_err
+    _rules_err=$(mktemp "${_AIF_TMPDIR:-/tmp}/sheal-rules.XXXXXX" 2>/dev/null || mktemp)
+    if timeout 15 sheal rules --project "$TARGET_DIR" 2>"$_rules_err"; then
       log_ok "Injected sheal rules"
     else
       log_warn "sheal rules injection skipped (non-fatal)"
+      [[ -s "$_rules_err" ]] && log_warn "  $(head -3 "$_rules_err")"
     fi
+    rm -f "$_rules_err"
   fi
 }

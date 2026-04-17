@@ -141,4 +141,4 @@ This file auto-evolves. Rules of thumb:
 
 ---
 
-*Generated: 2026-04-17 by aiframework v1.1.0. Run `aiframework refresh` to update. Lean mode (complex).*
+*Generated: 2026-04-17 by aiframework v1.2.0. Run `aiframework refresh` to update. Lean mode (complex).*
