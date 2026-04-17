@@ -8,7 +8,7 @@ install:
 	@ln -sf $(CURDIR)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-mcp
 	@echo "Installed aiframework + aiframework-mcp to $(PREFIX)/bin/"
 	@if command -v npm >/dev/null 2>&1; then \
-		npm install -g @liwala/sheal 2>/dev/null && echo "Installed sheal (runtime session intelligence)" || echo "Warning: sheal npm install failed (non-fatal)"; \
+		npm install -g @liwala/sheal@latest 2>/dev/null && echo "Installed sheal (runtime session intelligence)" || echo "Warning: sheal npm install failed (non-fatal)"; \
 	else \
 		echo "Note: Install Node.js 22+ and run 'npm install -g @liwala/sheal' for runtime session intelligence"; \
 	fi
@@ -32,6 +32,8 @@ test:
 	@python3 tests/test_mcp.py
 	@echo "Running validator tests..."
 	@bash tests/test_validators.sh
+	@echo "Running sheal integration tests..."
+	@bash tests/test_sheal.sh
 	@echo "Running integration tests..."
 	@bash tests/test_e2e.sh
 	@echo "All tests passed."

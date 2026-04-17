@@ -710,15 +710,33 @@ LEARNMD
 SETTINGS
     log_ok "Created .claude/settings.json"
   else
-    # Warn upgrade users that their settings.json may be missing new features
-    local _sheal_in_settings=false
-    if grep -qF 'sheal-check' "$settings_file" 2>/dev/null; then
-      _sheal_in_settings=true
-    fi
+    # Upgrade path: merge sheal permissions + hooks into existing settings.json
     local _sheal_detected
     _sheal_detected=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
-    if [[ "$_sheal_detected" == "true" && "$_sheal_in_settings" == false ]]; then
-      log_warn "settings.json exists but lacks sheal hooks — delete .claude/settings.json and re-run to add sheal integration"
+    if [[ "$_sheal_detected" == "true" ]]; then
+      local _needs_update=false
+
+      # Check if sheal permissions are missing
+      if ! grep -qF 'sheal-check' "$settings_file" 2>/dev/null; then
+        _needs_update=true
+      fi
+
+      if [[ "$_needs_update" == true ]]; then
+        # Add sheal permissions and SessionStart hook via jq merge
+        local _updated
+        _updated=$(jq '
+          .permissions.allow += ["Skill(sheal-check)", "Skill(sheal-retro)", "Skill(sheal-drift)", "Skill(sheal-ask)"]
+          | .permissions.allow |= unique
+          | .hooks.SessionStart = [{"command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]
+        ' "$settings_file" 2>/dev/null)
+
+        if [[ -n "$_updated" ]] && echo "$_updated" | jq empty 2>/dev/null; then
+          echo "$_updated" | jq '.' > "$settings_file"
+          log_ok "Updated settings.json with sheal permissions + SessionStart hook"
+        else
+          log_warn "Could not auto-update settings.json — delete it and re-run to add sheal integration"
+        fi
+      fi
     fi
   fi
 
