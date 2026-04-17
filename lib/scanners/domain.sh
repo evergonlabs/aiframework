@@ -95,8 +95,18 @@ scan_domain() {
   local invariants="[]"
   local security_concerns="[]"
 
-  # Shared exclusion list for domain scanning — skip generated/template/tool files
-  local _domain_excludes="-not -path */node_modules/* -not -path */.git/* -not -path */.venv/* -not -path */target/* -not -path */vault/* -not -path */review-specialists/* -not -path */templates/* -not -path */.aiframework/* -not -path */.claude/* -not -path */docs/* -not -path */tools/*"
+  # Source directories from manifest — only scan source code, not infrastructure
+  local _src_dirs
+  _src_dirs=$(echo "$m" | jq -r '.structure.directories[]?' 2>/dev/null | head -10)
+  # If source dirs known, build a find scope; otherwise scan everything with exclusions
+  local _use_src_scope=false
+  if [[ -n "$_src_dirs" ]]; then
+    local _src_count
+    _src_count=$(echo "$_src_dirs" | wc -l | tr -d '[:space:]')
+    if [[ "$_src_count" -ge 1 ]]; then
+      _use_src_scope=true
+    fi
+  fi
 
   # --- Auth/AuthZ ---
   local auth_files

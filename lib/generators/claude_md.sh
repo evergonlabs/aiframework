@@ -456,7 +456,8 @@ DOCSYNC
     cat >> "$out" << SESSIONREF
 ## Session Start
 
-At session start: read \`vault/memory/status.md\`, check \`git log --oneline -10\`, check \`git status\`.
+First time? Run \`/aif-status\` to check setup and see what to do next.
+Returning? Read \`vault/memory/status.md\`, check \`git log --oneline -10\`, check \`git status\`.
 Full protocol in \`.claude/rules/session-protocol.md\`.
 
 SESSIONREF
