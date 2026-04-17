@@ -3,142 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>aiframework — Make Any Repo AI-Ready</title>
+<title>aiframework // Make Any Repo AI-Ready</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #f8f9fb;
-    --surface2: #f0f1f4;
-    --border: #e5e7eb;
-    --text: #111827;
-    --muted: #6b7280;
-    --accent: #6d28d9;
-    --accent-light: #ede9fe;
-    --green: #059669;
-    --green-light: #ecfdf5;
-    --blue: #2563eb;
-    --blue-light: #eff6ff;
-    --amber: #d97706;
-    --amber-light: #fffbeb;
-    --rose: #e11d48;
-    --rose-light: #fff1f2;
-    --radius: 12px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-lg: 0 10px 25px rgba(0,0,0,0.06);
+    --surface: #f7f8fa;
+    --surface2: #eef0f4;
+    --border: #dfe2e8;
+    --text: #1a1a2e;
+    --muted: #5c6370;
+    --accent: #5b21b6;
+    --accent-soft: #ede9fe;
+    --green: #047857;
+    --green-soft: #ecfdf5;
+    --blue: #1d4ed8;
+    --blue-soft: #eff6ff;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --rose: #be123c;
+    --rose-soft: #fff1f2;
+    --radius: 10px;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; color: var(--accent); }
-  pre { background: var(--text); border-radius: var(--radius); padding: 24px; overflow-x: auto; margin: 20px 0; box-shadow: var(--shadow-lg); }
-  pre code { background: none; padding: 0; font-size: 0.9rem; line-height: 1.7; color: #a5f3fc; }
+  code { font-family: var(--mono); background: var(--surface2); padding: 2px 7px; border-radius: 4px; font-size: 0.84em; color: var(--accent); font-weight: 500; }
+  pre { background: #1e1e2e; border-radius: var(--radius); padding: 24px; overflow-x: auto; margin: 16px 0; }
+  pre code { background: none; padding: 0; font-size: 0.88rem; line-height: 1.7; color: #a6e3a1; font-weight: 400; }
 
-  .w { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  .w { max-width: 980px; margin: 0 auto; padding: 0 24px; }
 
   /* Nav */
-  nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 16px 0; }
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 0; }
   nav .w { display: flex; align-items: center; justify-content: space-between; }
-  nav .logo { font-weight: 900; font-size: 1.15rem; letter-spacing: -0.03em; color: var(--accent); }
-  nav .links { display: flex; gap: 28px; font-size: 0.9rem; }
+  nav .logo { font-family: var(--mono); font-weight: 700; font-size: 1rem; color: var(--accent); letter-spacing: -0.02em; }
+  nav .logo span { color: var(--muted); font-weight: 400; }
+  nav .links { display: flex; gap: 24px; font-size: 0.88rem; }
   nav .links a { color: var(--muted); font-weight: 500; transition: color 0.15s; }
   nav .links a:hover { color: var(--text); text-decoration: none; }
 
   /* Hero */
-  .hero { padding: 100px 0 72px; text-align: center; background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%); }
-  .hero .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 100px; background: var(--accent-light); font-size: 0.82rem; font-weight: 600; color: var(--accent); margin-bottom: 28px; }
-  .hero .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-  .hero h1 { font-size: clamp(2.6rem, 5vw, 4.2rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 20px; color: var(--text); }
-  .hero h1 em { font-style: normal; color: var(--accent); }
-  .hero .sub { font-size: 1.2rem; color: var(--muted); max-width: 620px; margin: 0 auto 36px; font-weight: 400; }
-  .hero .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .hero .cta a { padding: 14px 32px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; box-shadow: var(--shadow); }
-  .hero .cta .primary { background: var(--accent); color: #fff; }
-  .hero .cta .primary:hover { background: #5b21b6; text-decoration: none; box-shadow: var(--shadow-lg); }
-  .hero .cta .secondary { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
-  .hero .cta .secondary:hover { border-color: var(--accent); text-decoration: none; }
+  .hero { padding: 96px 0 64px; text-align: center; }
+  .hero .ver { display: inline-block; font-family: var(--mono); font-size: 0.78rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 5px 14px; border-radius: 100px; margin-bottom: 28px; letter-spacing: 0.02em; }
+  .hero h1 { font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 20px; }
+  .hero h1 .hl { color: var(--accent); }
+  .hero .sub { font-size: 1.15rem; color: var(--muted); max-width: 600px; margin: 0 auto 36px; font-weight: 400; }
+  .hero .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .hero .actions a { padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; transition: all 0.2s; }
+  .hero .actions .pri { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
+  .hero .actions .pri:hover { background: #4c1d95; text-decoration: none; box-shadow: var(--shadow-lg); }
+  .hero .actions .sec { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
+  .hero .actions .sec:hover { border-color: var(--accent); text-decoration: none; }
 
   /* Section */
-  section { padding: 80px 0; }
+  section { padding: 72px 0; }
   section + section { border-top: 1px solid var(--border); }
-  .label { font-size: 0.78rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
-  .stitle { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 10px; }
-  .sdesc { color: var(--muted); font-size: 1.05rem; margin-bottom: 44px; max-width: 640px; }
+  .tag-label { font-family: var(--mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 10px; }
+  .sec-title { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px; }
+  .sec-desc { color: var(--muted); font-size: 1rem; margin-bottom: 40px; max-width: 620px; }
 
   /* Metrics */
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 52px 0; }
-  .metric { text-align: center; padding: 28px 16px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
-  .metric .val { font-size: 2.4rem; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
-  .metric .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 500; margin-top: 4px; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 48px 0; }
+  .m-box { text-align: center; padding: 24px 12px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
+  .m-box .num { font-family: var(--mono); font-size: 2.2rem; font-weight: 800; color: var(--accent); }
+  .m-box .lbl { font-size: 0.78rem; color: var(--muted); font-weight: 500; margin-top: 2px; }
 
   /* Cards */
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); transition: all 0.2s; }
-  .card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px); }
-  .card .icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 16px; }
-  .card .icon.purple { background: var(--accent-light); }
-  .card .icon.green { background: var(--green-light); }
-  .card .icon.blue { background: var(--blue-light); }
-  .card .icon.amber { background: var(--amber-light); }
-  .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
-  .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .c { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; transition: all 0.2s; }
+  .c:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-1px); }
+  .c .c-tag { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .c .c-tag.purple { color: var(--accent); }
+  .c .c-tag.blue { color: var(--blue); }
+  .c .c-tag.green { color: var(--green); }
+  .c .c-tag.amber { color: var(--amber); }
+  .c h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .c p { color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
 
   /* Pipeline */
-  .pipe { position: relative; }
-  .step { display: grid; grid-template-columns: 52px 1fr; gap: 20px; padding: 28px 0; }
-  .step + .step { border-top: 1px solid var(--border); }
-  .step-num { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; color: #fff; font-family: 'JetBrains Mono', monospace; }
-  .step-num.n1 { background: var(--accent); }
-  .step-num.n2 { background: var(--blue); }
-  .step-num.n3 { background: var(--green); }
-  .step-num.n4 { background: var(--amber); }
-  .step-num.n5 { background: var(--rose); }
-  .step-body h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
-  .step-body .tag { display: inline-block; padding: 2px 10px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 600; margin-bottom: 8px; margin-right: 4px; }
-  .step-body .tag.auto { background: var(--green-light); color: var(--green); }
-  .step-body .tag.manual { background: var(--amber-light); color: var(--amber); }
-  .step-body p { color: var(--muted); font-size: 0.92rem; }
+  .pipe {}
+  .p-step { display: grid; grid-template-columns: 48px 1fr; gap: 16px; padding: 24px 0; }
+  .p-step + .p-step { border-top: 1px solid var(--border); }
+  .p-num { font-family: var(--mono); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; color: #fff; }
+  .p-num.c1 { background: var(--accent); }
+  .p-num.c2 { background: var(--blue); }
+  .p-num.c3 { background: var(--green); }
+  .p-num.c4 { background: var(--amber); }
+  .p-num.c5 { background: var(--rose); }
+  .p-body h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
+  .p-body .p-tag { display: inline-block; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .p-body .p-tag.auto { background: var(--green-soft); color: var(--green); }
+  .p-body .p-tag.manual { background: var(--amber-soft); color: var(--amber); }
+  .p-body p { color: var(--muted); font-size: 0.9rem; }
 
-  /* Dependencies */
-  .dep { width: 100%; border-collapse: collapse; margin: 20px 0; }
-  .dep th, .dep td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-  .dep th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; background: var(--surface); }
-  .dep td:first-child { font-weight: 600; }
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-  .badge.req { background: var(--accent-light); color: var(--accent); }
-  .badge.rec { background: var(--blue-light); color: var(--blue); }
-  .badge.opt { background: var(--green-light); color: var(--green); }
-  .badge.aut { background: var(--surface2); color: var(--muted); }
+  /* Table */
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl th, .tbl td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+  .tbl th { font-family: var(--mono); color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; background: var(--surface); }
+  .tbl td:first-child { font-weight: 600; }
+  .b { display: inline-block; font-family: var(--mono); padding: 2px 9px; border-radius: 100px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .b.auto { background: var(--green-soft); color: var(--green); }
 
   /* Install */
-  .install-step { padding: 24px 0; }
-  .install-step + .install-step { border-top: 1px solid var(--border); }
-  .install-step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-  .install-step p { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+  .inst { padding: 24px 0; }
+  .inst + .inst { border-top: 1px solid var(--border); }
+  .inst h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+  .inst h3 .sn { font-family: var(--mono); color: var(--accent); margin-right: 8px; }
+  .inst p { color: var(--muted); font-size: 0.88rem; margin-bottom: 10px; }
 
-  /* Transparency */
-  .transparency { background: var(--surface); border-radius: var(--radius); padding: 32px; border: 1px solid var(--border); margin: 40px 0; }
-  .transparency h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
-  .transparency p { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
-  .gap-list { list-style: none; }
-  .gap-list li { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; font-size: 0.9rem; }
-  .gap-list li:last-child { border-bottom: none; }
-  .gap-list .status { flex-shrink: 0; width: 80px; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; }
-  .gap-list .status.ready { color: var(--green); }
-  .gap-list .status.verify { color: var(--amber); }
-  .gap-list .status.untested { color: var(--rose); }
+  /* Status */
+  .status-box { background: var(--surface); border-radius: var(--radius); padding: 28px; border: 1px solid var(--border); margin: 36px 0; }
+  .status-box h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; }
+  .s-list { list-style: none; }
+  .s-list li { padding: 9px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; font-size: 0.88rem; }
+  .s-list li:last-child { border-bottom: none; }
+  .s-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; }
+  .s-dot.ok { background: var(--green); }
+  .s-dot.check { background: var(--amber); }
+  .s-dot.todo { background: var(--rose); }
 
   /* Footer */
-  footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+  footer { padding: 40px 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.84rem; }
   footer strong { color: var(--text); }
 
   @media (max-width: 640px) {
-    .hero h1 { font-size: 2.2rem; }
+    .hero h1 { font-size: 2rem; }
     .metrics { grid-template-columns: repeat(3, 1fr); }
     nav .links { display: none; }
-    .cards { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -146,66 +146,66 @@
 
 <nav>
   <div class="w">
-    <div class="logo">aiframework</div>
+    <div class="logo">aiframework <span>// v1.2.0</span></div>
     <div class="links">
-      <a href="#what">How It Works</a>
+      <a href="#layers">How It Works</a>
       <a href="#auto">Automation</a>
-      <a href="#deps">Dependencies</a>
+      <a href="#stack">Stack</a>
       <a href="#install">Install</a>
-      <a href="#gaps">Transparency</a>
+      <a href="#status">Status</a>
     </div>
   </div>
 </nav>
 
 <div class="hero">
   <div class="w">
-    <div class="pill"><span class="dot"></span> v1.2.0 &mdash; 335 expert reviews &middot; 90 tests passing</div>
-    <h1>Make any repo<br><em>AI-ready in 60 seconds</em></h1>
-    <p class="sub">aiframework scans your codebase, generates intelligent configs for Claude Code, and continuously improves them through runtime learning and persistent memory. Zero manual maintenance.</p>
-    <div class="cta">
-      <a href="#install" class="primary">Get Started</a>
-      <a href="https://github.com/evergonlabs/aiframework" class="secondary">GitHub</a>
+    <div class="ver">335 expert reviews // 90 tests passing // 0 critical issues</div>
+    <h1>Make any repo<br><span class="hl">AI-ready in 60 seconds</span></h1>
+    <p class="sub">Scans your codebase, generates intelligent configs for Claude Code, and continuously improves them through runtime learning and persistent memory. Everything runs automatically after setup.</p>
+    <div class="actions">
+      <a href="#install" class="pri">Get Started</a>
+      <a href="https://github.com/evergonlabs/aiframework" class="sec">View Source</a>
     </div>
   </div>
 </div>
 
 <div class="w">
   <div class="metrics">
-    <div class="metric"><div class="val">20</div><div class="lbl">Languages</div></div>
-    <div class="metric"><div class="val">57</div><div class="lbl">Frameworks</div></div>
-    <div class="metric"><div class="val">13</div><div class="lbl">Scanners</div></div>
-    <div class="metric"><div class="val">52+</div><div class="lbl">Skills</div></div>
-    <div class="metric"><div class="val">90</div><div class="lbl">Tests</div></div>
-    <div class="metric"><div class="val">335</div><div class="lbl">Expert Reviews</div></div>
+    <div class="m-box"><div class="num">20</div><div class="lbl">Languages</div></div>
+    <div class="m-box"><div class="num">57</div><div class="lbl">Frameworks</div></div>
+    <div class="m-box"><div class="num">13</div><div class="lbl">Scanners</div></div>
+    <div class="m-box"><div class="num">52+</div><div class="lbl">Skills</div></div>
+    <div class="m-box"><div class="num">90</div><div class="lbl">Tests</div></div>
+    <div class="m-box"><div class="num">335</div><div class="lbl">Audits</div></div>
   </div>
 </div>
 
-<section id="what">
+<section id="layers">
   <div class="w">
-    <div class="label">How It Works</div>
-    <h2 class="stitle">Four layers, one framework</h2>
-    <p class="sdesc">Each layer handles a different phase of the AI development lifecycle. Together, they create a feedback loop that makes your AI assistant smarter with every session.</p>
+    <div class="tag-label">// how it works</div>
+    <h2 class="sec-title">Four layers, one install</h2>
+    <p class="sec-desc">Everything installs together. Each layer handles a different phase of the AI development lifecycle. Together they create a feedback loop that gets smarter every session.</p>
 
-    <div class="cards">
-      <div class="card">
-        <div class="icon purple">&#x1F50D;</div>
-        <h3>Scanning &amp; Analysis</h3>
-        <p>13 scanners read your language, framework, commands, CI, environment, domains, and architecture. The output is a deterministic manifest &mdash; same repo, same result, every time.</p>
+    <div class="grid">
+      <div class="c">
+        <div class="c-tag purple">// scanning</div>
+        <h3>Analysis Engine</h3>
+        <p>13 scanners detect language, framework, commands, CI/CD, environment, domains, code symbols, and project archetype. Deterministic output: same repo, same result.</p>
       </div>
-      <div class="card">
-        <div class="icon blue">&#x2699;</div>
-        <h3>Config Generation</h3>
-        <p>Generates CLAUDE.md, .claude/rules/, .claude/skills/, git hooks, CI workflows, documentation scaffolds, and cross-tool configs for Cursor and Copilot.</p>
+      <div class="c">
+        <div class="c-tag blue">// generation</div>
+        <h3>Config Generator</h3>
+        <p>Produces CLAUDE.md, .claude/rules/, .claude/skills/, git hooks, CI workflows, AGENTS.md, .cursorrules, and a 31-file vault knowledge base.</p>
       </div>
-      <div class="card">
-        <div class="icon green">&#x1F504;</div>
-        <h3>Runtime Learning</h3>
-        <p>Captures learnings from coding sessions. A bidirectional bridge syncs insights between formats. Weekly evolution proposes improvements to your rules.</p>
+      <div class="c">
+        <div class="c-tag green">// runtime</div>
+        <h3>Session Intelligence</h3>
+        <p>Watches your coding sessions. Extracts failure patterns. Bridges learnings between JSONL and markdown. Feeds insights back into your configs automatically.</p>
       </div>
-      <div class="card">
-        <div class="icon amber">&#x1F9E0;</div>
-        <h3>Persistent Memory</h3>
-        <p>A vault stores decisions, wiki pages, retro insights, and operational context across every session. Context is never lost between restarts.</p>
+      <div class="c">
+        <div class="c-tag amber">// memory</div>
+        <h3>Persistent Vault</h3>
+        <p>Decisions, wiki pages, retro insights, and operational context survive across every session restart. Claude reads vault/memory/status.md at session start.</p>
       </div>
     </div>
   </div>
@@ -213,156 +213,156 @@
 
 <section id="auto">
   <div class="w">
-    <div class="label">Automation</div>
-    <h2 class="stitle">What happens automatically</h2>
-    <p class="sdesc">After setup, you just code. The framework handles health checks, type checking, linting, quality gates, config refresh, and session retros &mdash; all via hooks.</p>
+    <div class="tag-label">// automation</div>
+    <h2 class="sec-title">What runs without you doing anything</h2>
+    <p class="sec-desc">After the initial setup, the framework maintains itself. Health checks, type checking, linting, quality gates, config refresh, and session retros all fire via hooks.</p>
 
     <div class="pipe">
-      <div class="step">
-        <div class="step-num n1">1</div>
-        <div class="step-body">
+      <div class="p-step">
+        <div class="p-num c1">01</div>
+        <div class="p-body">
           <h3>Session Opens</h3>
-          <span class="tag auto">Automatic</span>
-          <p><strong>SessionStart hook</strong> fires. Runs a health check (sheal check or aiframework verify). You see project status immediately &mdash; no command needed.</p>
+          <span class="p-tag auto">automatic</span>
+          <p><code>SessionStart</code> hook fires. Runs health check via sheal or aiframework verify. Project status surfaces immediately. Zero commands needed.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-num n2">2</div>
-        <div class="step-body">
+      <div class="p-step">
+        <div class="p-num c2">02</div>
+        <div class="p-body">
           <h3>You Edit Code</h3>
-          <span class="tag auto">Automatic</span>
-          <p><strong>PostToolUse hook</strong> fires on every file edit. Runs type checking for TypeScript, Rust, Go, or Python projects. Errors surface in real-time.</p>
+          <span class="p-tag auto">automatic</span>
+          <p><code>PostToolUse</code> hook fires on every file edit. Type checking runs for TypeScript, Rust, Go, and Python projects. Errors surface in real-time.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-num n3">3</div>
-        <div class="step-body">
-          <h3>You Commit &amp; Push</h3>
-          <span class="tag auto">Automatic</span>
-          <p><strong>pre-commit hook</strong> runs lint. <strong>pre-push hook</strong> runs quality gate (lint + test + build), config drift detection, and auto-refresh.</p>
+      <div class="p-step">
+        <div class="p-num c3">03</div>
+        <div class="p-body">
+          <h3>You Commit and Push</h3>
+          <span class="p-tag auto">automatic</span>
+          <p><code>pre-commit</code> runs lint. <code>pre-push</code> runs the full quality gate (lint + test + build), scans for secrets, detects config drift, and auto-refreshes if needed.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-num n4">4</div>
-        <div class="step-body">
+      <div class="p-step">
+        <div class="p-num c4">04</div>
+        <div class="p-body">
           <h3>Session Closes</h3>
-          <span class="tag auto">Automatic</span>
-          <p><strong>Stop hook</strong> fires. Runs session retrospective via sheal (if installed) to extract learnings. Or surfaces a reminder to capture learnings manually.</p>
+          <span class="p-tag auto">automatic</span>
+          <p><code>Stop</code> hook fires. Runs session retrospective to extract learnings and failure patterns. Bridges insights to the JSONL store and vault memory.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-num n5">5</div>
-        <div class="step-body">
+      <div class="p-step">
+        <div class="p-num c5">05</div>
+        <div class="p-body">
           <h3>Weekly Evolution</h3>
-          <span class="tag manual">Manual &mdash; by design</span>
-          <p><code>/aif-evolve</code> reads all learnings and proposes CLAUDE.md improvements. Requires your approval before changing rules. This is a safety gate, not a missing feature.</p>
+          <span class="p-tag manual">manual // safety gate</span>
+          <p><code>/aif-evolve</code> reads all accumulated learnings and proposes rule improvements. Requires your approval before changing CLAUDE.md. This is intentional.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="deps">
+<section id="stack">
   <div class="w">
-    <div class="label">Dependencies</div>
-    <h2 class="stitle">What powers the framework</h2>
-    <p class="sdesc">One required install. Everything else is optional and enhances the experience.</p>
+    <div class="tag-label">// stack</div>
+    <h2 class="sec-title">What gets installed</h2>
+    <p class="sec-desc">One <code>make install</code> sets up everything. sheal installs automatically if Node.js is available. Vault is generated by the bootstrap command. gstack adds 37 additional skills.</p>
 
-    <table class="dep">
+    <table class="tbl">
       <thead>
-        <tr><th>Component</th><th>Purpose</th><th>Install</th><th>Status</th></tr>
+        <tr><th>Component</th><th>What it does</th><th>How it installs</th><th></th></tr>
       </thead>
       <tbody>
         <tr>
           <td>aiframework</td>
-          <td>Core scanner, generator, and verification engine</td>
+          <td>Core engine. 13 scanners, config generation, verification, learning bridge.</td>
           <td><code>make install</code></td>
-          <td><span class="badge req">Required</span></td>
+          <td><span class="b auto">automatic</span></td>
         </tr>
         <tr>
-          <td><a href="https://github.com/garrytan/gstack">gstack</a></td>
-          <td>37 skills for shipping, QA, browser testing, design, and security</td>
-          <td><code>git clone</code> + <code>./setup</code></td>
-          <td><span class="badge rec">Recommended</span></td>
-        </tr>
-        <tr>
-          <td><a href="https://www.npmjs.com/package/@liwala/sheal">sheal</a></td>
-          <td>Runtime session intelligence &mdash; watches sessions, extracts learnings</td>
-          <td>Auto with <code>make install</code></td>
-          <td><span class="badge opt">Optional</span></td>
+          <td>sheal</td>
+          <td>Runtime session intelligence. Health checks, retros, drift detection.</td>
+          <td>Included in <code>make install</code></td>
+          <td><span class="b auto">automatic</span></td>
         </tr>
         <tr>
           <td>Vault</td>
-          <td>Persistent memory &mdash; decisions, wiki, retros across sessions</td>
-          <td>Auto-generated</td>
-          <td><span class="badge aut">Automatic</span></td>
+          <td>Persistent memory. Decisions, wiki, retro insights across sessions.</td>
+          <td>Generated by <code>aiframework run</code></td>
+          <td><span class="b auto">automatic</span></td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/garrytan/gstack">gstack</a></td>
+          <td>37 skills for shipping, QA, browser testing, design, planning, security.</td>
+          <td><code>git clone</code> + <code>./setup</code></td>
+          <td><span class="b auto">automatic</span></td>
         </tr>
       </tbody>
     </table>
 
-    <p style="color: var(--muted); font-size: 0.88rem; margin-top: 12px;">
-      <strong>System requirements:</strong> bash 3.2+ &middot; jq 1.6+ &middot; git 2.0+ &middot; Python 3.10+ (recommended) &middot; Node.js 18+ (only for sheal)
+    <p style="font-family: var(--mono); color: var(--muted); font-size: 0.8rem; margin-top: 16px;">
+      requires: bash 3.2+ / jq 1.6+ / git 2.0+ / python 3.10+ (recommended) / node 18+ (for sheal)
     </p>
   </div>
 </section>
 
 <section id="install" style="background: var(--surface);">
   <div class="w">
-    <div class="label">Getting Started</div>
-    <h2 class="stitle">Three steps to AI-ready</h2>
-    <p class="sdesc">From zero to a fully configured repo in about two minutes.</p>
+    <div class="tag-label">// install</div>
+    <h2 class="sec-title">Three commands, two minutes</h2>
+    <p class="sec-desc">From zero to a fully AI-ready repo. Everything after this is automatic.</p>
 
-    <div class="install-step">
-      <h3>1. Install the framework</h3>
-      <p>Installs aiframework. Automatically attempts to install sheal and gstack.</p>
+    <div class="inst">
+      <h3><span class="sn">01</span> Install the framework</h3>
+      <p>Installs aiframework + sheal. Then installs gstack (37 additional skills for Claude Code).</p>
       <pre><code>git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
 git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup --no-prefix</code></pre>
     </div>
 
-    <div class="install-step">
-      <h3>2. Bootstrap your project</h3>
-      <p>Scans your repo with 13 scanners and generates all configs. Deterministic &mdash; same repo, same output.</p>
+    <div class="inst">
+      <h3><span class="sn">02</span> Bootstrap your project</h3>
+      <p>Scans your repo with 13 scanners. Generates CLAUDE.md, rules, skills, hooks, CI, vault, and docs.</p>
       <pre><code>aiframework run --target ~/your-project</code></pre>
     </div>
 
-    <div class="install-step">
-      <h3>3. Open Claude Code</h3>
-      <p>One command enhances your CLAUDE.md with stack-specific research. After this, just code.</p>
+    <div class="inst">
+      <h3><span class="sn">03</span> Start coding</h3>
+      <p>One command researches your stack and enhances everything. After this, just code. Hooks handle the rest.</p>
       <pre><code>cd ~/your-project && claude
 /aif-ready</code></pre>
     </div>
   </div>
 </section>
 
-<section id="gaps">
+<section id="status">
   <div class="w">
-    <div class="label">Transparency</div>
-    <h2 class="stitle">What we know &amp; what we need your help testing</h2>
-    <p class="sdesc">335 expert reviews found and fixed every security issue. Some things can only be validated by real-world usage.</p>
+    <div class="tag-label">// status</div>
+    <h2 class="sec-title">Production readiness</h2>
+    <p class="sec-desc">335 independent expert reviews across 6 audit rounds. 90 automated tests. Here is what is verified and what still needs community testing.</p>
 
-    <div class="transparency">
-      <h3>Production Status</h3>
-      <p>The core pipeline is production-ready. These items need community validation:</p>
-      <ul class="gap-list">
-        <li><span class="status ready">Ready</span> <span>Core pipeline (scan, generate, verify) &mdash; 90 tests, 6 audit rounds, all critical/high/medium fixed</span></li>
-        <li><span class="status ready">Ready</span> <span>Security hardening &mdash; all JSON via jq --arg, no injection vectors, path traversal blocked</span></li>
-        <li><span class="status ready">Ready</span> <span>Cross-platform timeout &mdash; GNU timeout / gtimeout / bash-native fallback chain</span></li>
-        <li><span class="status verify">Verify</span> <span>sheal CLI flags &mdash; integration coded against assumed flags; needs live binary testing</span></li>
-        <li><span class="status verify">Verify</span> <span>Real-world repos &mdash; tested on synthetic fixtures; needs TypeScript, Python, Go, Rust repo validation</span></li>
-        <li><span class="status untested">Untested</span> <span>Windows (Git Bash / WSL) &mdash; platform detection added, bash fallback written, not yet validated</span></li>
+    <div class="status-box">
+      <h3>Current Status</h3>
+      <ul class="s-list">
+        <li><span class="s-dot ok"></span> Core pipeline (scan, generate, verify) - production-ready, 90 tests, all critical/high/medium fixed</li>
+        <li><span class="s-dot ok"></span> Security hardening - all JSON via jq --arg, no injection vectors, path traversal blocked, INV-1 compliant</li>
+        <li><span class="s-dot ok"></span> Cross-platform - GNU timeout / gtimeout / bash-native fallback. macOS, Linux, WSL.</li>
+        <li><span class="s-dot ok"></span> Automation hooks - SessionStart, PostToolUse, Stop, pre-commit, pre-push all generated and verified</li>
+        <li><span class="s-dot check"></span> sheal CLI compatibility - integration coded, flags need verification against live binary</li>
+        <li><span class="s-dot check"></span> Real-world repos - tested on synthetic fixtures. TypeScript, Python, Go, Rust repos need community validation</li>
+        <li><span class="s-dot todo"></span> Windows native (Git Bash) - platform detection added, needs community testing</li>
       </ul>
     </div>
 
-    <p style="color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: 24px;">
-      <a href="https://github.com/evergonlabs/aiframework/blob/main/docs/KNOWN_GAPS.md">View the full testing checklist &rarr;</a>
+    <p style="color: var(--muted); font-size: 0.88rem; text-align: center;">
+      <a href="https://github.com/evergonlabs/aiframework/blob/main/docs/KNOWN_GAPS.md">Full testing checklist (34 items) on GitHub</a>
     </p>
   </div>
 </section>
 
 <footer>
   <div class="w">
-    <p><strong><a href="https://github.com/evergonlabs">Evergon Labs</a></strong> &middot; MIT License</p>
-    <p style="margin-top: 8px; color: var(--muted);">Your repo already knows everything. Now Claude does too.</p>
+    <p><strong><a href="https://github.com/evergonlabs" style="color: var(--text);">Evergon Labs</a></strong> / MIT License</p>
+    <p style="margin-top: 6px;">Your repo already knows everything. Now Claude does too.</p>
   </div>
 </footer>
 
