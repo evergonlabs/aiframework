@@ -17,7 +17,14 @@ if [[ ${BASH_VERSINFO[0]:-3} -lt 4 ]]; then
   echo "  macOS: brew install bash"
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve through symlinks to find the real install directory
+_AIF_SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "$_AIF_SOURCE" ]]; do
+  _AIF_SOURCE="$(readlink "$_AIF_SOURCE")"
+  # Handle relative symlinks
+  [[ "$_AIF_SOURCE" != /* ]] && _AIF_SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$_AIF_SOURCE"
+done
+SCRIPT_DIR="$(cd "$(dirname "$_AIF_SOURCE")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 LIB_DIR="$ROOT_DIR/lib"
 TEMPLATES_DIR="$ROOT_DIR/templates"
