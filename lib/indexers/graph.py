@@ -80,6 +80,16 @@ def _resolve_import_to_file(
         if candidate in known_files:
             return candidate
 
+    # Fuzzy match: if the import path is a suffix of a known file, use it.
+    # This handles cases where a variable prefix was stripped but the path
+    # is missing its parent directory (e.g. "generators/hooks.sh" matching
+    # "lib/generators/hooks.sh").
+    if "/" in import_path:
+        suffix = "/" + import_path
+        matches = [f for f in known_files if f.endswith(suffix)]
+        if len(matches) == 1:
+            return matches[0]
+
     return None
 
 

@@ -36,9 +36,54 @@ def _extract_docstring(lines: list[str], func_line: int) -> str:
     return "\n".join(doc_lines)
 
 
+def _normalize_bash_import(raw: str) -> str | None:
+    """Normalize a bash source/dot import path to a relative file path.
+
+    Strips shell variable prefixes ($VAR/, ${VAR}/, $(...)) and leading ./,
+    returning a clean relative path suitable for graph resolution.
+    Returns None if the path cannot be meaningfully parsed.
+    """
+    path = raw.strip()
+
+    # Remove surrounding quotes
+    path = path.strip("\"'")
+
+    # Skip command substitutions like $(dirname $0)/...
+    if "$(" in path and ")" in path:
+        # Try to extract just the path portion after the closing paren
+        idx = path.rfind(")")
+        remainder = path[idx + 1:].lstrip("/")
+        if remainder and not remainder.startswith("$"):
+            path = remainder
+        else:
+            return None
+
+    # Strip shell variable prefixes: ${VAR}/, $VAR/
+    # e.g. "${ROOT_DIR}/lib/scanners/stack.sh" -> "lib/scanners/stack.sh"
+    # e.g. "$LIB_DIR/generators/preserve.sh" -> "generators/preserve.sh"
+    path = re.sub(r'\$\{[^}]+\}/', '', path)
+    path = re.sub(r'\$[A-Za-z_][A-Za-z_0-9]*/', '', path)
+
+    # Strip leading ./
+    path = re.sub(r'^\./', '', path)
+
+    # Strip leading /
+    path = path.lstrip('/')
+
+    # If nothing left, or still has unresolved variables, skip
+    if not path or '$' in path:
+        return None
+
+    # Must look like a plausible file path (contains at least one path char)
+    if not re.match(r'^[\w./_-]+$', path):
+        return None
+
+    return path
+
+
 _FUNC_KEYWORD = re.compile(r"^function\s+(\w+)")
 _FUNC_PARENS = re.compile(r"^(\w+)\s*\(\)\s*\{")
-_SOURCE_RE = re.compile(r"^\s*(?:source|\.)\s+[\"']?(.+?)[\"']?\s*$")
+_SOURCE_RE = re.compile(r"^\s*(?:source|\.)\s+(.+)$")
 
 
 def parse(content: str, filepath: str) -> tuple[list[_Symbol], list[str], list[str]]:
@@ -49,15 +94,21 @@ def parse(content: str, filepath: str) -> tuple[list[_Symbol], list[str], list[s
     exports: list[str] = []
 
     for line_no, line in enumerate(lines, start=1):
+        stripped = line.strip()
+
+        # Skip comments
+        if stripped.startswith("#"):
+            continue
+
         name: str | None = None
         signature: str = ""
 
-        m = _FUNC_KEYWORD.match(line.strip())
+        m = _FUNC_KEYWORD.match(stripped)
         if m:
             name = m.group(1)
             signature = f"function {name}()"
         else:
-            m = _FUNC_PARENS.match(line.strip())
+            m = _FUNC_PARENS.match(stripped)
             if m:
                 name = m.group(1)
                 signature = f"{name}()"
@@ -69,6 +120,7 @@ def parse(content: str, filepath: str) -> tuple[list[_Symbol], list[str], list[s
                 {
                     "name": name,
                     "kind": "function",
+                    "file": filepath,
                     "line": line_no,
                     "signature": signature,
                     "docstring": docstring,
@@ -81,7 +133,12 @@ def parse(content: str, filepath: str) -> tuple[list[_Symbol], list[str], list[s
 
         m = _SOURCE_RE.match(line)
         if m:
-            imports.append(m.group(1))
+            raw_path = m.group(1).strip()
+            # Remove inline comments
+            raw_path = re.sub(r'\s*#.*$', '', raw_path)
+            normalized = _normalize_bash_import(raw_path)
+            if normalized:
+                imports.append(normalized)
 
     return symbols, imports, exports
 

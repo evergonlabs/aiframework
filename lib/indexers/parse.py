@@ -891,6 +891,52 @@ def _parse_file(
 
 
 # ---------------------------------------------------------------------------
+# Shebang detection for extensionless scripts
+# ---------------------------------------------------------------------------
+
+_SHEBANG_LANGUAGE: dict[str, str] = {
+    "bash": "bash",
+    "sh": "bash",
+    "zsh": "bash",
+    "python": "python",
+    "python3": "python",
+    "node": "javascript",
+    "ruby": "ruby",
+    "perl": "perl",
+}
+
+
+def _detect_shebang_language(abs_path: str) -> str | None:
+    """Read the first line of a file and detect language from shebang.
+
+    Supports both direct shebangs (#!/bin/bash) and env shebangs
+    (#!/usr/bin/env bash).  Returns the language string or None.
+    """
+    try:
+        with open(abs_path, "r", encoding="utf-8", errors="replace") as fh:
+            first_line = fh.readline(256)
+    except OSError:
+        return None
+
+    if not first_line.startswith("#!"):
+        return None
+
+    shebang = first_line[2:].strip()
+    # #!/usr/bin/env bash  ->  "bash"
+    # #!/bin/bash          ->  "bash"
+    parts = shebang.split()
+    if not parts:
+        return None
+
+    if parts[0].endswith("/env") and len(parts) > 1:
+        interpreter = parts[1]
+    else:
+        interpreter = os.path.basename(parts[0])
+
+    return _SHEBANG_LANGUAGE.get(interpreter)
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -919,7 +965,12 @@ def index_repo(target_dir: str, output_path: str | None = None) -> dict[str, Any
             ext = os.path.splitext(fname)[1].lower()
             lang = _EXT_LANGUAGE.get(ext)
             if lang is None:
-                continue
+                # Try extensionless files — check for bash shebang
+                if ext == "":
+                    abs_path = os.path.join(dirpath, fname)
+                    lang = _detect_shebang_language(abs_path)
+                if lang is None:
+                    continue
             abs_path = os.path.join(dirpath, fname)
             rel_path = os.path.relpath(abs_path, target_dir)
             tasks.append((abs_path, rel_path, lang))
