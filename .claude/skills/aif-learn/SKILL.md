@@ -34,7 +34,7 @@ If the learning is significant (would affect future architecture decisions):
 
 If sheal is installed (`command -v sheal`), also save to sheal:
 ```bash
-sheal learn add "the learning summary" --tags=relevant,tags --category=workflow --severity=medium --project . 2>/dev/null || true
+sheal learn add "the learning summary" --tags=relevant,tags --category="$CATEGORY" --severity=medium --project . 2>/dev/null || true
 ```
 
 This ensures learnings are available to both aiframework (JSONL) and sheal (markdown).

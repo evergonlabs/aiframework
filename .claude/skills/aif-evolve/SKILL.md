@@ -122,6 +122,20 @@ if frictions:
 "
 ```
 
+## Step 2: Load Project Learnings
+
+```bash
+cat tools/learnings/*-learnings.jsonl 2>/dev/null | wc -l
+```
+
+Read each learning and categorize by type: bug, gotcha, pattern, decision.
+
+Also read:
+- `CLAUDE.md` — current rules and invariants
+- `.claude/rules/` — existing path-scoped rules
+- `vault/memory/status.md` — operational context
+- `git log --oneline -20` — recent work
+
 ## Step 2b: Load Sheal Runtime Intelligence (if available)
 
 If sheal is installed (`command -v sheal`), load richer learning data:
@@ -136,7 +150,7 @@ if command -v sheal &>/dev/null; then
   ls .sheal/retros/ 2>/dev/null | tail -5
 
   # Check drift — are learnings being applied?
-  sheal drift --last 5 --json --project . 2>/dev/null | head -20
+  sheal drift --last 5 --format json --project . 2>/dev/null | head -20
 fi
 ```
 
@@ -144,20 +158,6 @@ Cross-reference rules for sheal data:
 - **Drift on a learning + repeated friction in same area** → promote to CLAUDE.md invariant
 - **Consistent retro failure pattern** → create `.claude/rules/` file
 - **Healthy learnings with no drift** → keep as-is in sheal
-
-## Step 2: Load Project Learnings
-
-```bash
-cat tools/learnings/*-learnings.jsonl 2>/dev/null | wc -l
-```
-
-Read each learning and categorize by type: bug, gotcha, pattern, decision.
-
-Also read:
-- `CLAUDE.md` — current rules and invariants
-- `.claude/rules/` — existing path-scoped rules
-- `vault/memory/status.md` — operational context
-- `git log --oneline -20` — recent work
 
 ## Step 3: Pattern Analysis
 

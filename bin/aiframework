@@ -339,7 +339,7 @@ cmd_discover() {
   scan_skill_suggestions
 
   log_step "Sheal Integration"
-  scan_sheal
+  scan_sheal || true
 
   log_phase_done
 
@@ -545,6 +545,10 @@ cmd_verify() {
   echo -e "  ${CYAN}│${NC}"
   echo -e "  ${CYAN}│${NC}  ${GREEN}Passed:${NC} $passed  ${RED}Failed:${NC} $failed  ${YELLOW}Warnings:${NC} $warnings  ${DIM}Total: $total_checks${NC}"
 
+  # Export counters for cmd_run summary
+  _AIF_VERIFY_PASSED=$passed
+  _AIF_VERIFY_FAILED=$failed
+
   log_phase_done
 
   echo ""
@@ -696,9 +700,9 @@ cmd_run() {
   else
     _stack="${_lang}"
   fi
-  _files_gen="7"
-  _checks_passed="${passed:-0}"
-  _checks_failed="${failed:-0}"
+  _files_gen="${generated:-7}"
+  _checks_passed="${_AIF_VERIFY_PASSED:-0}"
+  _checks_failed="${_AIF_VERIFY_FAILED:-0}"
 
   _aif_summary "$_proj" "$_stack" "$_files_gen" "$_checks_passed" "$_checks_failed" ".aiframework/report.md"
   echo -e "  ${DIM}Total time: ${_run_elapsed}s${NC}"

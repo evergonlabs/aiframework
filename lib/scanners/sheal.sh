@@ -3,11 +3,11 @@
 # Detects sheal (runtime session intelligence) installation and state.
 #
 # Security: This scanner only reads local files and runs `sheal --version`.
-# No web requests.
+# No web requests. Version output is sanitized.
 
 scan_sheal() {
   local sheal_installed=false
-  local sheal_version=""
+  local sheal_version="unknown"
   local sheal_initialized=false
   local project_learnings=0
   local global_learnings=0
@@ -17,35 +17,44 @@ scan_sheal() {
   # 1. Is sheal installed globally?
   if command -v sheal &>/dev/null; then
     sheal_installed=true
-    sheal_version=$(sheal --version 2>/dev/null | head -1 | tr -dc '0-9.' || echo "unknown")
+    # Use timeout to prevent hanging; sanitize version output
+    local _raw_ver
+    _raw_ver=$(timeout 5 sheal --version 2>/dev/null | head -1 | tr -dc '0-9.' || true)
+    if [[ -n "$_raw_ver" ]]; then
+      sheal_version="$_raw_ver"
+    fi
   fi
 
-  # 2. Is sheal initialized in this project?
-  if [[ -d "$TARGET_DIR/.sheal" ]]; then
+  # 2. Is sheal initialized in this project? (check for meaningful content, not just dir)
+  if [[ -d "$TARGET_DIR/.sheal" ]] && [[ -n "$(ls -A "$TARGET_DIR/.sheal" 2>/dev/null)" ]]; then
     sheal_initialized=true
   fi
 
   # 3. Project-local learnings count
   if [[ -d "$TARGET_DIR/.sheal/learnings" ]]; then
     project_learnings=$(find "$TARGET_DIR/.sheal/learnings" -name 'LEARN-*.md' 2>/dev/null | wc -l | tr -d '[:space:]')
+    project_learnings="${project_learnings:-0}"
   fi
 
   # 4. Global learnings count
   if [[ -d "$HOME/.sheal/learnings" ]]; then
     global_learnings=$(find "$HOME/.sheal/learnings" -name 'LEARN-*.md' 2>/dev/null | wc -l | tr -d '[:space:]')
+    global_learnings="${global_learnings:-0}"
   fi
 
-  # 5. Rules block already injected?
-  if grep -q 'BEGIN SHEAL RULES\|<!-- SHEAL RULES -->' "$TARGET_DIR/AGENTS.md" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+  # 5. Rules block already injected? (check each file independently)
+  if [[ -f "$TARGET_DIR/AGENTS.md" ]] && grep -qF 'SHEAL RULES' "$TARGET_DIR/AGENTS.md" 2>/dev/null; then
+    has_rules_block=true
+  elif [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -qF 'SHEAL RULES' "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
     has_rules_block=true
   fi
 
-  # 6. Retro skill present?
-  if [[ -f "$TARGET_DIR/.claude/skills/retro/SKILL.md" ]]; then
+  # 6. Retro skill present? (correct path: sheal-retro, not retro)
+  if [[ -f "$TARGET_DIR/.claude/skills/sheal-retro/SKILL.md" ]]; then
     has_retro_skill=true
   fi
 
-  # Store in manifest
+  # Store in manifest (guard against jq failure to not break discover pipeline)
   MANIFEST=$(echo "$MANIFEST" | jq \
     --argjson installed "$sheal_installed" \
     --arg version "$sheal_version" \
@@ -64,11 +73,9 @@ scan_sheal() {
         "has_rules_block": $rules,
         "has_retro_skill": $retro
       }
-    }')
+    }' 2>/dev/null) || true
 
   if [[ "$sheal_installed" == true ]]; then
     log_ok "Sheal detected v${sheal_version} (project learnings: ${project_learnings}, global: ${global_learnings})"
-  else
-    log_info "Sheal not installed (optional — runtime session intelligence)"
   fi
 }

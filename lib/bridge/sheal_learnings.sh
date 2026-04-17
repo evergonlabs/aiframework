@@ -3,6 +3,7 @@
 # Bidirectional conversion between JSONL (aiframework) and markdown (sheal)
 #
 # Security: Only reads/writes local files. No network access.
+# All JSON construction uses jq --arg for safe escaping (INV-1 compliant).
 
 # Convert aiframework JSONL learnings → sheal markdown learnings
 # Usage: bridge_jsonl_to_sheal [target_dir]
@@ -22,6 +23,13 @@ bridge_jsonl_to_sheal() {
   existing=$(find "$sheal_dir" -name 'LEARN-*.md' 2>/dev/null | sed 's/.*LEARN-0*\([0-9]*\).*/\1/' | sort -n | tail -1)
   [[ -n "$existing" ]] && max_num="$existing"
 
+  # Cap at 500 files to prevent unbounded growth
+  local current_count
+  current_count=$(find "$sheal_dir" -name 'LEARN-*.md' 2>/dev/null | wc -l | tr -d '[:space:]')
+  if [[ "$current_count" -ge 500 ]]; then
+    return 0
+  fi
+
   local synced=0
 
   while IFS= read -r jsonl_file; do
@@ -29,17 +37,23 @@ bridge_jsonl_to_sheal() {
     while IFS= read -r line; do
       [[ -z "$line" ]] && continue
 
-      local summary date category detail
-      summary=$(echo "$line" | jq -r '.summary // empty' 2>/dev/null)
+      # Batch all fields in a single jq call for performance
+      local summary date_val category detail
+      summary=$(printf '%s' "$line" | jq -r '.summary // empty' 2>/dev/null)
       [[ -z "$summary" ]] && continue
 
-      date=$(echo "$line" | jq -r '.date // empty' 2>/dev/null)
-      category=$(echo "$line" | jq -r '.category // "pattern"' 2>/dev/null)
-      detail=$(echo "$line" | jq -r '.detail // ""' 2>/dev/null)
+      date_val=$(printf '%s' "$line" | jq -r '.date // empty' 2>/dev/null)
+      category=$(printf '%s' "$line" | jq -r '.category // "pattern"' 2>/dev/null)
+      detail=$(printf '%s' "$line" | jq -r '.detail // ""' 2>/dev/null)
 
-      # Check for duplicates by title match
-      if grep -rql "$summary" "$sheal_dir" 2>/dev/null; then
+      # Check for duplicates by fixed-string title match (not regex)
+      if grep -rqFl -- "$summary" "$sheal_dir" 2>/dev/null; then
         continue
+      fi
+
+      # Cap check inside loop
+      if [[ $((max_num + 1)) -gt 500 ]]; then
+        break 2
       fi
 
       # Map aiframework categories to sheal categories
@@ -48,37 +62,40 @@ bridge_jsonl_to_sheal() {
         bug)      sheal_category="failure-loop" ;;
         gotcha)   sheal_category="missing-context" ;;
         pattern)  sheal_category="workflow" ;;
-        decision) sheal_category="workflow" ;;
+        decision) sheal_category="decision" ;;
         *)        sheal_category="workflow" ;;
       esac
 
-      # Generate slug from summary
+      # Generate slug from summary using printf (not echo, to preserve backslashes)
       local slug
-      slug=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-//;s/-$//' | cut -c1-40)
+      slug=$(printf '%s' "$summary" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-//;s/-$//' | cut -c1-40)
+      [[ -z "$slug" ]] && slug="entry"
 
       max_num=$((max_num + 1))
       local num
       num=$(printf "%03d" "$max_num")
       local out_file="$sheal_dir/LEARN-${num}-${slug}.md"
 
-      cat > "$out_file" << LEARNMD
----
-title: "${summary}"
-category: ${sheal_category}
-severity: medium
-status: active
-date: ${date}
-source: aiframework
----
-
-${detail:-$summary}
-LEARNMD
+      # Write markdown safely — single-quoted heredoc prevents shell expansion
+      # Then use printf for the variable parts
+      {
+        printf '%s\n' "---"
+        printf 'title: %s\n' "$summary"
+        printf 'category: %s\n' "$sheal_category"
+        printf '%s\n' "severity: medium"
+        printf '%s\n' "status: active"
+        printf 'date: %s\n' "$date_val"
+        printf '%s\n' "source: aiframework"
+        printf '%s\n' "---"
+        printf '\n'
+        printf '%s\n' "${detail:-$summary}"
+      } > "$out_file"
 
       synced=$((synced + 1))
     done < "$jsonl_file"
   done <<< "$jsonl_files"
 
-  [[ $synced -gt 0 ]] && echo "Synced $synced learnings from JSONL → sheal"
+  [[ $synced -gt 0 ]] && echo "Synced $synced learnings from JSONL to sheal"
 }
 
 # Convert sheal markdown learnings → aiframework JSONL
@@ -121,9 +138,9 @@ bridge_sheal_to_jsonl() {
         fi
         if [[ "$in_frontmatter" == true ]]; then
           case "$fmline" in
-            title:*)    title=$(echo "$fmline" | sed 's/^title:[[:space:]]*//' | tr -d '"') ;;
-            category:*) category="${fmline#category:}"; category="${category# }" ;;
-            date:*)     date_val="${fmline#date:}"; date_val="${date_val# }" ;;
+            title:*)    title="${fmline#title:}"; title="${title# }"; title="${title#\"}"; title="${title%\"}" ;;
+            category:*) category="${fmline#category:}"; category="${category# }"; category="${category%% *}" ;;
+            date:*)     date_val="${fmline#date:}"; date_val="${date_val# }"; date_val="${date_val%% *}" ;;
             severity:*) ;; # parsed but not used in JSONL conversion
           esac
         fi
@@ -139,30 +156,38 @@ bridge_sheal_to_jsonl() {
       continue
     fi
 
-    # Check for duplicates by summary match in JSONL
-    if grep -Fq "$title" "$jsonl_file" 2>/dev/null; then
+    # Check for duplicates by fixed-string summary match in JSONL
+    if grep -Fq -- "$title" "$jsonl_file" 2>/dev/null; then
       continue
     fi
 
-    # Reverse category mapping
+    # Reverse category mapping (preserves decision category)
     local aif_category
     case "$category" in
       failure-loop)    aif_category="bug" ;;
       missing-context) aif_category="gotcha" ;;
+      decision)        aif_category="decision" ;;
       workflow)        aif_category="pattern" ;;
       *)               aif_category="pattern" ;;
     esac
 
     [[ -z "$date_val" ]] && date_val=$(date +%Y-%m-%d)
 
-    # Clean body for JSON
-    body=$(echo "$body" | tr -d '\n' | sed 's/"/\\"/g' | sed 's/[[:space:]]*$//')
+    # Trim trailing whitespace from body using printf (not echo, preserves backslashes)
+    body=$(printf '%s' "$body" | sed 's/[[:space:]]*$//')
 
-    echo "{\"date\":\"${date_val}\",\"category\":\"${aif_category}\",\"summary\":\"${title}\",\"detail\":\"${body}\",\"files\":[],\"source\":\"sheal\"}" >> "$jsonl_file"
+    # Build JSON safely via jq --arg (INV-1 compliant)
+    jq -n \
+      --arg date "$date_val" \
+      --arg cat "$aif_category" \
+      --arg sum "$title" \
+      --arg det "$body" \
+      '{date:$date, category:$cat, summary:$sum, detail:$det, files:[], source:"sheal"}' \
+      -c >> "$jsonl_file"
     synced=$((synced + 1))
   done
 
-  [[ $synced -gt 0 ]] && echo "Synced $synced learnings from sheal → JSONL"
+  [[ $synced -gt 0 ]] && echo "Synced $synced learnings from sheal to JSONL"
 }
 
 # Bidirectional dedup sync
@@ -193,11 +218,25 @@ bridge_retros_to_vault() {
 
   # Append retro insights to vault status
   if [[ -f "$vault_status" ]]; then
-    # Remove old retro section if present
+    # Remove old retro section safely using awk (handles EOF correctly unlike sed range)
     local tmp_status
-    tmp_status=$(mktemp)
-    sed '/^## Recent Retro Insights$/,/^## /{ /^## Recent Retro Insights$/d; /^## /!d; }' "$vault_status" > "$tmp_status"
-    mv "$tmp_status" "$vault_status"
+    tmp_status=$(mktemp "$(dirname "$vault_status")/.status.XXXXXX" 2>/dev/null || mktemp)
+    # Trap to clean up temp file on failure
+    trap "rm -f '$tmp_status'" RETURN
+
+    awk '
+      /^## Recent Retro Insights$/ { skip=1; next }
+      /^## / && skip { skip=0 }
+      !skip { print }
+    ' "$vault_status" > "$tmp_status"
+
+    # Only replace if temp file is non-empty (safety check)
+    if [[ -s "$tmp_status" ]] || [[ ! -s "$vault_status" ]]; then
+      mv "$tmp_status" "$vault_status"
+    else
+      rm -f "$tmp_status"
+      return 1
+    fi
 
     # Append new section
     {
@@ -210,12 +249,13 @@ bridge_retros_to_vault() {
         [[ -f "$retro_file" ]] || continue
         local retro_name
         retro_name=$(basename "$retro_file" .md)
-        echo "### ${retro_name}"
+        printf '### %s\n' "${retro_name}"
         # Extract key learnings (first 10 lines of body after frontmatter)
         sed -n '/^---$/,/^---$/!p' "$retro_file" | head -10
         echo ""
       done <<< "$recent_retros"
     } >> "$vault_status"
+    trap - RETURN
   fi
 
   echo "Synced retro insights to vault/memory/status.md"

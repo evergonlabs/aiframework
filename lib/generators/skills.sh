@@ -650,7 +650,6 @@ LEARNMD
 
     # Add sheal skill permissions and SessionStart hook when sheal is detected
     local sheal_perms=""
-    local sheal_hook=""
     local _sheal_installed
     _sheal_installed=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
     if [[ "$_sheal_installed" == "true" ]]; then
@@ -659,17 +658,27 @@ LEARNMD
       "Skill(sheal-retro)",
       "Skill(sheal-drift)",
       "Skill(sheal-ask)"'
-      # Add SessionStart hook — merge with existing hooks
+      # Build SessionStart block as a separate variable — no sed, fully portable
+      local session_start_block=',
+    "SessionStart": [
+      {
+        "command": "sheal check --format json 2>/dev/null | head -20 || true",
+        "timeout": 15000
+      }
+    ]'
+      # Merge: strip trailing close from existing hooks_block, append SessionStart, re-close
       if [[ -n "$hooks_block" ]]; then
-        # Inject SessionStart into existing hooks block
-        hooks_block=$(echo "$hooks_block" | sed 's/}$/,\n    "SessionStart": [\n      {\n        "matcher": "",\n        "command": "sheal check --format json --skip tests 2>\/dev\/null | head -20 || true",\n        "timeout": 15000\n      }\n    ]\n  }/')
+        # Remove the trailing "  }" that closes the hooks object
+        # and append SessionStart before re-closing
+        hooks_block="${hooks_block%\}}"
+        hooks_block+="${session_start_block}
+  }"
       else
         hooks_block=',
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "",
-        "command": "sheal check --format json --skip tests 2>/dev/null | head -20 || true",
+        "command": "sheal check --format json 2>/dev/null | head -20 || true",
         "timeout": 15000
       }
     ]

@@ -17,13 +17,13 @@ allowed-tools:
 ## Prerequisites
 
 ```bash
-command -v sheal && sheal --version || echo "sheal not installed — run: npm install -g @liwala/sheal"
+command -v sheal >/dev/null 2>&1 && sheal --version 2>/dev/null || echo "sheal not installed — run: npm install -g @liwala/sheal"
 ```
 
 ## Step 1: Check Drift
 
 ```bash
-sheal drift --last 10 --json --project . 2>/dev/null || echo '{"error": "sheal drift failed"}'
+sheal drift --last 10 --format json --project . 2>/dev/null || echo '{"error": "sheal drift failed"}'
 ```
 
 ## Step 2: Analyze Patterns

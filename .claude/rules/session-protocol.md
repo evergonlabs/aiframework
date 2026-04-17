@@ -32,7 +32,7 @@ Before ending ANY session where code was changed, Claude MUST complete:
 - [ ] **STATUS.md**: Did I update STATUS.md with current progress for multi-phase tasks?
 - [ ] **Push**: Ready to push? Confirm with user before pushing.
 - [ ] **Vault**: Did I update vault/memory/status.md with session progress?
-- [ ] **Retro**: Did I run `sheal retro` to capture session learnings? (if sheal installed)
+- [ ] **Retro**: Did I run `/sheal-retro` to capture session learnings? (if sheal installed)
 - [ ] **Decisions**: Any significant decisions? → Log in vault/memory/decisions/
 
 ---

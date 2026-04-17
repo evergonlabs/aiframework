@@ -4,6 +4,7 @@
 #
 # Security: Runs sheal CLI commands locally. No network access from this script.
 # sheal itself may access npm registry during init — that's sheal's responsibility.
+# All manifest values are passed through jq --arg for safe JSON construction (INV-1).
 
 generate_sheal() {
   local m="$MANIFEST"
@@ -20,43 +21,37 @@ generate_sheal() {
     return 0
   fi
 
-  # --- 3a: Generate .self-heal.json ---
-  local test_cmd lang
+  # --- 3a: Generate .self-heal.json safely via jq (INV-1 compliant) ---
+  local test_cmd lang fw env_json
   test_cmd=$(echo "$m" | jq -r '.commands.test // ""')
   lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
-  local fw
   fw=$(echo "$m" | jq -r '.stack.framework // ""')
+  env_json=$(echo "$m" | jq -c '[.env.variables[]?.name // empty]' 2>/dev/null || echo '[]')
 
-  # Build tags array
-  local tags="[\"${lang}\""
+  # Build tags array safely via jq
+  local tags_json
   if [[ -n "$fw" && "$fw" != "none" && "$fw" != "null" ]]; then
-    tags+=",\"${fw}\""
+    tags_json=$(jq -n --arg l "$lang" --arg f "$fw" '[$l, $f]')
+  else
+    tags_json=$(jq -n --arg l "$lang" '[$l]')
   fi
-  tags+="]"
 
-  # Build required env vars array
-  local env_json="[]"
-  env_json=$(echo "$m" | jq '[.env.variables[]?.name // empty]' 2>/dev/null || echo "[]")
-
+  # Build entire JSON via jq — no heredoc interpolation of untrusted data
   local config_file="$TARGET_DIR/.self-heal.json"
-  cat > "$config_file" << SHEALCFG
-{
-  "checkers": {
-    "tests": {
-      "command": "${test_cmd}"
-    },
-    "dependencies": {
-      "ecosystems": ["${lang}"]
-    },
-    "environment": {
-      "requiredVars": $(echo "$env_json" | jq -c '.')
-    }
-  },
-  "learnings": {
-    "tags": ${tags}
-  }
-}
-SHEALCFG
+  jq -n \
+    --arg test_cmd "$test_cmd" \
+    --argjson env_vars "$env_json" \
+    --arg ecosystem "$lang" \
+    --argjson tags "$tags_json" \
+    '{
+      checkers: {
+        tests: { command: $test_cmd },
+        dependencies: { ecosystems: [$ecosystem] },
+        environment: { requiredVars: $env_vars }
+      },
+      learnings: { tags: $tags }
+    }' > "$config_file"
+
   log_ok "Generated .self-heal.json"
 
   # --- 3b: Run sheal init if .sheal/ doesn't exist ---
@@ -64,22 +59,24 @@ SHEALCFG
   sheal_initialized=$(echo "$m" | jq -r '.sheal.initialized // false')
   if [[ "$sheal_initialized" != "true" ]]; then
     if command -v sheal &>/dev/null; then
-      if sheal init --project "$TARGET_DIR" 2>/dev/null; then
+      local _init_err
+      _init_err=$(mktemp "${_AIF_TMPDIR:-/tmp}/sheal-init.XXXXXX" 2>/dev/null || mktemp)
+      if timeout 30 sheal init --project "$TARGET_DIR" 2>"$_init_err"; then
         log_ok "Initialized sheal in project"
       else
-        log_warn "sheal init failed (non-fatal)"
+        log_warn "sheal init failed — run 'sheal init --project . --verbose' to debug (non-fatal)"
+        [[ -s "$_init_err" ]] && log_warn "  $(head -3 "$_init_err")"
       fi
+      rm -f "$_init_err"
     fi
   fi
 
   # --- 3c: Run sheal rules to inject learnings ---
   if command -v sheal &>/dev/null; then
-    sheal rules --project "$TARGET_DIR" 2>/dev/null && log_ok "Injected sheal rules" || true
-  fi
-
-  # --- Bridge existing learnings ---
-  if [[ -f "$LIB_DIR/bridge/sheal_learnings.sh" ]]; then
-    source "$LIB_DIR/bridge/sheal_learnings.sh"
-    bridge_jsonl_to_sheal "$TARGET_DIR" 2>/dev/null || true
+    if timeout 15 sheal rules --project "$TARGET_DIR" 2>/dev/null; then
+      log_ok "Injected sheal rules"
+    else
+      log_warn "sheal rules injection skipped (non-fatal)"
+    fi
   fi
 }

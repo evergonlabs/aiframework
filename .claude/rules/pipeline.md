@@ -101,8 +101,8 @@ Run doc-sync check against this matrix:
 | "CI", "tests failing", "pipeline broken" | `/investigate` the CI/test failure, fix, verify locally |
 | "what changed recently", "catch me up" | Check `git log --oneline -20` + `vault/memory/status.md` |
 | "give feedback", "rate the output" | Run `/aif-feedback` to collect structured feedback |
-| "retro", "what went wrong", "session review" | Run `/sheal-retro` |
-| "what learnings", "show rules", "applied learnings" | Run `/sheal-drift` or `sheal learn list` |
+| "session retro", "sheal retro", "session review" | Run `/sheal-retro` |
+| "what learnings", "show rules", "applied learnings" | Run `/sheal-drift` or `sheal learn list` (CLI) |
 | "search sessions", "what happened with" | Run `/sheal-ask` |
 | "health check", "runtime check" | Run `/sheal-check` |
 
