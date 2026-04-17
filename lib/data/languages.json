@@ -577,7 +577,7 @@
             "build": "cmake --build build",
             "test": "ctest --test-dir build",
             "lint": "cppcheck --enable=all .",
-            "format": "clang-format -i"
+            "format": "find . -name \"*.c\" -o -name \"*.h\" | xargs clang-format -i"
           }
         },
         "make": {
@@ -588,7 +588,7 @@
             "build": "make",
             "test": "make test",
             "lint": "cppcheck --enable=all .",
-            "format": "clang-format -i"
+            "format": "find . -name \"*.c\" -o -name \"*.h\" | xargs clang-format -i"
           }
         }
       },
@@ -623,7 +623,7 @@
             "build": "cmake --build build",
             "test": "ctest --test-dir build",
             "lint": "clang-tidy",
-            "format": "clang-format -i"
+            "format": "find . -name \"*.cpp\" -o -name \"*.hpp\" | xargs clang-format -i"
           }
         },
         "conan": {

@@ -686,6 +686,11 @@ _generate_extended_rules() {
   local pipeline_out="$rules_dir/pipeline.md"
   if preserve_rule "$pipeline_out"; then
     cat > "$pipeline_out" << 'PIPEHEADER'
+---
+description: "12-stage autonomous pipeline, skill routing, doc-sync matrix"
+globs: "**/*"
+---
+
 # Pipeline & Skill Routing
 
 PIPEHEADER

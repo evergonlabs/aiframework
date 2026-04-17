@@ -189,7 +189,16 @@ class AifMcpServer:
 
     def _tool_analyze_file(self, path):
         idx = self.code_index
-        symbols = [s for s in idx.get("symbols", []) if s.get("file") == path]
+        # Symbols are in .files[path].symbols[] (dict format) or top-level .symbols[]
+        files = idx.get("files", {})
+        if isinstance(files, dict):
+            file_data = files.get(path, {})
+            symbols = file_data.get("symbols", [])
+        else:
+            symbols = []
+        # Fallback to top-level symbols array
+        if not symbols:
+            symbols = [s for s in idx.get("symbols", []) if s.get("file") == path]
         edges_out = [e for e in idx.get("edges", []) if e.get("source") == path]
         edges_in = [e for e in idx.get("edges", []) if e.get("target") == path]
         return {
@@ -282,6 +291,7 @@ class AifMcpServer:
         handlers = {
             "initialize": self.handle_initialize,
             "initialized": self.handle_initialized,
+            "ping": lambda p: {},
             "resources/list": self.handle_resources_list,
             "resources/read": self.handle_resources_read,
             "tools/list": self.handle_tools_list,

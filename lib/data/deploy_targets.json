@@ -4,7 +4,9 @@
   "targets": {
     "fly-io": {
       "display": "Fly.io",
-      "marker_files": ["fly.toml"],
+      "marker_files": [
+        "fly.toml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "fly deploy",
@@ -15,8 +17,13 @@
     },
     "vercel": {
       "display": "Vercel",
-      "marker_files": ["vercel.json", ".vercel"],
-      "marker_dirs": [".vercel"],
+      "marker_files": [
+        "vercel.json",
+        ".vercel"
+      ],
+      "marker_dirs": [
+        ".vercel"
+      ],
       "commands": {
         "deploy": "vercel --prod",
         "status": "vercel ls",
@@ -26,8 +33,12 @@
     },
     "netlify": {
       "display": "Netlify",
-      "marker_files": ["netlify.toml"],
-      "marker_dirs": [".netlify"],
+      "marker_files": [
+        "netlify.toml"
+      ],
+      "marker_dirs": [
+        ".netlify"
+      ],
       "commands": {
         "deploy": "netlify deploy --prod",
         "status": "netlify status",
@@ -37,7 +48,9 @@
     },
     "render": {
       "display": "Render",
-      "marker_files": ["render.yaml"],
+      "marker_files": [
+        "render.yaml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": null,
@@ -48,7 +61,10 @@
     },
     "heroku": {
       "display": "Heroku",
-      "marker_files": ["Procfile", "app.json"],
+      "marker_files": [
+        "Procfile",
+        "app.json"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "git push heroku main",
@@ -59,7 +75,10 @@
     },
     "railway": {
       "display": "Railway",
-      "marker_files": ["railway.toml", "railway.json"],
+      "marker_files": [
+        "railway.toml",
+        "railway.json"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "railway up",
@@ -70,7 +89,10 @@
     },
     "aws-codedeploy": {
       "display": "AWS CodeDeploy",
-      "marker_files": ["appspec.yml", "appspec.yaml"],
+      "marker_files": [
+        "appspec.yml",
+        "appspec.yaml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": null,
@@ -81,8 +103,13 @@
     },
     "aws-cdk": {
       "display": "AWS CDK",
-      "marker_files": ["cdk.json", "cdk.context.json"],
-      "marker_dirs": ["cdk.out"],
+      "marker_files": [
+        "cdk.json",
+        "cdk.context.json"
+      ],
+      "marker_dirs": [
+        "cdk.out"
+      ],
       "commands": {
         "deploy": "cdk deploy",
         "status": "cdk diff",
@@ -92,8 +119,14 @@
     },
     "serverless": {
       "display": "Serverless Framework",
-      "marker_files": ["serverless.yml", "serverless.yaml", "serverless.ts"],
-      "marker_dirs": [".serverless"],
+      "marker_files": [
+        "serverless.yml",
+        "serverless.yaml",
+        "serverless.ts"
+      ],
+      "marker_dirs": [
+        ".serverless"
+      ],
       "commands": {
         "deploy": "serverless deploy",
         "status": "serverless info",
@@ -103,7 +136,10 @@
     },
     "cloudflare-workers": {
       "display": "Cloudflare Workers",
-      "marker_files": ["wrangler.toml", "wrangler.jsonc"],
+      "marker_files": [
+        "wrangler.toml",
+        "wrangler.jsonc"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "wrangler deploy",
@@ -114,8 +150,15 @@
     },
     "terraform": {
       "display": "Terraform",
-      "marker_files": ["*.tf", "terraform.tfvars", ".terraform.lock.hcl"],
-      "marker_dirs": ["terraform", ".terraform"],
+      "marker_files": [
+        "*.tf",
+        "terraform.tfvars",
+        ".terraform.lock.hcl"
+      ],
+      "marker_dirs": [
+        "terraform",
+        ".terraform"
+      ],
       "commands": {
         "deploy": "terraform apply",
         "status": "terraform plan",
@@ -125,7 +168,10 @@
     },
     "pulumi": {
       "display": "Pulumi",
-      "marker_files": ["Pulumi.yaml", "Pulumi.yml"],
+      "marker_files": [
+        "Pulumi.yaml",
+        "Pulumi.yml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "pulumi up",
@@ -136,9 +182,17 @@
     },
     "kubernetes": {
       "display": "Kubernetes",
-      "marker_files": ["*.yaml", "*.yml"],
-      "marker_dirs": ["k8s", "kubernetes", "manifests"],
-      "marker_content_patterns": ["apiVersion:", "kind: Deployment", "kind: Service"],
+      "marker_files": [],
+      "marker_dirs": [
+        "k8s",
+        "kubernetes",
+        "manifests"
+      ],
+      "marker_content_patterns": [
+        "apiVersion:",
+        "kind: Deployment",
+        "kind: Service"
+      ],
       "commands": {
         "deploy": "kubectl apply -f",
         "status": "kubectl get pods",
@@ -148,8 +202,14 @@
     },
     "helm": {
       "display": "Helm",
-      "marker_files": ["Chart.yaml", "Chart.yml"],
-      "marker_dirs": ["helm", "charts"],
+      "marker_files": [
+        "Chart.yaml",
+        "Chart.yml"
+      ],
+      "marker_dirs": [
+        "helm",
+        "charts"
+      ],
       "commands": {
         "deploy": "helm install",
         "status": "helm status",
@@ -159,7 +219,13 @@
     },
     "docker": {
       "display": "Docker",
-      "marker_files": ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"],
+      "marker_files": [
+        "Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yml",
+        "compose.yaml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "docker compose up -d",
@@ -170,7 +236,10 @@
     },
     "podman": {
       "display": "Podman",
-      "marker_files": ["Containerfile", "podman-compose.yml"],
+      "marker_files": [
+        "Containerfile",
+        "podman-compose.yml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "podman-compose up -d",
@@ -181,8 +250,12 @@
     },
     "supabase": {
       "display": "Supabase",
-      "marker_files": ["supabase/config.toml"],
-      "marker_dirs": ["supabase"],
+      "marker_files": [
+        "supabase/config.toml"
+      ],
+      "marker_dirs": [
+        "supabase"
+      ],
       "commands": {
         "deploy": "supabase db push",
         "status": "supabase status",
@@ -192,7 +265,10 @@
     },
     "firebase": {
       "display": "Firebase",
-      "marker_files": ["firebase.json", ".firebaserc"],
+      "marker_files": [
+        "firebase.json",
+        ".firebaserc"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "firebase deploy",
@@ -203,8 +279,17 @@
     },
     "ansible": {
       "display": "Ansible",
-      "marker_files": ["ansible.cfg", "playbook.yml", "playbook.yaml", "site.yml"],
-      "marker_dirs": ["roles", "playbooks", "inventory"],
+      "marker_files": [
+        "ansible.cfg",
+        "playbook.yml",
+        "playbook.yaml",
+        "site.yml"
+      ],
+      "marker_dirs": [
+        "roles",
+        "playbooks",
+        "inventory"
+      ],
       "commands": {
         "deploy": "ansible-playbook site.yml",
         "status": "ansible all -m ping",
@@ -214,7 +299,11 @@
     },
     "nix": {
       "display": "Nix",
-      "marker_files": ["flake.nix", "default.nix", "shell.nix"],
+      "marker_files": [
+        "flake.nix",
+        "default.nix",
+        "shell.nix"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "nixos-rebuild switch",
@@ -225,8 +314,13 @@
     },
     "azure": {
       "display": "Azure App Service",
-      "marker_files": ["azure-pipelines.yml", ".azure"],
-      "marker_dirs": [".azure"],
+      "marker_files": [
+        "azure-pipelines.yml",
+        ".azure"
+      ],
+      "marker_dirs": [
+        ".azure"
+      ],
       "commands": {
         "deploy": "az webapp deploy",
         "status": "az webapp show",
@@ -236,7 +330,11 @@
     },
     "gcp-cloud-run": {
       "display": "Google Cloud Run",
-      "marker_files": ["cloudbuild.yaml", "cloudbuild.yml", "app.yaml"],
+      "marker_files": [
+        "cloudbuild.yaml",
+        "cloudbuild.yml",
+        "app.yaml"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "gcloud run deploy",
@@ -247,7 +345,9 @@
     },
     "earthly": {
       "display": "Earthly",
-      "marker_files": ["Earthfile"],
+      "marker_files": [
+        "Earthfile"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "earthly +deploy",
@@ -258,7 +358,13 @@
     },
     "bazel": {
       "display": "Bazel",
-      "marker_files": ["BUILD", "BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel"],
+      "marker_files": [
+        "BUILD",
+        "BUILD.bazel",
+        "WORKSPACE",
+        "WORKSPACE.bazel",
+        "MODULE.bazel"
+      ],
       "marker_dirs": [],
       "commands": {
         "deploy": "bazel run //:deploy",
