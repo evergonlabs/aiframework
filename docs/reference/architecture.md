@@ -70,19 +70,19 @@
 
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/validators/freshness.sh`
-- `lib/validators/files.sh`
-- `lib/generators/skills.sh`
 - `lib/validators/security.sh`
 - `lib/scanners/skill_suggest.sh`
+- `lib/validators/files.sh`
+- `lib/validators/freshness.sh`
+- `lib/generators/preserve.sh`
 - `lib/validators/quality_gate.sh`
 - `lib/validators/consistency.sh`
-- `lib/generators/preserve.sh`
-- `lib/scanners/stack.sh`
-- `lib/scanners/ci.sh`
-- `lib/scanners/env.sh`
-- `lib/generators/docs.sh`
-- `lib/scanners/identity.sh`
+- `lib/generators/skills.sh`
+- `lib/generators/cursor_rules.sh`
+- `lib/generators/claude_md.sh`
+- `lib/generators/vault.sh`
+- `lib/generators/report.sh`
+- `lib/scanners/structure.sh`
 
 ## Core Principles
 

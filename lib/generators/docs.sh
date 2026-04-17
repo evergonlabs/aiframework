@@ -205,6 +205,31 @@ CONTRIBMD
     log_ok "Created CONTRIBUTING.md"
   fi
 
+  # --- #86: docs/API_CONTRACTS.md stub (when API domain detected) ---
+  local _has_api_domain
+  _has_api_domain=$(echo "$m" | jq -r '.domain.detected_domains[]? | select(.name == "api") | .name' 2>/dev/null)
+  if [[ -n "$_has_api_domain" ]]; then
+    local api_contracts_file="$TARGET_DIR/docs/API_CONTRACTS.md"
+    if ! preserve_doc "$api_contracts_file"; then
+      true  # skip — preserved
+    else
+      cat > "$api_contracts_file" << 'APIMD'
+# API Contracts
+
+> Document API endpoints, request/response shapes, and breaking change policy here.
+
+## Endpoints
+
+*Add endpoint documentation as the API develops.*
+
+## Breaking Change Policy
+
+*Define versioning strategy and migration plans for breaking changes.*
+APIMD
+      log_ok "Created docs/API_CONTRACTS.md"
+    fi
+  fi
+
   # --- docs/LESSONS_LEARNED.md ---
   local lessons_file="$TARGET_DIR/docs/LESSONS_LEARNED.md"
   if ! preserve_doc "$lessons_file"; then

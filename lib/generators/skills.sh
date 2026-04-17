@@ -595,7 +595,71 @@ LEARNMD
     ]
   }'
         ;;
+      python)
+        # #25 — Python PostToolUse hook when mypy/pyright detected
+        local py_has_typecheck=false
+        if [[ -n "$typecheck_cmd" ]] && echo "$typecheck_cmd" | grep -qE '(mypy|pyright)'; then
+          py_has_typecheck=true
+        fi
+        # Also check key_dependencies
+        local py_deps
+        py_deps=$(echo "$m" | jq -r '.stack.key_dependencies[]?' 2>/dev/null)
+        if echo "$py_deps" | grep -qE '(mypy|pyright)'; then
+          py_has_typecheck=true
+        fi
+        if [[ "$py_has_typecheck" == true ]]; then
+          hooks_block=',
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "python3 -m mypy --no-error-summary 2>&1 | tail -5 || true",
+        "timeout": 15000
+      }
+    ]
+  }'
+        fi
+        ;;
     esac
+
+    # #26 — Dual frontend+backend hooks for monorepos
+    local is_monorepo
+    is_monorepo=$(echo "$m" | jq -r '.stack.is_monorepo // false')
+    if [[ "$is_monorepo" == "true" ]]; then
+      local mono_apps
+      mono_apps=$(echo "$m" | jq -r '.stack.monorepo_apps[]?' 2>/dev/null)
+      if [[ -n "$mono_apps" ]]; then
+        local mono_hooks=""
+        local mono_first=true
+        while IFS= read -r app; do
+          [[ -z "$app" ]] && continue
+          # Check if this app has a tsconfig
+          if [[ -f "$TARGET_DIR/apps/${app}/tsconfig.json" || -f "$TARGET_DIR/packages/${app}/tsconfig.json" ]]; then
+            [[ "$mono_first" == false ]] && mono_hooks+=","
+            mono_hooks+="
+      {
+        \"matcher\": \"Edit|Write\",
+        \"command\": \"cd apps/${app} && npx tsc --noEmit 2>&1 | head -10 || true\",
+        \"timeout\": 30000
+      }"
+            mono_first=false
+          fi
+        done <<< "$mono_apps"
+        if [[ -n "$mono_hooks" ]]; then
+          hooks_block=",
+  \"hooks\": {
+    \"PostToolUse\": [${mono_hooks}
+    ]
+  }"
+        fi
+      fi
+    fi
+
+    # #28 — Auto-allow generated skill names in permissions
+    local skill_allows=""
+    skill_allows+=",\n      \"Skill(${short}-review)\""
+    skill_allows+=",\n      \"Skill(${short}-ship)\""
+    skill_allows+=",\n      \"Skill(${short}-learn)\""
 
     cat > "$settings_file" << SETTINGS
 {
@@ -604,11 +668,58 @@ LEARNMD
       "Read",
       "Glob",
       "Grep",
-      "WebSearch"
+      "WebSearch",
+      "Skill(${short}-review)",
+      "Skill(${short}-ship)",
+      "Skill(${short}-learn)"
     ]
   }${hooks_block}
 }
 SETTINGS
     log_ok "Created .claude/settings.json"
+  fi
+
+  # --- #30-31: Code Reviewer Agent ---
+  local agents_dir="$TARGET_DIR/.claude/agents"
+  mkdir -p "$agents_dir"
+  if [[ ! -f "$agents_dir/code-reviewer.md" ]]; then
+    cat > "$agents_dir/code-reviewer.md" << 'AGENTMD'
+---
+name: code-reviewer
+description: Focused code review agent with restricted tools
+model: sonnet
+allowed-tools: [Read, Glob, Grep, Bash]
+---
+
+# Code Reviewer
+
+Review the provided code changes for:
+1. Invariant violations (check CLAUDE.md Invariants section)
+2. Missing error handling
+3. Security issues (hardcoded secrets, injection risks)
+4. Test coverage gaps
+
+Output format:
+- PASS: No issues found
+- ISSUES: Numbered list with file:line references
+AGENTMD
+    log_ok "Created .claude/agents/code-reviewer.md"
+  fi
+
+  # --- #32-33: Review Command ---
+  local commands_dir="$TARGET_DIR/.claude/commands"
+  mkdir -p "$commands_dir"
+  if [[ ! -f "$commands_dir/review.md" ]]; then
+    cat > "$commands_dir/review.md" << 'CMDMD'
+---
+description: Review code changes against project invariants
+allowed-tools: [Read, Glob, Grep, Bash]
+argument-hint: "[file or directory to review]"
+---
+
+Review $ARGUMENTS for invariant violations, missing tests, and security issues.
+Check CLAUDE.md Invariants section for project-specific rules.
+CMDMD
+    log_ok "Created .claude/commands/review.md"
   fi
 }

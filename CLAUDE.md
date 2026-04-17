@@ -44,14 +44,14 @@ make test
 **Most important files** (by dependency rank):
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/validators/freshness.sh`
-- `lib/validators/files.sh`
-- `lib/generators/skills.sh`
 - `lib/validators/security.sh`
 - `lib/scanners/skill_suggest.sh`
+- `lib/validators/files.sh`
+- `lib/validators/freshness.sh`
+- `lib/generators/preserve.sh`
 - `lib/validators/quality_gate.sh`
 - `lib/validators/consistency.sh`
-- `lib/generators/preserve.sh`
+- `lib/generators/skills.sh`
 
 ## Environment Variables
 
@@ -66,6 +66,17 @@ make test
 - Lean vs full CLAUDE.md dispatch based on archetype complexity
 - Data registries in lib/data/ are the source of truth for detection
 - Python 3.10+ required, not 3.9+ — match/case syntax used in indexer
+
+## Common Mistakes
+
+- Not running the full test suite before marking done
+- Editing the wrong config file (staging vs production)
+- Forgetting to update documentation after changes
+
+## Key State
+
+- Source files: 70
+- Tests: [run `make test` to count]
 
 ## Makefile
 
@@ -116,11 +127,12 @@ Returning? Read `vault/memory/status.md`, check `git log --oneline -10`.
 ## Self-Evolution
 
 This file auto-evolves. Rules of thumb:
-- **Same mistake twice** → add to Invariants above
+- **Same mistake twice** → add to Invariants above with a "Reason:" annotation explaining why it matters
 - **Applies only to certain files** → create `.claude/rules/<domain>.md` with `paths:` frontmatter
 - **Multi-step workflow** → create `.claude/skills/<name>/SKILL.md`
 - **Run `/aif-evolve` periodically** to synthesize learnings into rules
 - **This file should get shorter** — migrate content to rules and skills as patterns stabilize
+- **Heavy domain context** → create `DOMAIN.md` for domain-specific knowledge (loaded by Claude Code)
 - **Run `aiframework refresh`** when dependencies or structure change
 
 ---

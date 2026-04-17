@@ -106,6 +106,7 @@ When QA discovers issues, ALL must be automatically fixed:
 3. Run type check → must pass
 4. Run tests again — all must pass
 5. Commit
+If the fix-verify loop fails 3+ times on the same issue, STOP and re-plan approach.
 
 ## Documentation Auto-Sync
 After ANY feature implementation, refactor, or significant change:
@@ -125,6 +126,8 @@ After marking any feature complete and before pushing:
 - Verify correct file before editing — wrong Dockerfile, wrong config, wrong component
 - When in doubt: run more checks, not fewer. Ask yourself: would a staff engineer approve this?
 - Complete all phases in a single session when requested — do not suggest splitting work across sessions
+- After completing a major milestone: run `/compact` to free context headroom
+- For tasks with 5+ phases: create STATUS.md at the start to track progress
 
 ## New Feature Checklist
 - [ ] Feature works as specified
@@ -138,6 +141,32 @@ WORKFLOW_RULES
   # Append language-specific QA rules if any
   if [[ -n "$qa_rules_block" ]]; then
     echo "$qa_rules_block" >> "$rules_out"
+  fi
+
+  # --- #7, #17, #20: Frontend-specific workflow rules ---
+  local _wf_all_domains=""
+  _wf_all_domains=$(echo "$_cm_m" | jq -r '.domain.detected_domains[]? | .name' 2>/dev/null || true)
+  if echo "$_wf_all_domains" | grep -q 'frontend'; then
+    {
+      echo ""
+      echo "### Frontend Rules"
+      echo "- After frontend changes: navigate via sidebar/navigation (not direct URL) to confirm reachable"
+      echo "- Show loading state before error state — never show error while data still loading"
+      echo "- After creating a new page: update sidebar/navigation to include it"
+    } >> "$rules_out"
+  fi
+
+  # --- #16: React hooks rule ---
+  local _wf_fw
+  _wf_fw=$(echo "$_cm_m" | jq -r '.stack.framework // "none"')
+  local _wf_deps
+  _wf_deps=$(echo "$_cm_m" | jq -r '.stack.key_dependencies[]?' 2>/dev/null || true)
+  if echo "$_wf_fw" | grep -qiE '(react|next)' || echo "$_wf_deps" | grep -qiE '^react$'; then
+    {
+      echo ""
+      echo "### React Rules"
+      echo "- Never place React hooks after early returns or inside conditionals"
+    } >> "$rules_out"
   fi
 
   log_ok ".claude/rules/workflow.md written"
@@ -285,6 +314,17 @@ CLAUDEMD
     done >> "$out"
   fi
 
+  # --- #8: Read-only dependency declarations ---
+  local ro_dirs
+  ro_dirs=$(echo "$m" | jq -r '.structure.read_only_dirs[]?' 2>/dev/null)
+  if [[ -n "$ro_dirs" ]]; then
+    local ro_list
+    ro_list=$(echo "$ro_dirs" | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+    local ro_inv_num
+    ro_inv_num=$(($(grep -c 'INV-' "$out" 2>/dev/null || echo "0") + 1))
+    echo "- **INV-${ro_inv_num}**: NEVER modify read-only paths: \`${ro_list}\`" >> "$out"
+  fi
+
   # Ensure at least 1 invariant
   local inv_count
   inv_count=$(grep -c 'INV-' "$out" 2>/dev/null || echo "0")
@@ -312,6 +352,23 @@ CLAUDEMD
   fi
 
   echo "" >> "$out"
+
+  # --- #42: Workspace package inventory for monorepos ---
+  if [[ "$_cm_is_mono" == "true" ]]; then
+    echo "## Packages" >> "$out"
+    echo "" >> "$out"
+    echo "| Package | Path | Purpose |" >> "$out"
+    echo "|---------|------|---------|" >> "$out"
+    echo "$m" | jq -r '.stack.monorepo_apps[]?' 2>/dev/null | while IFS= read -r app; do
+      [[ -z "$app" ]] && continue
+      echo "| ${app} | \`apps/${app}/\` | Application |"
+    done >> "$out"
+    echo "$m" | jq -r '.stack.monorepo_libs[]?' 2>/dev/null | while IFS= read -r lib; do
+      [[ -z "$lib" ]] && continue
+      echo "| ${lib} | \`libs/${lib}/\` | Library |"
+    done >> "$out"
+    echo "" >> "$out"
+  fi
 
   # --- Key Locations (top 10, compact) ---
   echo "## Key Locations" >> "$out"
@@ -414,6 +471,69 @@ CLAUDEMD
 
   echo "" >> "$out"
 
+  # --- #51: Common Mistakes section (moderate+ complexity) ---
+  if [[ "$complexity" == "moderate" || "$complexity" == "complex" || "$complexity" == "enterprise" ]]; then
+    echo "## Common Mistakes" >> "$out"
+    echo "" >> "$out"
+    case "$lang" in
+      typescript|javascript)
+        echo "- Forgetting to await async functions" >> "$out"
+        echo "- Using \`any\` type instead of proper typing" >> "$out"
+        echo "- Not handling Promise rejections" >> "$out"
+        ;;
+      python)
+        echo "- Mutable default arguments in function definitions" >> "$out"
+        echo "- Not closing file handles (use context managers)" >> "$out"
+        echo "- Catching bare exceptions instead of specific ones" >> "$out"
+        ;;
+      rust)
+        echo "- Using \`unwrap()\` in production code" >> "$out"
+        echo "- Not handling all match arms" >> "$out"
+        echo "- Forgetting to propagate errors with \`?\`" >> "$out"
+        ;;
+      go)
+        echo "- Ignoring error returns with \`_ = err\`" >> "$out"
+        echo "- Not passing context through call chains" >> "$out"
+        echo "- Goroutine leaks from missing cancellation" >> "$out"
+        ;;
+      c|cpp)
+        echo "- Memory leaks from missing free/delete" >> "$out"
+        echo "- Buffer overflows from unchecked bounds" >> "$out"
+        echo "- Use-after-free from dangling pointers" >> "$out"
+        ;;
+      *)
+        echo "- Not running the full test suite before marking done" >> "$out"
+        echo "- Editing the wrong config file (staging vs production)" >> "$out"
+        echo "- Forgetting to update documentation after changes" >> "$out"
+        ;;
+    esac
+    echo "" >> "$out"
+  fi
+
+  # --- #49: Key State section (moderate+ complexity) ---
+  if [[ "$complexity" == "moderate" || "$complexity" == "complex" || "$complexity" == "enterprise" ]]; then
+    local _ks_source_count=""
+    local _ks_test_count=""
+    local _code_index="${OUTPUT_DIR}/code-index.json"
+    if [[ -f "$_code_index" ]] && command -v jq &>/dev/null; then
+      _ks_source_count=$(jq -r '._meta.total_files // empty' "$_code_index" 2>/dev/null)
+      _ks_test_count=$(jq -r '._meta.test_files // empty' "$_code_index" 2>/dev/null)
+    fi
+    echo "## Key State" >> "$out"
+    echo "" >> "$out"
+    if [[ -n "$_ks_source_count" ]]; then
+      echo "- Source files: ${_ks_source_count}" >> "$out"
+    else
+      echo "- Source files: [run \`aiframework refresh\` to count]" >> "$out"
+    fi
+    if [[ -n "$_ks_test_count" ]]; then
+      echo "- Test files: ${_ks_test_count}" >> "$out"
+    else
+      echo "- Tests: [run \`make test\` to count]" >> "$out"
+    fi
+    echo "" >> "$out"
+  fi
+
   # --- Testing ---
   local test_tool
   test_tool=$(echo "$m" | jq -r '.quality.test_framework.tool // empty')
@@ -514,11 +634,12 @@ SESSIONREF
 ## Self-Evolution
 
 This file auto-evolves. Rules of thumb:
-- **Same mistake twice** → add to Invariants above
+- **Same mistake twice** → add to Invariants above with a "Reason:" annotation explaining why it matters
 - **Applies only to certain files** → create \`.claude/rules/<domain>.md\` with \`paths:\` frontmatter
 - **Multi-step workflow** → create \`.claude/skills/<name>/SKILL.md\`
 - **Run \`/aif-evolve\` periodically** to synthesize learnings into rules
 - **This file should get shorter** — migrate content to rules and skills as patterns stabilize
+- **Heavy domain context** → create \`DOMAIN.md\` for domain-specific knowledge (loaded by Claude Code)
 - **Run \`aiframework refresh\`** when dependencies or structure change
 
 ---
@@ -892,6 +1013,19 @@ INVHEAD
         esac
         inv_num=$((inv_num + 1))
       done >> "$inv_out"
+    fi
+
+    # #8: Read-only paths invariant in extended rules
+    local _ext_ro_dirs
+    _ext_ro_dirs=$(echo "$m" | jq -r '.structure.read_only_dirs[]?' 2>/dev/null)
+    if [[ -n "$_ext_ro_dirs" ]]; then
+      local _ext_ro_list
+      _ext_ro_list=$(echo "$_ext_ro_dirs" | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+      local _ext_ro_inv
+      _ext_ro_inv=$(($(grep -c '^## INV-' "$inv_out" 2>/dev/null || echo "0") + 1))
+      echo "## INV-${_ext_ro_inv}: Never modify read-only paths" >> "$inv_out"
+      echo "NEVER modify read-only paths: \`${_ext_ro_list}\`" >> "$inv_out"
+      echo "" >> "$inv_out"
     fi
 
     # Ensure minimum invariants

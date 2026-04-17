@@ -40,6 +40,7 @@ When QA discovers issues, ALL must be automatically fixed:
 3. Run type check → must pass
 4. Run tests again — all must pass
 5. Commit
+If the fix-verify loop fails 3+ times on the same issue, STOP and re-plan approach.
 
 ## Documentation Auto-Sync
 After ANY feature implementation, refactor, or significant change:
@@ -59,6 +60,8 @@ After marking any feature complete and before pushing:
 - Verify correct file before editing — wrong Dockerfile, wrong config, wrong component
 - When in doubt: run more checks, not fewer. Ask yourself: would a staff engineer approve this?
 - Complete all phases in a single session when requested — do not suggest splitting work across sessions
+- After completing a major milestone: run `/compact` to free context headroom
+- For tasks with 5+ phases: create STATUS.md at the start to track progress
 
 ## New Feature Checklist
 - [ ] Feature works as specified
