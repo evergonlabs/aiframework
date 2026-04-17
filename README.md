@@ -23,7 +23,7 @@
 
 [![version](https://img.shields.io/badge/v1.2.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/94_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/39_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
@@ -31,7 +31,7 @@
 
 <br>
 
-[Quick Start](#quick-start) · [The Ecosystem](#the-ecosystem) · [What You Get](#what-you-get) · [Skills](#52-skills) · [Languages](#20-languages--57-frameworks) · [Architecture](#architecture)
+[Quick Start](#quick-start) · [The Ecosystem](#the-ecosystem) · [What You Get](#what-you-get) · [Skills](#skills) · [Languages](#20-languages--57-frameworks) · [Architecture](#architecture)
 
 > **[View the interactive ecosystem diagram &rarr;](docs/ecosystem.html)**
 
@@ -200,9 +200,9 @@ Then `/aif-ready` enhances it with framework-specific knowledge from the web.
 
 <br>
 
-## 52 Skills
+## Skills
 
-aiframework generates **15 project-specific skills**. [gstack](https://github.com/garrytan/gstack) adds **37 more**. Together, Claude Code goes from a chatbot to a full engineering team.
+aiframework generates **15 project-specific skills**. The ecosystem extends to **37 more** via [gstack](https://github.com/garrytan/gstack). Together, Claude Code goes from a chatbot to a full engineering team.
 
 ### Your workflow
 
@@ -246,7 +246,7 @@ aiframework generates **15 project-specific skills**. [gstack](https://github.co
 
 <br>
 
-### gstack skills (37 &mdash; included with install)
+### gstack skills (37 &mdash; via [gstack](https://github.com/garrytan/gstack))
 
 <table>
 <tr>
