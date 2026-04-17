@@ -82,7 +82,7 @@ preserve_claude_md() {
     # Strip trailing blank lines and stray ---
     cleaned=$(echo "$cleaned" | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }' | sed '/^---$/d' || true)
     # If only whitespace remains, discard
-    if [[ -z "$(echo "$cleaned" | tr -d '[:space:]')" ]]; then
+    if [[ -z "$(printf '%s' "$cleaned" | tr -d '[:space:]')" ]]; then
       user_custom_sections=""
     else
       user_custom_sections="$cleaned"
@@ -211,7 +211,7 @@ preserve_specialist() {
   local generated_names="auth database api ai-llm sandbox frontend external-apis workers financial web3 monorepo"
 
   local name_without_ext="${basename%.md}"
-  if echo "$generated_names" | grep -qw "$name_without_ext"; then
+  if echo "$generated_names" | grep -Fqw "$name_without_ext"; then
     # Ours — safe to overwrite
     return 0
   fi

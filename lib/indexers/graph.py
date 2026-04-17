@@ -101,7 +101,6 @@ def _role_for_directory(dir_name: str) -> str:
 
 def build_graph(
     files_data: dict[str, dict[str, Any]],
-    target_dir: str,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     """Build dependency edges and module groupings from parsed file data.
 

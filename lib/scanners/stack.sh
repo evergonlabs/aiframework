@@ -21,7 +21,7 @@ scan_stack() {
         # Handle glob patterns in marker files (e.g., *.csproj)
         if [[ "$marker" == *"*"* ]]; then
           # shellcheck disable=SC2086
-          if compgen -G "$TARGET_DIR"/$marker >/dev/null 2>&1; then
+          if ls ${TARGET_DIR}/${marker} >/dev/null 2>&1; then
             lang_found=true
             break
           fi

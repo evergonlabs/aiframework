@@ -49,7 +49,7 @@ validate_consistency() {
     build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
 
     if [[ "$build_cmd" != "NOT_CONFIGURED" ]]; then
-      if grep -q "$build_cmd" "$TARGET_DIR/.claude/skills/${short}-ship/SKILL.md" 2>/dev/null; then
+      if grep -Fq "$build_cmd" "$TARGET_DIR/.claude/skills/${short}-ship/SKILL.md" 2>/dev/null; then
         report_row "Cmd sync: ship skill" "PASS" "Commands match"
       else
         report_row "Cmd sync: ship skill" "FAIL" "Build cmd mismatch"
@@ -75,7 +75,7 @@ validate_consistency() {
     install_cmd=$(echo "$m" | jq -r '.commands.install // "NOT_CONFIGURED"')
 
     if [[ "$install_cmd" != "NOT_CONFIGURED" ]]; then
-      if grep -q "$install_cmd" "$TARGET_DIR/SETUP-DEV.md" 2>/dev/null; then
+      if grep -Fq "$install_cmd" "$TARGET_DIR/SETUP-DEV.md" 2>/dev/null; then
         report_row "Cmd sync: SETUP-DEV" "PASS" "Install cmd matches"
       else
         report_row "Cmd sync: SETUP-DEV" "FAIL" "Install cmd mismatch"

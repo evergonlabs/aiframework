@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
@@ -623,7 +624,7 @@ def index_repo(target_dir: str, output_path: str | None = None) -> dict[str, Any
 
     # Collect files.
     tasks: list[tuple[str, str, str]] = []  # (abs, rel, lang)
-    for dirpath, dirnames, filenames in os.walk(target_dir):
+    for dirpath, dirnames, filenames in os.walk(target_dir, followlinks=False):
         # Prune excluded directories in-place.
         dirnames[:] = [
             d for d in dirnames if d not in _EXCLUDED_DIRS
@@ -658,7 +659,6 @@ def index_repo(target_dir: str, output_path: str | None = None) -> dict[str, Any
                 result = future.result()
             except Exception as exc:
                 # Don't let one bad file crash the entire index.
-                import logging
                 logging.warning("indexer: failed to parse %s: %s", rel_p, exc)
                 continue
             files_data[rel_p] = result["file_entry"]
@@ -667,7 +667,7 @@ def index_repo(target_dir: str, output_path: str | None = None) -> dict[str, Any
             lang_counts[lang] = lang_counts.get(lang, 0) + 1
 
     # Build graph.
-    edges, modules = build_graph(files_data, target_dir)
+    edges, modules = build_graph(files_data)
 
     # Compute PageRank importance scores.
     pagerank = compute_pagerank(edges, files_data)

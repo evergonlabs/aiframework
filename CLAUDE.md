@@ -70,7 +70,7 @@ make test
 ## Common Mistakes
 
 - Not running the full test suite before marking done
-- Editing the wrong config file (staging vs production)
+- Editing lib/data/ registry JSON instead of the corresponding scanner/generator code
 - Forgetting to update documentation after changes
 
 ## Key State

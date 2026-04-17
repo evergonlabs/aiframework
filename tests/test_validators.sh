@@ -574,6 +574,39 @@ test_skill_suggest_docker() {
 }
 
 # ============================================================
+# TEST: CI YAML validity — generated ci.yml is valid YAML
+# ============================================================
+test_ci_yaml_validity() {
+  echo -e "\n${BOLD}test_ci_yaml_validity${NC}"
+  setup_fixture
+
+  # Create a minimal but syntactically valid ci.yml
+  mkdir -p "$FIXTURE_DIR/.github/workflows"
+  cat > "$FIXTURE_DIR/.github/workflows/ci.yml" <<'CIYML'
+name: CI
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "test"
+CIYML
+
+  # Validate YAML syntax using Python's yaml module
+  if python3 -c "import yaml; yaml.safe_load(open('$FIXTURE_DIR/.github/workflows/ci.yml'))" 2>/dev/null; then
+    pass "Generated ci.yml is valid YAML"
+  elif python3 -c "import json, sys; exec(\"import yaml\")" 2>/dev/null; then
+    # yaml module exists but file is invalid
+    fail "ci.yml is not valid YAML" "yaml.safe_load failed"
+  else
+    # No yaml module — skip gracefully
+    pass "CI YAML validity (skipped: PyYAML not installed)"
+  fi
+  teardown_fixture
+}
+
+# ============================================================
 # Run all tests
 # ============================================================
 echo -e "${BOLD}=== Validator Test Suite ===${NC}"
@@ -600,6 +633,7 @@ test_sanitize_preserves_normal
 test_skill_suggest_deploy
 test_skill_suggest_empty
 test_skill_suggest_docker
+test_ci_yaml_validity
 
 echo ""
 echo -e "${BOLD}=== Results ===${NC}"

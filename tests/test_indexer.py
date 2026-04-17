@@ -69,7 +69,7 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(len(result["symbols"]), 0)
 
     def test_large_file_skipped(self):
-        """Files > 100KB get file-level only, no symbols."""
+        """Files > 512KB get file-level only, no symbols."""
         with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
             f.write("x = 1\n" * 20000)  # > 100KB
             f.flush()
@@ -82,7 +82,7 @@ class TestParsers(unittest.TestCase):
 class TestGraph(unittest.TestCase):
     def test_build_graph_empty(self):
         """Empty files dict produces empty graph."""
-        edges, modules = build_graph({}, "/tmp")
+        edges, modules = build_graph({})
         self.assertEqual(edges, [])
         self.assertEqual(modules, {})
 
@@ -92,7 +92,7 @@ class TestGraph(unittest.TestCase):
             "lib/a.py": {"language": "python", "symbols": ["x"], "imports": [], "exports": ["x"], "size_bytes": 100, "lines": 10},
             "lib/b.py": {"language": "python", "symbols": ["y"], "imports": [], "exports": ["y"], "size_bytes": 100, "lines": 10},
         }
-        edges, modules = build_graph(files, "/tmp")
+        edges, modules = build_graph(files)
         self.assertIn("lib", modules)
         self.assertEqual(len(modules["lib"]["files"]), 2)
 

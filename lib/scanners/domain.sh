@@ -31,7 +31,7 @@ scan_domain() {
     if [[ -n "$domain_patterns" ]]; then
       while IFS=$'\t' read -r dk dd ptype pattern; do
         [[ -z "$dk" ]] && continue
-        echo "$matched_list" | grep -qw "$dk" && continue
+        echo "$matched_list" | grep -Fqw "$dk" && continue
         # Handle glob patterns: **/auth/** → -path "*/auth/*", auth* → -name "auth*"
         local find_result=""
         if [[ "$pattern" == **"/"** ]]; then
@@ -52,7 +52,7 @@ scan_domain() {
     if [[ -n "$domain_deps" && -n "$key_deps" ]]; then
       while IFS=$'\t' read -r dk _ptype dep_marker; do
         [[ -z "$dk" ]] && continue
-        echo "$matched_list" | grep -qw "$dk" && continue
+        echo "$matched_list" | grep -Fqw "$dk" && continue
         if echo "$key_deps" | grep -q "$dep_marker"; then
           matched_list="$matched_list $dk"
         fi

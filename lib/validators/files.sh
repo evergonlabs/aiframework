@@ -119,7 +119,7 @@ validate_files() {
 
   # Check review specialists
   local specialist_count
-  specialist_count=$(ls "$TARGET_DIR/tools/review-specialists/"*.md 2>/dev/null | wc -l | tr -d '[:space:]')
+  specialist_count=$(find "$TARGET_DIR/tools/review-specialists" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d '[:space:]')
   if [[ "$specialist_count" -gt 0 ]]; then
     report_row "Review specialists" "PASS" "$specialist_count created"
   else

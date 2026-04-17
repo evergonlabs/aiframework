@@ -352,7 +352,7 @@ if command -v aiframework >/dev/null 2>&1; then
     # Auto-commit refreshed files if any changed
     if [[ -n "$(git diff --name-only 2>/dev/null)" ]]; then
       git add CLAUDE.md .claude/ vault/ .aiframework/ 2>/dev/null || true
-      git commit -m "chore(aiframework): auto-refresh on push [skip ci]" --no-verify 2>/dev/null || true
+      git commit -m "chore(aiframework): auto-refresh on push [skip ci]" 2>/dev/null || true
       echo "  [refresh] Auto-committed refreshed files"
     fi
   fi

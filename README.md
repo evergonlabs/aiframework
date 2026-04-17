@@ -72,6 +72,8 @@ Then in Claude Code:
 
 After that, just code. Claude knows your stack, commands, invariants, and architecture.
 
+> **Requirements:** `bash` 3.2+ &nbsp;·&nbsp; `jq` 1.6+ &nbsp;·&nbsp; `git` 2.0+ &nbsp;·&nbsp; `python3` 3.10+ *(recommended, bash fallback available)*
+
 <br>
 
 ---
@@ -436,12 +438,6 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 | Domains | 18 | `lib/data/domains.json` |
 | Deploy targets | 24 | `lib/data/deploy_targets.json` |
 | Archetypes | 11 | `lib/data/archetypes.json` |
-
-<br>
-
-## Requirements
-
-`bash` 3.2+ &nbsp;·&nbsp; `jq` 1.6+ &nbsp;·&nbsp; `git` 2.0+ &nbsp;·&nbsp; `python3` 3.10+ *(recommended, bash fallback available)*
 
 <br>
 

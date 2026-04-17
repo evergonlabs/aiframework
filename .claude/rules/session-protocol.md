@@ -113,11 +113,3 @@ Stored in `tools/learnings/aiframework-learnings.jsonl`. Use `/learn` to add new
 To query: `grep "keyword" tools/learnings/aiframework-learnings.jsonl`
 To add: `/aiframework-learn "description"` or append a JSON line manually.
 
----
-
-## gstack Browser Integration
-
-Use `$B` commands for browser interactions (~20x faster than Playwright MCP):
-- `$B goto <url>` — navigate | `$B snapshot` — page structure | `$B click @e1` — click
-- `$B fill @e1 "text"` — fill input | `$B screenshot` — capture | `$B diff` — compare
-- `$B console` — logs | `$B network` — requests | `$B chain "cmd1" "cmd2"` — chain
