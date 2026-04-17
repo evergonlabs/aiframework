@@ -546,10 +546,58 @@ LEARNMD
     log_ok "Created AGENTS.md (open standard, cross-tool)"
   fi
 
-  # Generate .claude/settings.json with safe defaults
+  # Generate .claude/settings.json with safe defaults + PostToolUse hooks
   local settings_file="$TARGET_DIR/.claude/settings.json"
   if [[ ! -f "$settings_file" ]]; then
-    cat > "$settings_file" << 'SETTINGS'
+    local lang
+    lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
+    local typecheck_cmd
+    typecheck_cmd=$(echo "$m" | jq -r '.commands.typecheck // empty')
+
+    # Build PostToolUse hook for type checking on file edits
+    local hooks_block=""
+    case "$lang" in
+      typescript|javascript)
+        if [[ -n "$typecheck_cmd" ]]; then
+          hooks_block=',
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "npx tsc --noEmit 2>&1 | head -20 || true",
+        "timeout": 30000
+      }
+    ]
+  }'
+        fi
+        ;;
+      rust)
+        hooks_block=',
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "cargo check 2>&1 | tail -5 || true",
+        "timeout": 30000
+      }
+    ]
+  }'
+        ;;
+      go)
+        hooks_block=',
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "go vet ./... 2>&1 | tail -5 || true",
+        "timeout": 15000
+      }
+    ]
+  }'
+        ;;
+    esac
+
+    cat > "$settings_file" << SETTINGS
 {
   "permissions": {
     "allow": [
@@ -558,7 +606,7 @@ LEARNMD
       "Grep",
       "WebSearch"
     ]
-  }
+  }${hooks_block}
 }
 SETTINGS
     log_ok "Created .claude/settings.json"

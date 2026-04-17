@@ -116,6 +116,13 @@ After marking any feature complete and before pushing:
 1. Update CHANGELOG.md with user-facing description of changes
 2. Bump VERSION file (PATCH for fixes, MINOR for features, MAJOR for breaking)
 
+## Safety Guardrails
+- NEVER add data expiry, TTL logic, or cleanup routines unless explicitly asked
+- NEVER clone or run external GitHub repos — read READMEs via WebFetch only
+- NEVER push to main without confirmation — pushes may trigger deploys that cost money
+- Before changing 3+ files: list every file and what changes, wait for approval
+- When in doubt: run more checks, not fewer
+
 ## New Feature Checklist
 - [ ] Feature works as specified
 - [ ] Edge cases handled

@@ -4,8 +4,15 @@
   "languages": {
     "java": {
       "display": "Java",
-      "marker_files": ["pom.xml", "build.gradle", "build.gradle.kts", ".mvn/wrapper/maven-wrapper.properties"],
-      "extensions": [".java"],
+      "marker_files": [
+        "pom.xml",
+        "build.gradle",
+        "build.gradle.kts",
+        ".mvn/wrapper/maven-wrapper.properties"
+      ],
+      "extensions": [
+        ".java"
+      ],
       "package_managers": {
         "maven": {
           "manifest": "pom.xml",
@@ -33,36 +40,61 @@
       "frameworks": {
         "spring-boot": {
           "detection": {
-            "dependency_markers": ["spring-boot-starter", "org.springframework.boot"],
-            "file_patterns": ["**/Application.java", "**/application.yml", "**/application.properties"]
+            "dependency_markers": [
+              "spring-boot-starter",
+              "org.springframework.boot"
+            ],
+            "file_patterns": [
+              "**/Application.java",
+              "**/application.yml",
+              "**/application.properties"
+            ]
           },
           "display": "Spring Boot"
         },
         "quarkus": {
           "detection": {
-            "dependency_markers": ["io.quarkus", "quarkus-bom"],
-            "file_patterns": ["**/application.properties", "**/resources/META-INF/microprofile-config.properties"]
+            "dependency_markers": [
+              "io.quarkus",
+              "quarkus-bom"
+            ],
+            "file_patterns": [
+              "**/application.properties",
+              "**/resources/META-INF/microprofile-config.properties"
+            ]
           },
           "display": "Quarkus"
         },
         "micronaut": {
           "detection": {
-            "dependency_markers": ["io.micronaut", "micronaut-bom"],
-            "file_patterns": ["**/application.yml"]
+            "dependency_markers": [
+              "io.micronaut",
+              "micronaut-bom"
+            ],
+            "file_patterns": [
+              "**/application.yml"
+            ]
           },
           "display": "Micronaut"
         }
       },
       "qa_rules": [
         "All Spring beans must use constructor injection (no field injection with @Autowired)",
-        "Database migrations managed through Flyway or Liquibase — no manual DDL",
+        "Database migrations managed through Flyway or Liquibase \u2014 no manual DDL",
         "All REST endpoints must have integration tests with MockMvc or WebTestClient"
       ]
     },
     "csharp": {
       "display": "C#",
-      "marker_files": ["*.csproj", "*.sln", "global.json", "Directory.Build.props"],
-      "extensions": [".cs"],
+      "marker_files": [
+        "*.csproj",
+        "*.sln",
+        "global.json",
+        "Directory.Build.props"
+      ],
+      "extensions": [
+        ".cs"
+      ],
       "package_managers": {
         "dotnet": {
           "manifest": "*.csproj",
@@ -79,36 +111,60 @@
       "frameworks": {
         "aspnet": {
           "detection": {
-            "dependency_markers": ["Microsoft.AspNetCore", "Microsoft.NET.Sdk.Web"],
-            "file_patterns": ["**/Program.cs", "**/Startup.cs", "**/appsettings.json"]
+            "dependency_markers": [
+              "Microsoft.AspNetCore",
+              "Microsoft.NET.Sdk.Web"
+            ],
+            "file_patterns": [
+              "**/Program.cs",
+              "**/Startup.cs",
+              "**/appsettings.json"
+            ]
           },
           "display": "ASP.NET"
         },
         "blazor": {
           "detection": {
-            "dependency_markers": ["Microsoft.AspNetCore.Components", "Microsoft.AspNetCore.Components.WebAssembly"],
-            "file_patterns": ["**/*.razor", "**/App.razor"]
+            "dependency_markers": [
+              "Microsoft.AspNetCore.Components",
+              "Microsoft.AspNetCore.Components.WebAssembly"
+            ],
+            "file_patterns": [
+              "**/*.razor",
+              "**/App.razor"
+            ]
           },
           "display": "Blazor"
         },
         "maui": {
           "detection": {
-            "dependency_markers": ["Microsoft.Maui", "Microsoft.NET.Sdk.Maui"],
-            "file_patterns": ["**/MauiProgram.cs"]
+            "dependency_markers": [
+              "Microsoft.Maui",
+              "Microsoft.NET.Sdk.Maui"
+            ],
+            "file_patterns": [
+              "**/MauiProgram.cs"
+            ]
           },
           "display": ".NET MAUI"
         }
       },
       "qa_rules": [
         "All public APIs must have XML documentation comments",
-        "Use IOptions<T> pattern for configuration — no static config access",
+        "Use IOptions<T> pattern for configuration \u2014 no static config access",
         "All async methods must use CancellationToken parameters"
       ]
     },
     "php": {
       "display": "PHP",
-      "marker_files": ["composer.json", "artisan", "index.php"],
-      "extensions": [".php"],
+      "marker_files": [
+        "composer.json",
+        "artisan",
+        "index.php"
+      ],
+      "extensions": [
+        ".php"
+      ],
       "package_managers": {
         "composer": {
           "manifest": "composer.json",
@@ -125,36 +181,61 @@
       "frameworks": {
         "laravel": {
           "detection": {
-            "dependency_markers": ["laravel/framework", "laravel/laravel"],
-            "file_patterns": ["artisan", "**/routes/web.php", "**/routes/api.php"]
+            "dependency_markers": [
+              "laravel/framework",
+              "laravel/laravel"
+            ],
+            "file_patterns": [
+              "artisan",
+              "**/routes/web.php",
+              "**/routes/api.php"
+            ]
           },
           "display": "Laravel"
         },
         "symfony": {
           "detection": {
-            "dependency_markers": ["symfony/framework-bundle", "symfony/symfony"],
-            "file_patterns": ["**/config/bundles.php", "**/symfony.lock"]
+            "dependency_markers": [
+              "symfony/framework-bundle",
+              "symfony/symfony"
+            ],
+            "file_patterns": [
+              "**/config/bundles.php",
+              "**/symfony.lock"
+            ]
           },
           "display": "Symfony"
         },
         "wordpress": {
           "detection": {
-            "dependency_markers": ["johnpbloch/wordpress-core", "roots/wordpress"],
-            "file_patterns": ["wp-config.php", "**/wp-content/themes/*/functions.php"]
+            "dependency_markers": [
+              "johnpbloch/wordpress-core",
+              "roots/wordpress"
+            ],
+            "file_patterns": [
+              "wp-config.php",
+              "**/wp-content/themes/*/functions.php"
+            ]
           },
           "display": "WordPress"
         }
       },
       "qa_rules": [
-        "All database queries must use Eloquent/Doctrine ORM — no raw SQL without review",
+        "All database queries must use Eloquent/Doctrine ORM \u2014 no raw SQL without review",
         "All user input must be validated through Form Requests or Validator component",
-        "Composer dependencies must be locked — never commit without composer.lock"
+        "Composer dependencies must be locked \u2014 never commit without composer.lock"
       ]
     },
     "swift": {
       "display": "Swift",
-      "marker_files": ["Package.swift", "*.xcodeproj", "*.xcworkspace"],
-      "extensions": [".swift"],
+      "marker_files": [
+        "Package.swift",
+        "*.xcodeproj",
+        "*.xcworkspace"
+      ],
+      "extensions": [
+        ".swift"
+      ],
       "package_managers": {
         "spm": {
           "manifest": "Package.swift",
@@ -182,38 +263,59 @@
       "frameworks": {
         "vapor": {
           "detection": {
-            "dependency_markers": ["vapor/vapor"],
-            "file_patterns": ["**/configure.swift", "**/routes.swift"]
+            "dependency_markers": [
+              "vapor/vapor"
+            ],
+            "file_patterns": [
+              "**/configure.swift",
+              "**/routes.swift"
+            ]
           },
           "display": "Vapor"
         },
         "swiftui": {
           "detection": {
             "dependency_markers": [],
-            "file_patterns": ["**/*App.swift", "**/*View.swift"],
-            "import_markers": ["import SwiftUI"]
+            "file_patterns": [
+              "**/*App.swift",
+              "**/*View.swift"
+            ],
+            "import_markers": [
+              "import SwiftUI"
+            ]
           },
           "display": "SwiftUI"
         },
         "uikit": {
           "detection": {
             "dependency_markers": [],
-            "file_patterns": ["**/*ViewController.swift", "**/Main.storyboard"],
-            "import_markers": ["import UIKit"]
+            "file_patterns": [
+              "**/*ViewController.swift",
+              "**/Main.storyboard"
+            ],
+            "import_markers": [
+              "import UIKit"
+            ]
           },
           "display": "UIKit"
         }
       },
       "qa_rules": [
-        "All async operations must use Swift concurrency (async/await) — no completion handlers in new code",
+        "All async operations must use Swift concurrency (async/await) \u2014 no completion handlers in new code",
         "All views must support Dynamic Type and VoiceOver accessibility",
-        "No force unwraps (!) in production code — use guard let or if let"
+        "No force unwraps (!) in production code \u2014 use guard let or if let"
       ]
     },
     "kotlin": {
       "display": "Kotlin",
-      "marker_files": ["build.gradle.kts", "settings.gradle.kts"],
-      "extensions": [".kt", ".kts"],
+      "marker_files": [
+        "build.gradle.kts",
+        "settings.gradle.kts"
+      ],
+      "extensions": [
+        ".kt",
+        ".kts"
+      ],
       "package_managers": {
         "gradle": {
           "manifest": "build.gradle.kts",
@@ -230,36 +332,58 @@
       "frameworks": {
         "ktor": {
           "detection": {
-            "dependency_markers": ["io.ktor", "ktor-server"],
-            "file_patterns": ["**/Application.kt", "**/plugins/Routing.kt"]
+            "dependency_markers": [
+              "io.ktor",
+              "ktor-server"
+            ],
+            "file_patterns": [
+              "**/Application.kt",
+              "**/plugins/Routing.kt"
+            ]
           },
           "display": "Ktor"
         },
         "spring-boot": {
           "detection": {
-            "dependency_markers": ["org.springframework.boot", "spring-boot-starter"],
-            "file_patterns": ["**/Application.kt", "**/application.yml"]
+            "dependency_markers": [
+              "org.springframework.boot",
+              "spring-boot-starter"
+            ],
+            "file_patterns": [
+              "**/Application.kt",
+              "**/application.yml"
+            ]
           },
           "display": "Spring Boot (Kotlin)"
         },
         "android": {
           "detection": {
-            "dependency_markers": ["com.android.application", "androidx.core"],
-            "file_patterns": ["**/AndroidManifest.xml", "**/MainActivity.kt"]
+            "dependency_markers": [
+              "com.android.application",
+              "androidx.core"
+            ],
+            "file_patterns": [
+              "**/AndroidManifest.xml",
+              "**/MainActivity.kt"
+            ]
           },
           "display": "Android"
         }
       },
       "qa_rules": [
-        "All data classes must be immutable (val only) — no mutable state in DTOs",
-        "Coroutine scopes must be properly structured — no GlobalScope usage",
-        "Nullable types must be handled explicitly — no unsafe casts or !!"
+        "All data classes must be immutable (val only) \u2014 no mutable state in DTOs",
+        "Coroutine scopes must be properly structured \u2014 no GlobalScope usage",
+        "Nullable types must be handled explicitly \u2014 no unsafe casts or !!"
       ]
     },
     "dart": {
       "display": "Dart",
-      "marker_files": ["pubspec.yaml"],
-      "extensions": [".dart"],
+      "marker_files": [
+        "pubspec.yaml"
+      ],
+      "extensions": [
+        ".dart"
+      ],
       "package_managers": {
         "pub": {
           "manifest": "pubspec.yaml",
@@ -276,29 +400,42 @@
       "frameworks": {
         "flutter": {
           "detection": {
-            "dependency_markers": ["flutter"],
-            "file_patterns": ["**/lib/main.dart", "android/app/build.gradle", "ios/Runner.xcodeproj"]
+            "dependency_markers": [
+              "flutter"
+            ],
+            "file_patterns": [
+              "**/lib/main.dart",
+              "android/app/build.gradle",
+              "ios/Runner.xcodeproj"
+            ]
           },
           "display": "Flutter"
         },
         "shelf": {
           "detection": {
-            "dependency_markers": ["shelf"],
+            "dependency_markers": [
+              "shelf"
+            ],
             "file_patterns": []
           },
           "display": "Shelf"
         }
       },
       "qa_rules": [
-        "All widgets must be either StatelessWidget or use Riverpod/Bloc for state — no raw StatefulWidgets for complex state",
+        "All widgets must be either StatelessWidget or use Riverpod/Bloc for state \u2014 no raw StatefulWidgets for complex state",
         "All public API surfaces must have dartdoc comments",
         "Flutter golden tests required for critical UI components"
       ]
     },
     "elixir": {
       "display": "Elixir",
-      "marker_files": ["mix.exs"],
-      "extensions": [".ex", ".exs"],
+      "marker_files": [
+        "mix.exs"
+      ],
+      "extensions": [
+        ".ex",
+        ".exs"
+      ],
       "package_managers": {
         "mix": {
           "manifest": "mix.exs",
@@ -315,29 +452,46 @@
       "frameworks": {
         "phoenix": {
           "detection": {
-            "dependency_markers": [":phoenix", "phoenix_html"],
-            "file_patterns": ["**/endpoint.ex", "**/router.ex", "**/config/config.exs"]
+            "dependency_markers": [
+              ":phoenix",
+              "phoenix_html"
+            ],
+            "file_patterns": [
+              "**/endpoint.ex",
+              "**/router.ex",
+              "**/config/config.exs"
+            ]
           },
           "display": "Phoenix"
         },
         "nerves": {
           "detection": {
-            "dependency_markers": [":nerves"],
-            "file_patterns": ["**/target.exs"]
+            "dependency_markers": [
+              ":nerves"
+            ],
+            "file_patterns": [
+              "**/target.exs"
+            ]
           },
           "display": "Nerves"
         }
       },
       "qa_rules": [
-        "All GenServers must implement proper supervision trees — no unsupervised processes",
-        "Database queries must use Ecto changesets for validation — no raw inserts",
+        "All GenServers must implement proper supervision trees \u2014 no unsupervised processes",
+        "Database queries must use Ecto changesets for validation \u2014 no raw inserts",
         "All public functions must have @spec typespecs and @doc documentation"
       ]
     },
     "scala": {
       "display": "Scala",
-      "marker_files": ["build.sbt", "project/build.properties"],
-      "extensions": [".scala", ".sc"],
+      "marker_files": [
+        "build.sbt",
+        "project/build.properties"
+      ],
+      "extensions": [
+        ".scala",
+        ".sc"
+      ],
       "package_managers": {
         "sbt": {
           "manifest": "build.sbt",
@@ -365,36 +519,55 @@
       "frameworks": {
         "play": {
           "detection": {
-            "dependency_markers": ["com.typesafe.play", "play-server"],
-            "file_patterns": ["**/conf/routes", "**/conf/application.conf"]
+            "dependency_markers": [
+              "com.typesafe.play",
+              "play-server"
+            ],
+            "file_patterns": [
+              "**/conf/routes",
+              "**/conf/application.conf"
+            ]
           },
           "display": "Play Framework"
         },
         "akka": {
           "detection": {
-            "dependency_markers": ["com.typesafe.akka", "akka-actor"],
+            "dependency_markers": [
+              "com.typesafe.akka",
+              "akka-actor"
+            ],
             "file_patterns": []
           },
           "display": "Akka"
         },
         "zio": {
           "detection": {
-            "dependency_markers": ["dev.zio", "zio-http"],
+            "dependency_markers": [
+              "dev.zio",
+              "zio-http"
+            ],
             "file_patterns": []
           },
           "display": "ZIO"
         }
       },
       "qa_rules": [
-        "All effects must be properly typed with ZIO/Cats Effect — no unmanaged side effects",
-        "Case classes must be used for data — no mutable Java-style beans",
-        "Implicit conversions must be explicit (given/using in Scala 3) — no magic implicits"
+        "All effects must be properly typed with ZIO/Cats Effect \u2014 no unmanaged side effects",
+        "Case classes must be used for data \u2014 no mutable Java-style beans",
+        "Implicit conversions must be explicit (given/using in Scala 3) \u2014 no magic implicits"
       ]
     },
     "c": {
       "display": "C",
-      "marker_files": ["CMakeLists.txt", "configure.ac", "meson.build"],
-      "extensions": [".c", ".h"],
+      "marker_files": [
+        "CMakeLists.txt",
+        "configure.ac",
+        "meson.build"
+      ],
+      "extensions": [
+        ".c",
+        ".h"
+      ],
       "package_managers": {
         "cmake": {
           "manifest": "CMakeLists.txt",
@@ -421,15 +594,26 @@
       },
       "frameworks": {},
       "qa_rules": [
-        "All heap allocations must have corresponding frees — verify with Valgrind or AddressSanitizer",
-        "All user-facing buffers must use bounds-checked functions (snprintf, strncpy) — no strcpy/sprintf",
+        "All heap allocations must have corresponding frees \u2014 verify with Valgrind or AddressSanitizer",
+        "All user-facing buffers must use bounds-checked functions (snprintf, strncpy) \u2014 no strcpy/sprintf",
         "All public headers must use include guards or #pragma once"
       ]
     },
     "cpp": {
       "display": "C++",
-      "marker_files": ["CMakeLists.txt", "conanfile.txt", "vcpkg.json"],
-      "extensions": [".cpp", ".cxx", ".cc", ".hpp", ".hxx", ".hh"],
+      "marker_files": [
+        "CMakeLists.txt",
+        "conanfile.txt",
+        "vcpkg.json"
+      ],
+      "extensions": [
+        ".cpp",
+        ".cxx",
+        ".cc",
+        ".hpp",
+        ".hxx",
+        ".hh"
+      ],
       "package_managers": {
         "cmake": {
           "manifest": "CMakeLists.txt",
@@ -468,22 +652,37 @@
       "frameworks": {
         "qt": {
           "detection": {
-            "dependency_markers": ["Qt5", "Qt6"],
-            "file_patterns": ["**/*.ui", "**/*.qml", "**/CMakeLists.txt"]
+            "dependency_markers": [
+              "Qt5",
+              "Qt6"
+            ],
+            "file_patterns": [
+              "**/*.ui",
+              "**/*.qml",
+              "**/CMakeLists.txt"
+            ]
           },
           "display": "Qt"
         }
       },
       "qa_rules": [
-        "Use smart pointers (unique_ptr, shared_ptr) — no raw new/delete in application code",
+        "Use smart pointers (unique_ptr, shared_ptr) \u2014 no raw new/delete in application code",
         "All RAII resources must follow Rule of Five (or Rule of Zero)",
         "Prefer std::string_view and std::span over raw pointers for non-owning references"
       ]
     },
     "python": {
       "display": "Python",
-      "marker_files": ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile"],
-      "extensions": [".py"],
+      "marker_files": [
+        "pyproject.toml",
+        "setup.py",
+        "setup.cfg",
+        "requirements.txt",
+        "Pipfile"
+      ],
+      "extensions": [
+        ".py"
+      ],
       "package_managers": {
         "pip": {
           "manifest": "requirements.txt",
@@ -533,43 +732,71 @@
       "frameworks": {
         "fastapi": {
           "detection": {
-            "dependency_markers": ["fastapi"],
-            "file_patterns": ["**/main.py", "**/app.py"]
+            "dependency_markers": [
+              "fastapi"
+            ],
+            "file_patterns": [
+              "**/main.py",
+              "**/app.py"
+            ]
           },
           "display": "FastAPI"
         },
         "django": {
           "detection": {
-            "dependency_markers": ["django", "Django"],
-            "file_patterns": ["**/manage.py", "**/settings.py", "**/wsgi.py"]
+            "dependency_markers": [
+              "django",
+              "Django"
+            ],
+            "file_patterns": [
+              "**/manage.py",
+              "**/settings.py",
+              "**/wsgi.py"
+            ]
           },
           "display": "Django"
         },
         "flask": {
           "detection": {
-            "dependency_markers": ["flask", "Flask"],
-            "file_patterns": ["**/app.py"]
+            "dependency_markers": [
+              "flask",
+              "Flask"
+            ],
+            "file_patterns": [
+              "**/app.py"
+            ]
           },
           "display": "Flask"
         },
         "starlette": {
           "detection": {
-            "dependency_markers": ["starlette"],
+            "dependency_markers": [
+              "starlette"
+            ],
             "file_patterns": []
           },
           "display": "Starlette"
         }
       },
       "qa_rules": [
-        "All functions must have type hints — enforce with mypy or pyright in strict mode",
-        "Dependencies must be pinned with lock files — no floating versions in production",
-        "All API endpoints must have Pydantic models for request/response validation"
+        "All functions must have type hints \u2014 enforce with mypy or pyright in strict mode",
+        "Dependencies must be pinned with lock files \u2014 no floating versions in production",
+        "All API endpoints must have Pydantic models for request/response validation",
+        "NEVER use `# type: ignore` without specifying the rule and why",
+        "NEVER use bare `except:` \u2014 always catch specific exceptions",
+        "NEVER add `@pytest.mark.skip` to make a test pass \u2014 fix the test"
       ]
     },
     "typescript": {
       "display": "TypeScript",
-      "marker_files": ["tsconfig.json", "package.json"],
-      "extensions": [".ts", ".tsx"],
+      "marker_files": [
+        "tsconfig.json",
+        "package.json"
+      ],
+      "extensions": [
+        ".ts",
+        ".tsx"
+      ],
       "package_managers": {
         "npm": {
           "manifest": "package.json",
@@ -619,78 +846,123 @@
       "frameworks": {
         "nextjs": {
           "detection": {
-            "dependency_markers": ["next"],
-            "file_patterns": ["**/next.config.*", "**/app/layout.tsx", "**/pages/_app.tsx"]
+            "dependency_markers": [
+              "next"
+            ],
+            "file_patterns": [
+              "**/next.config.*",
+              "**/app/layout.tsx",
+              "**/pages/_app.tsx"
+            ]
           },
           "display": "Next.js"
         },
         "nestjs": {
           "detection": {
-            "dependency_markers": ["@nestjs/core"],
-            "file_patterns": ["**/nest-cli.json", "**/app.module.ts"]
+            "dependency_markers": [
+              "@nestjs/core"
+            ],
+            "file_patterns": [
+              "**/nest-cli.json",
+              "**/app.module.ts"
+            ]
           },
           "display": "NestJS"
         },
         "nuxt": {
           "detection": {
-            "dependency_markers": ["nuxt"],
-            "file_patterns": ["**/nuxt.config.ts"]
+            "dependency_markers": [
+              "nuxt"
+            ],
+            "file_patterns": [
+              "**/nuxt.config.ts"
+            ]
           },
           "display": "Nuxt"
         },
         "react": {
           "detection": {
-            "dependency_markers": ["react", "react-dom"],
+            "dependency_markers": [
+              "react",
+              "react-dom"
+            ],
             "file_patterns": []
           },
           "display": "React"
         },
         "vue": {
           "detection": {
-            "dependency_markers": ["vue"],
-            "file_patterns": ["**/*.vue"]
+            "dependency_markers": [
+              "vue"
+            ],
+            "file_patterns": [
+              "**/*.vue"
+            ]
           },
           "display": "Vue"
         },
         "svelte": {
           "detection": {
-            "dependency_markers": ["svelte"],
-            "file_patterns": ["**/*.svelte", "**/svelte.config.js"]
+            "dependency_markers": [
+              "svelte"
+            ],
+            "file_patterns": [
+              "**/*.svelte",
+              "**/svelte.config.js"
+            ]
           },
           "display": "Svelte"
         },
         "express": {
           "detection": {
-            "dependency_markers": ["express"],
+            "dependency_markers": [
+              "express"
+            ],
             "file_patterns": []
           },
           "display": "Express"
         },
         "hono": {
           "detection": {
-            "dependency_markers": ["hono"],
+            "dependency_markers": [
+              "hono"
+            ],
             "file_patterns": []
           },
           "display": "Hono"
         },
         "astro": {
           "detection": {
-            "dependency_markers": ["astro"],
-            "file_patterns": ["**/astro.config.*"]
+            "dependency_markers": [
+              "astro"
+            ],
+            "file_patterns": [
+              "**/astro.config.*"
+            ]
           },
           "display": "Astro"
         }
       },
       "qa_rules": [
-        "Strict TypeScript mode enabled — no any types without explicit justification",
+        "Strict TypeScript mode enabled \u2014 no any types without explicit justification",
         "All API boundaries must have Zod or io-ts runtime validation schemas",
-        "React components must be typed with explicit Props interfaces — no inline object types"
+        "React components must be typed with explicit Props interfaces \u2014 no inline object types",
+        "NEVER use `as any` \u2014 fix the type error properly",
+        "NEVER use `@ts-ignore` or `@ts-expect-error` without a comment explaining why",
+        "NEVER add `.skip()` to a test to make it pass \u2014 fix the test"
       ]
     },
     "javascript": {
       "display": "JavaScript",
-      "marker_files": ["package.json"],
-      "extensions": [".js", ".jsx", ".mjs", ".cjs"],
+      "marker_files": [
+        "package.json"
+      ],
+      "extensions": [
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs"
+      ],
       "package_managers": {
         "npm": {
           "manifest": "package.json",
@@ -740,50 +1012,73 @@
       "frameworks": {
         "nextjs": {
           "detection": {
-            "dependency_markers": ["next"],
-            "file_patterns": ["**/next.config.*", "**/pages/_app.js"]
+            "dependency_markers": [
+              "next"
+            ],
+            "file_patterns": [
+              "**/next.config.*",
+              "**/pages/_app.js"
+            ]
           },
           "display": "Next.js"
         },
         "express": {
           "detection": {
-            "dependency_markers": ["express"],
+            "dependency_markers": [
+              "express"
+            ],
             "file_patterns": []
           },
           "display": "Express"
         },
         "react": {
           "detection": {
-            "dependency_markers": ["react"],
+            "dependency_markers": [
+              "react"
+            ],
             "file_patterns": []
           },
           "display": "React"
         },
         "vue": {
           "detection": {
-            "dependency_markers": ["vue"],
-            "file_patterns": ["**/*.vue"]
+            "dependency_markers": [
+              "vue"
+            ],
+            "file_patterns": [
+              "**/*.vue"
+            ]
           },
           "display": "Vue"
         },
         "svelte": {
           "detection": {
-            "dependency_markers": ["svelte"],
-            "file_patterns": ["**/*.svelte"]
+            "dependency_markers": [
+              "svelte"
+            ],
+            "file_patterns": [
+              "**/*.svelte"
+            ]
           },
           "display": "Svelte"
         }
       },
       "qa_rules": [
-        "ESLint must be configured and passing — no disabled rules without justification",
+        "ESLint must be configured and passing \u2014 no disabled rules without justification",
         "All async functions must have proper error handling (try/catch or .catch())",
-        "No console.log in production code — use structured logging library"
+        "No console.log in production code \u2014 use structured logging library",
+        "NEVER disable eslint rules inline without a comment explaining why",
+        "NEVER add `.skip()` to a test to make it pass \u2014 fix the test"
       ]
     },
     "rust": {
       "display": "Rust",
-      "marker_files": ["Cargo.toml"],
-      "extensions": [".rs"],
+      "marker_files": [
+        "Cargo.toml"
+      ],
+      "extensions": [
+        ".rs"
+      ],
       "package_managers": {
         "cargo": {
           "manifest": "Cargo.toml",
@@ -800,50 +1095,69 @@
       "frameworks": {
         "actix": {
           "detection": {
-            "dependency_markers": ["actix-web"],
+            "dependency_markers": [
+              "actix-web"
+            ],
             "file_patterns": []
           },
           "display": "Actix Web"
         },
         "axum": {
           "detection": {
-            "dependency_markers": ["axum"],
+            "dependency_markers": [
+              "axum"
+            ],
             "file_patterns": []
           },
           "display": "Axum"
         },
         "rocket": {
           "detection": {
-            "dependency_markers": ["rocket"],
+            "dependency_markers": [
+              "rocket"
+            ],
             "file_patterns": []
           },
           "display": "Rocket"
         },
         "warp": {
           "detection": {
-            "dependency_markers": ["warp"],
+            "dependency_markers": [
+              "warp"
+            ],
             "file_patterns": []
           },
           "display": "Warp"
         },
         "tauri": {
           "detection": {
-            "dependency_markers": ["tauri"],
-            "file_patterns": ["**/tauri.conf.json"]
+            "dependency_markers": [
+              "tauri"
+            ],
+            "file_patterns": [
+              "**/tauri.conf.json"
+            ]
           },
           "display": "Tauri"
         }
       },
       "qa_rules": [
-        "All public items must have doc comments (///) — enforce with #![warn(missing_docs)]",
-        "No unwrap() or expect() in library code — use proper Result/Option propagation",
-        "All unsafe blocks must have a SAFETY comment explaining the invariant"
+        "All public items must have doc comments (///) \u2014 enforce with #![warn(missing_docs)]",
+        "No unwrap() or expect() in library code \u2014 use proper Result/Option propagation",
+        "All unsafe blocks must have a SAFETY comment explaining the invariant",
+        "NEVER use `unsafe` without a SAFETY comment \u2014 fix the design instead",
+        "NEVER use `#[allow(dead_code)]` or `#[allow(unused)]` \u2014 remove the dead code",
+        "NEVER add `#[ignore]` to a test to make it pass \u2014 fix the test"
       ]
     },
     "go": {
       "display": "Go",
-      "marker_files": ["go.mod"],
-      "extensions": [".go"],
+      "marker_files": [
+        "go.mod"
+      ],
+      "extensions": [
+        ".go"
+      ],
       "package_managers": {
         "go-modules": {
           "manifest": "go.mod",
@@ -860,43 +1174,60 @@
       "frameworks": {
         "gin": {
           "detection": {
-            "dependency_markers": ["github.com/gin-gonic/gin"],
+            "dependency_markers": [
+              "github.com/gin-gonic/gin"
+            ],
             "file_patterns": []
           },
           "display": "Gin"
         },
         "echo": {
           "detection": {
-            "dependency_markers": ["github.com/labstack/echo"],
+            "dependency_markers": [
+              "github.com/labstack/echo"
+            ],
             "file_patterns": []
           },
           "display": "Echo"
         },
         "chi": {
           "detection": {
-            "dependency_markers": ["github.com/go-chi/chi"],
+            "dependency_markers": [
+              "github.com/go-chi/chi"
+            ],
             "file_patterns": []
           },
           "display": "Chi"
         },
         "fiber": {
           "detection": {
-            "dependency_markers": ["github.com/gofiber/fiber"],
+            "dependency_markers": [
+              "github.com/gofiber/fiber"
+            ],
             "file_patterns": []
           },
           "display": "Fiber"
         }
       },
       "qa_rules": [
-        "All errors must be handled — no _ = err patterns without justification",
+        "All errors must be handled \u2014 no _ = err patterns without justification",
         "Context must be passed as first parameter and propagated through call chains",
-        "All exported functions must have godoc comments starting with the function name"
+        "All exported functions must have godoc comments starting with the function name",
+        "NEVER use `//nolint` without specifying the linter and why",
+        "NEVER use `_ = err` to discard errors \u2014 handle them",
+        "NEVER add `t.Skip()` to make a test pass \u2014 fix the test"
       ]
     },
     "ruby": {
       "display": "Ruby",
-      "marker_files": ["Gemfile", "*.gemspec"],
-      "extensions": [".rb", ".rake"],
+      "marker_files": [
+        "Gemfile",
+        "*.gemspec"
+      ],
+      "extensions": [
+        ".rb",
+        ".rake"
+      ],
       "package_managers": {
         "bundler": {
           "manifest": "Gemfile",
@@ -913,48 +1244,69 @@
       "frameworks": {
         "rails": {
           "detection": {
-            "dependency_markers": ["rails"],
-            "file_patterns": ["**/config/routes.rb", "**/config/application.rb", "**/db/schema.rb"]
+            "dependency_markers": [
+              "rails"
+            ],
+            "file_patterns": [
+              "**/config/routes.rb",
+              "**/config/application.rb",
+              "**/db/schema.rb"
+            ]
           },
           "display": "Ruby on Rails"
         },
         "sinatra": {
           "detection": {
-            "dependency_markers": ["sinatra"],
+            "dependency_markers": [
+              "sinatra"
+            ],
             "file_patterns": []
           },
           "display": "Sinatra"
         },
         "hanami": {
           "detection": {
-            "dependency_markers": ["hanami"],
+            "dependency_markers": [
+              "hanami"
+            ],
             "file_patterns": []
           },
           "display": "Hanami"
         }
       },
       "qa_rules": [
-        "All database access through ActiveRecord/Sequel — no raw SQL without review",
-        "All controller actions must have strong parameters — no mass assignment",
-        "RuboCop must pass with zero offenses — no disabled cops without comment"
+        "All database access through ActiveRecord/Sequel \u2014 no raw SQL without review",
+        "All controller actions must have strong parameters \u2014 no mass assignment",
+        "RuboCop must pass with zero offenses \u2014 no disabled cops without comment"
       ]
     },
     "bash": {
       "display": "Bash / Shell",
       "marker_files": [],
-      "extensions": [".sh", ".bash", ".zsh"],
+      "extensions": [
+        ".sh",
+        ".bash",
+        ".zsh"
+      ],
       "package_managers": {},
       "frameworks": {},
       "qa_rules": [
         "All scripts must pass shellcheck with zero warnings",
         "All scripts must start with set -euo pipefail for strict error handling",
-        "All user-supplied variables must be quoted — no unquoted $VAR expansions"
+        "All user-supplied variables must be quoted \u2014 no unquoted $VAR expansions",
+        "NEVER use `|| true` to silence errors without understanding the failure",
+        "NEVER use `set +e` to disable error handling without re-enabling it"
       ]
     },
     "zig": {
       "display": "Zig",
-      "marker_files": ["build.zig", "build.zig.zon"],
-      "extensions": [".zig"],
+      "marker_files": [
+        "build.zig",
+        "build.zig.zon"
+      ],
+      "extensions": [
+        ".zig"
+      ],
       "package_managers": {
         "zig-build": {
           "manifest": "build.zig",
@@ -970,15 +1322,20 @@
       },
       "frameworks": {},
       "qa_rules": [
-        "All allocators must be explicitly passed — no global allocator usage",
+        "All allocators must be explicitly passed \u2014 no global allocator usage",
         "All error unions must be handled or explicitly discarded with catch",
         "Comptime code must have tests verifying compile-time evaluation"
       ]
     },
     "lua": {
       "display": "Lua",
-      "marker_files": ["*.rockspec", ".luacheckrc"],
-      "extensions": [".lua"],
+      "marker_files": [
+        "*.rockspec",
+        ".luacheckrc"
+      ],
+      "extensions": [
+        ".lua"
+      ],
       "package_managers": {
         "luarocks": {
           "manifest": "*.rockspec",
@@ -995,29 +1352,46 @@
       "frameworks": {
         "openresty": {
           "detection": {
-            "dependency_markers": ["lua-resty-core"],
-            "file_patterns": ["**/nginx.conf", "**/conf/*.conf"]
+            "dependency_markers": [
+              "lua-resty-core"
+            ],
+            "file_patterns": [
+              "**/nginx.conf",
+              "**/conf/*.conf"
+            ]
           },
           "display": "OpenResty"
         },
         "love2d": {
           "detection": {
             "dependency_markers": [],
-            "file_patterns": ["**/main.lua", "**/conf.lua"]
+            "file_patterns": [
+              "**/main.lua",
+              "**/conf.lua"
+            ]
           },
           "display": "LOVE2D"
         }
       },
       "qa_rules": [
-        "All modules must return a table — no global variable pollution",
-        "Use local for all variables — no implicit globals",
+        "All modules must return a table \u2014 no global variable pollution",
+        "Use local for all variables \u2014 no implicit globals",
         "All public functions must have LDoc annotations"
       ]
     },
     "r": {
       "display": "R",
-      "marker_files": ["DESCRIPTION", ".Rproj", "renv.lock"],
-      "extensions": [".R", ".Rmd", ".r", ".qmd"],
+      "marker_files": [
+        "DESCRIPTION",
+        ".Rproj",
+        "renv.lock"
+      ],
+      "extensions": [
+        ".R",
+        ".Rmd",
+        ".r",
+        ".qmd"
+      ],
       "package_managers": {
         "renv": {
           "manifest": "DESCRIPTION",
@@ -1034,22 +1408,32 @@
       "frameworks": {
         "shiny": {
           "detection": {
-            "dependency_markers": ["shiny"],
-            "file_patterns": ["**/app.R", "**/ui.R", "**/server.R"]
+            "dependency_markers": [
+              "shiny"
+            ],
+            "file_patterns": [
+              "**/app.R",
+              "**/ui.R",
+              "**/server.R"
+            ]
           },
           "display": "Shiny"
         },
         "plumber": {
           "detection": {
-            "dependency_markers": ["plumber"],
-            "file_patterns": ["**/plumber.R"]
+            "dependency_markers": [
+              "plumber"
+            ],
+            "file_patterns": [
+              "**/plumber.R"
+            ]
           },
           "display": "Plumber"
         }
       },
       "qa_rules": [
-        "All packages must use renv for reproducible environments — no install.packages() in scripts",
-        "All data transformations must use tidyverse verbs or data.table — no base R loops on data frames",
+        "All packages must use renv for reproducible environments \u2014 no install.packages() in scripts",
+        "All data transformations must use tidyverse verbs or data.table \u2014 no base R loops on data frames",
         "All R Markdown / Quarto documents must knit cleanly from a fresh session"
       ]
     }
