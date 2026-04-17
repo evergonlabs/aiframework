@@ -8,18 +8,8 @@
 # from malicious package.json names or descriptions.
 _sanitize_manifest_val() {
   local val="$1"
-  # Remove backticks
-  val="${val//\`/}"
-  # Remove $(...) patterns (including nested)
-  val=$(echo "$val" | sed 's/\$([^)]*)/REMOVED/g')
-  # Remove ${...} patterns
-  val=$(echo "$val" | sed 's/\${[^}]*}/REMOVED/g')
-  # Remove $((...)) arithmetic
-  val=$(echo "$val" | sed 's/\$(([^)]*))//g')
-  # Remove backslashes (escape sequences)
-  val="${val//\\/}"
-  # Remove newlines and carriage returns
-  val=$(echo "$val" | tr -d '\n\r')
+  # Allowlist: keep only safe characters for shell heredocs
+  val=$(echo "$val" | tr -dc 'a-zA-Z0-9 _./:=@,+^~-\n')
   echo "$val"
 }
 

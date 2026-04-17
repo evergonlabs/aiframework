@@ -139,6 +139,8 @@ validate_quality_gate() {
     # --- CLAUDE.md content quality: Invariants ---
     local inv_count
     inv_count=$(grep -c '### INV-' "$TARGET_DIR/CLAUDE.md" 2>/dev/null || echo "0")
+    inv_count=$(echo "$inv_count" | tr -d '[:space:]')
+    [[ -z "$inv_count" ]] && inv_count=0
     if [[ "$inv_count" -ge 1 ]]; then
       report_row "Invariants entries" "PASS" "$inv_count invariants"
     else

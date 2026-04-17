@@ -304,7 +304,12 @@ class AifMcpServer:
                 return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Method not found: {method}"}}
             return None  # notification for unknown method
 
-        result = handler(params)
+        try:
+            result = handler(params)
+        except Exception as e:
+            if req_id is not None:
+                return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32603, "message": str(e)}}
+            return None
 
         if req_id is not None and result is not None:
             return {"jsonrpc": "2.0", "id": req_id, "result": result}

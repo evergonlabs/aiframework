@@ -23,6 +23,10 @@ generate_cursor_rules() {
   lang=$(echo "$m" | jq -r '.stack.language')
   fw=$(echo "$m" | jq -r '.stack.framework // "none"')
   short=$(echo "$m" | jq -r '.identity.short_name')
+  name=$(echo "$name" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
+  lang=$(echo "$lang" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
+  fw=$(echo "$fw" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
+  short=$(echo "$short" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
 
   local build_cmd test_cmd lint_cmd typecheck format_cmd
   build_cmd=$(echo "$m" | jq -r '.commands.build // empty' | grep -v '^NOT_CONFIGURED$' || true)

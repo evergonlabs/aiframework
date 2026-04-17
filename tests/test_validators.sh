@@ -462,10 +462,11 @@ test_sanitize_strips_dollar_parens() {
   local result
   result=$(_sanitize_manifest_val 'hello $(rm -rf /)')
 
-  if echo "$result" | grep -q 'REMOVED'; then
-    pass "_sanitize_manifest_val replaces \$() with REMOVED"
+  # Allowlist approach: $, (, ) are stripped — no shell metacharacters remain
+  if ! echo "$result" | grep -q '[$()]'; then
+    pass "_sanitize_manifest_val strips \$() shell metacharacters"
   else
-    fail "Expected REMOVED in output" "got '$result'"
+    fail "Expected no \$() in output" "got '$result'"
   fi
   teardown_fixture
 }
@@ -481,10 +482,11 @@ test_sanitize_strips_dollar_braces() {
   local result
   result=$(_sanitize_manifest_val 'hello ${HOME}')
 
-  if echo "$result" | grep -q 'REMOVED'; then
-    pass "_sanitize_manifest_val replaces \${} with REMOVED"
+  # Allowlist approach: $, {, } are stripped — no shell metacharacters remain
+  if ! echo "$result" | grep -q '[${}]'; then
+    pass "_sanitize_manifest_val strips \${} shell metacharacters"
   else
-    fail "Expected REMOVED in output" "got '$result'"
+    fail "Expected no \${} in output" "got '$result'"
   fi
   teardown_fixture
 }

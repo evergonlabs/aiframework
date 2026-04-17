@@ -148,7 +148,7 @@ validate_consistency() {
 
   # --- E11: No credentials in generated files ---
   local cred_check
-  cred_check=$(grep -rl 'ghp_\|sk-ant\|sk-proj' "$TARGET_DIR/CLAUDE.md" "$TARGET_DIR/SETUP-DEV.md" 2>/dev/null | wc -l | tr -d '[:space:]' || echo "0")
+  cred_check=$(grep -rlE 'ghp_|sk-ant|sk-proj' "$TARGET_DIR/CLAUDE.md" "$TARGET_DIR/SETUP-DEV.md" 2>/dev/null | wc -l | tr -d '[:space:]' || echo "0")
   if [[ "$cred_check" -gt 0 ]]; then
     report_row "No credentials leak" "FAIL" "Tokens found in files"
   else

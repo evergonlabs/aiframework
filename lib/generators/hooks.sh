@@ -32,6 +32,15 @@ generate_hooks() {
   local build_cmd
   build_cmd=$(echo "$m" | jq -r '.commands.build // "NOT_CONFIGURED"')
 
+  # Sanitize commands before writing into git hooks (E1, E5 CRITICAL)
+  if command -v _sanitize_manifest_val &>/dev/null; then
+    lint_cmd=$(_sanitize_manifest_val "$lint_cmd")
+    typecheck=$(_sanitize_manifest_val "$typecheck")
+    test_cmd=$(_sanitize_manifest_val "$test_cmd")
+    build_cmd=$(_sanitize_manifest_val "$build_cmd")
+    name=$(_sanitize_manifest_val "$name")
+  fi
+
   if [[ "$DRY_RUN" == true ]]; then
     log_info "[DRY RUN] Would create .githooks/pre-commit and .githooks/pre-push"
     return 0
