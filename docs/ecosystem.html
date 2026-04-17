@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiframework — The AI Developer Ecosystem</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e4e4ef;
+    --dim: #6b6b80;
+    --accent: #7c5cfc;
+    --accent2: #3ecf8e;
+    --accent3: #f59e0b;
+    --accent4: #ef4444;
+    --blue: #3b82f6;
+    --pink: #ec4899;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(180deg, #12121a 0%, #0a0a0f 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%, rgba(124,92,252,0.08) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+  .hero h1 { font-size: 3.5rem; font-weight: 800; position: relative; margin-bottom: 16px; letter-spacing: -0.02em; }
+  .hero h1 span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 1.25rem; color: var(--dim); max-width: 600px; margin: 0 auto; position: relative; }
+  .hero .tagline { font-size: 1.5rem; color: var(--text); margin-bottom: 8px; font-weight: 600; }
+
+  /* Container */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Section */
+  section { padding: 80px 0; }
+  section h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 16px; text-align: center; }
+  section .subtitle { text-align: center; color: var(--dim); font-size: 1.1rem; margin-bottom: 48px; max-width: 700px; margin-left: auto; margin-right: auto; }
+
+  /* Ecosystem Cards */
+  .eco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .eco-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .eco-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .eco-card .icon { font-size: 3rem; margin-bottom: 16px; display: block; }
+  .eco-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+  .eco-card .when { font-size: 0.85rem; color: var(--accent2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .eco-card p { color: var(--dim); font-size: 0.95rem; }
+  .eco-card.aif { border-top: 3px solid var(--accent); }
+  .eco-card.gstack { border-top: 3px solid var(--blue); }
+  .eco-card.sheal { border-top: 3px solid var(--accent2); }
+  .eco-card.vault { border-top: 3px solid var(--accent3); }
+
+  /* Flow Diagram */
+  .flow-section { background: var(--surface); border-radius: 20px; padding: 48px 32px; margin: 48px 0; border: 1px solid var(--border); }
+  .flow-steps { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 24px 0;
+    position: relative;
+  }
+  .flow-step::before {
+    content: '';
+    position: absolute;
+    left: 27px;
+    top: 60px;
+    bottom: -24px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    opacity: 0.3;
+  }
+  .flow-step:last-child::before { display: none; }
+  .flow-num {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    color: #fff;
+    position: relative;
+    z-index: 1;
+  }
+  .flow-num.s1 { background: linear-gradient(135deg, var(--accent), #9b7dfc); }
+  .flow-num.s2 { background: linear-gradient(135deg, var(--blue), #60a5fa); }
+  .flow-num.s3 { background: linear-gradient(135deg, var(--accent2), #6ee7b7); }
+  .flow-num.s4 { background: linear-gradient(135deg, var(--accent3), #fbbf24); }
+  .flow-num.s5 { background: linear-gradient(135deg, var(--pink), #f472b6); }
+  .flow-content h3 { font-size: 1.2rem; margin-bottom: 4px; }
+  .flow-content .tool { font-size: 0.8rem; padding: 2px 10px; border-radius: 20px; display: inline-block; margin-bottom: 8px; font-weight: 600; }
+  .flow-content .tool.aif { background: rgba(124,92,252,0.15); color: var(--accent); }
+  .flow-content .tool.sheal { background: rgba(62,207,142,0.15); color: var(--accent2); }
+  .flow-content .tool.gstack { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .flow-content .tool.vault { background: rgba(245,158,11,0.15); color: var(--accent3); }
+  .flow-content p { color: var(--dim); font-size: 0.95rem; }
+
+  /* Stats Bar */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin: 48px 0;
+  }
+  .stat {
+    text-align: center;
+    padding: 24px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat .label { color: var(--dim); font-size: 0.85rem; margin-top: 4px; }
+
+  /* Comparison Table */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 32px 0;
+  }
+  .compare-table th, .compare-table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-table th { color: var(--dim); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare-table td:first-child { font-weight: 600; }
+  .compare-table tr:hover { background: rgba(124,92,252,0.03); }
+  .check { color: var(--accent2); }
+  .dash { color: var(--dim); }
+
+  /* Interactive tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; }
+  .tab {
+    padding: 10px 24px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--dim);
+  }
+  .tab:hover { border-color: var(--accent); color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Detail panels */
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .detail-panel h3 { font-size: 1.4rem; margin-bottom: 8px; }
+  .detail-panel .desc { color: var(--dim); margin-bottom: 20px; }
+  .feature-list { list-style: none; }
+  .feature-list li { padding: 8px 0; color: var(--text); display: flex; align-items: flex-start; gap: 12px; }
+  .feature-list li::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; margin-top: 8px; }
+
+  /* Footer */
+  footer { text-align: center; padding: 48px 20px; color: var(--dim); font-size: 0.9rem; border-top: 1px solid var(--border); }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2.2rem; }
+    .eco-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <h1><span>aiframework</span></h1>
+  <p class="tagline">The Complete AI Developer Ecosystem</p>
+  <p>Four tools working together so Claude Code understands your repo, learns from your sessions, and gets smarter every day.</p>
+</div>
+
+<!-- Stats -->
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="num">4</div><div class="label">Integrated Tools</div></div>
+    <div class="stat"><div class="num">52+</div><div class="label">Slash Commands</div></div>
+    <div class="stat"><div class="num">20</div><div class="label">Languages</div></div>
+    <div class="stat"><div class="num">13</div><div class="label">Scanners</div></div>
+    <div class="stat"><div class="num">94</div><div class="label">Tests Passing</div></div>
+    <div class="stat"><div class="num">335</div><div class="label">Expert Reviews</div></div>
+  </div>
+</div>
+
+<!-- The Four Pillars -->
+<section>
+  <div class="container">
+    <h2>The Four Pillars</h2>
+    <p class="subtitle">Each tool handles a different phase of the AI development lifecycle. Together, they create a complete feedback loop that makes Claude Code smarter with every session.</p>
+
+    <div class="eco-grid">
+      <div class="eco-card aif" onclick="showTab('aif')">
+        <span class="icon">&#x1F3D7;</span>
+        <div class="when">Setup-Time</div>
+        <h3>aiframework</h3>
+        <p>Scans your repo, generates CLAUDE.md, rules, skills, hooks, and vault. Two commands, any repo, fully Claude Code-ready.</p>
+      </div>
+      <div class="eco-card gstack" onclick="showTab('gstack')">
+        <span class="icon">&#x1F310;</span>
+        <div class="when">Work-Time</div>
+        <h3>gstack</h3>
+        <p>37 skills for shipping, QA, design, and planning. Headless browser for testing. One-command deploy, review, and retrospectives.</p>
+      </div>
+      <div class="eco-card sheal" onclick="showTab('sheal')">
+        <span class="icon">&#x1F504;</span>
+        <div class="when">Runtime</div>
+        <h3>sheal</h3>
+        <p>Watches your AI coding sessions. Extracts learnings, detects failure patterns, and feeds insights back into your configs.</p>
+      </div>
+      <div class="eco-card vault" onclick="showTab('vault')">
+        <span class="icon">&#x1F9E0;</span>
+        <div class="when">Always-On</div>
+        <h3>Agentic Memory (Vault)</h3>
+        <p>Persistent knowledge base across sessions. Decisions, wiki, retro insights, and operational context survive every restart.</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('aif')" id="tab-aif">aiframework</div>
+      <div class="tab" onclick="showTab('gstack')" id="tab-gstack">gstack</div>
+      <div class="tab" onclick="showTab('sheal')" id="tab-sheal">sheal</div>
+      <div class="tab" onclick="showTab('vault')" id="tab-vault">Vault / Memory</div>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="tab-content active" id="content-aif">
+      <div class="detail-panel">
+        <h3>&#x1F3D7; aiframework &mdash; Your Repo's Brain Builder</h3>
+        <p class="desc">Run once per project. aiframework reads your repo the way a senior engineer would on their first day &mdash; except it takes 60 seconds instead of a week.</p>
+        <ul class="feature-list">
+          <li>13 scanners detect language, framework, CI, domains, architecture, and more</li>
+          <li>Generates CLAUDE.md (80-150 lines of high-signal project context)</li>
+          <li>Creates .claude/rules/ with workflow, testing, and security rules</li>
+          <li>Builds custom /review and /ship skills tailored to your stack</li>
+          <li>Sets up git hooks that auto-refresh configs on every push</li>
+          <li>Creates a 31-file vault knowledge base for persistent memory</li>
+          <li>Works with ANY language: TypeScript, Python, Go, Rust, Ruby, Java, and 14 more</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-content" id="content-gstack">
+      <div class="detail-panel">
+        <h3>&#x1F310; gstack &mdash; Your Engineering Team in 37 Skills</h3>
+        <p class="desc">Gives Claude Code superpowers: ship code, test in a real browser, review PRs, plan features, audit security, and run retrospectives.</p>
+        <ul class="feature-list">
+          <li>/ship &mdash; test, review, bump version, create PR in one command</li>
+          <li>/qa &mdash; find bugs in a real browser, fix them, verify the fix</li>
+          <li>/browse &mdash; headless Chromium at ~100ms per command</li>
+          <li>/investigate &mdash; 4-phase root cause debugging</li>
+          <li>/plan-ceo-review &mdash; founder-mode scope expansion</li>
+          <li>/plan-eng-review &mdash; lock in architecture before coding</li>
+          <li>/design-review &mdash; visual QA with auto-fix</li>
+          <li>/cso &mdash; OWASP + STRIDE security audit</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-content" id="content-sheal">
+      <div class="detail-panel">
+        <h3>&#x1F504; sheal &mdash; Runtime Session Intelligence</h3>
+        <p class="desc">Learns from your actual coding sessions. Detects patterns, extracts failures, and bridges learnings back into aiframework so your CLAUDE.md gets smarter over time.</p>
+        <ul class="feature-list">
+          <li>/sheal-check &mdash; health check at session start (tests, deps, environment)</li>
+          <li>/sheal-retro &mdash; extract learnings from the session, bridge to JSONL</li>
+          <li>/sheal-drift &mdash; detect learnings that keep being ignored, promote to rules</li>
+          <li>/sheal-ask &mdash; search past session history with natural language</li>
+          <li>Bidirectional bridge syncs learnings between JSONL and markdown formats</li>
+          <li>Category mapping: bug/gotcha/pattern/decision preserved losslessly</li>
+          <li>Optional &mdash; zero behavioral change when not installed</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-content" id="content-vault">
+      <div class="detail-panel">
+        <h3>&#x1F9E0; Agentic Memory (Vault) &mdash; Persistent Knowledge</h3>
+        <p class="desc">Claude Code loses memory between sessions. The vault fixes that. Decisions, wiki pages, retro insights, and operational notes persist forever.</p>
+        <ul class="feature-list">
+          <li>vault/memory/status.md &mdash; operational context, checked at every session start</li>
+          <li>vault/memory/decisions/ &mdash; architectural decision records (ADRs)</li>
+          <li>vault/memory/notes/ &mdash; persistent notes across sessions</li>
+          <li>vault/wiki/ &mdash; auto-generated knowledge pages from code index</li>
+          <li>vault/templates/ &mdash; reusable templates for decisions and source pages</li>
+          <li>vault-tools.sh doctor &mdash; full vault health diagnostic</li>
+          <li>Retro insights from sheal auto-sync to vault/memory/status.md</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How They Work Together -->
+<section style="background: var(--surface);">
+  <div class="container">
+    <h2>How They Work Together</h2>
+    <p class="subtitle">A complete improvement loop. Your AI coding assistant gets smarter with every session &mdash; automatically.</p>
+
+    <div class="flow-section" style="background: var(--bg);">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-num s1">1</div>
+          <div class="flow-content">
+            <h3>Bootstrap</h3>
+            <span class="tool aif">aiframework</span>
+            <p>You run <code>aiframework run</code> once. It scans your entire repo &mdash; language, framework, commands, CI, domains, architecture &mdash; and generates everything Claude Code needs: CLAUDE.md, rules, skills, hooks, vault, and CI workflows.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num s2">2</div>
+          <div class="flow-content">
+            <h3>Work</h3>
+            <span class="tool gstack">gstack</span> <span class="tool aif">aiframework skills</span>
+            <p>You code with Claude Code. Use <code>/ship</code> to deploy, <code>/review</code> to check code, <code>/qa</code> to test in a real browser. When you discover something, <code>/aif-learn</code> captures it to both JSONL and sheal simultaneously.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num s3">3</div>
+          <div class="flow-content">
+            <h3>Retro</h3>
+            <span class="tool sheal">sheal</span>
+            <p>At session end, <code>/sheal-retro</code> analyzes what happened. It extracts failure patterns, recurring mistakes, and insights. The bidirectional bridge syncs everything to your JSONL learnings store and the vault.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num s4">4</div>
+          <div class="flow-content">
+            <h3>Evolve</h3>
+            <span class="tool aif">aiframework</span> <span class="tool sheal">sheal</span>
+            <p>Weekly, <code>/aif-evolve</code> reads all learnings from both sources. It proposes CLAUDE.md improvements: new invariants, new rules, cleanup of stale entries. Your project brain gets smarter.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num s5">5</div>
+          <div class="flow-content">
+            <h3>Drift Detection</h3>
+            <span class="tool sheal">sheal</span> <span class="tool vault">vault</span>
+            <p><code>/sheal-drift</code> checks: are learnings being applied? If the same mistake keeps happening (3+ times), it gets promoted to a permanent CLAUDE.md invariant. Retro insights sync to vault memory. The loop closes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section>
+  <div class="container">
+    <h2>What Each Tool Does</h2>
+    <p class="subtitle">Clear responsibilities. No overlap. Each tool owns its phase.</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>aiframework</th>
+          <th>gstack</th>
+          <th>sheal</th>
+          <th>Vault</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>When</td><td>Setup (once)</td><td>During work</td><td>Runtime (every session)</td><td>Always</td></tr>
+        <tr><td>What it reads</td><td>Your repo files</td><td>Your code diffs</td><td>Your session behavior</td><td>Past decisions</td></tr>
+        <tr><td>What it writes</td><td>CLAUDE.md, rules, skills</td><td>PRs, fixes, reports</td><td>Learnings, retros</td><td>Wiki, notes, ADRs</td></tr>
+        <tr><td>Learning format</td><td>JSONL</td><td>&mdash;</td><td>Markdown + frontmatter</td><td>Markdown</td></tr>
+        <tr><td>Skills count</td><td>15</td><td>37</td><td>4</td><td>&mdash;</td></tr>
+        <tr><td>Requires install</td><td><span class="check">Required</span></td><td><span class="check">Required</span></td><td><span class="dash">Optional</span></td><td><span class="check">Auto-generated</span></td></tr>
+        <tr><td>Language</td><td>Bash + Python</td><td>Bash</td><td>TypeScript / Node.js</td><td>Markdown</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Install -->
+<section style="background: var(--surface);">
+  <div class="container">
+    <h2>Get Started in 3 Steps</h2>
+    <p class="subtitle">Two minutes from zero to a fully AI-ready repo.</p>
+
+    <div class="detail-panel" style="background: var(--bg);">
+      <h3>Step 1: Install everything</h3>
+      <pre style="background: #1a1a2e; padding: 20px; border-radius: 12px; overflow-x: auto; margin: 16px 0; color: var(--accent2); font-size: 0.95rem;"><code># aiframework + sheal (auto-installed if npm available)
+git clone https://github.com/evergonlabs/aiframework.git
+cd aiframework && make install
+
+# gstack (37 skills for shipping, QA, design)
+git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup --no-prefix</code></pre>
+    </div>
+
+    <div class="detail-panel" style="background: var(--bg);">
+      <h3>Step 2: Bootstrap your project</h3>
+      <pre style="background: #1a1a2e; padding: 20px; border-radius: 12px; overflow-x: auto; margin: 16px 0; color: var(--accent2); font-size: 0.95rem;"><code>aiframework run --target ~/your-project</code></pre>
+      <p style="color: var(--dim); margin-top: 12px;">This scans your repo with 13 scanners, generates CLAUDE.md + 23 files, and verifies everything is correct. Takes about 60 seconds.</p>
+    </div>
+
+    <div class="detail-panel" style="background: var(--bg);">
+      <h3>Step 3: Open Claude Code</h3>
+      <pre style="background: #1a1a2e; padding: 20px; border-radius: 12px; overflow-x: auto; margin: 16px 0; color: var(--accent2); font-size: 0.95rem;"><code>cd ~/your-project && claude
+# Then type:
+/aif-ready</code></pre>
+      <p style="color: var(--dim); margin-top: 12px;">That's it. Claude now knows your stack, commands, invariants, and architecture. Start coding.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><strong><a href="https://github.com/evergonlabs">Evergon Labs</a></strong> &mdash; MIT License</p>
+  <p style="margin-top: 8px;">Your repo already knows everything. Now Claude does too.</p>
+</footer>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('content-' + id).classList.add('active');
+}
+</script>
+
+</body>
+</html>
