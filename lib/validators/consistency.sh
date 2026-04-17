@@ -240,7 +240,7 @@ validate_consistency() {
     local inv_in_claude
     inv_in_claude=$(grep -cE '(### INV-|\*\*INV-)' "$TARGET_DIR/CLAUDE.md" 2>/dev/null | head -1 | tr -d '[:space:]' || echo "0")
     local inv_in_prepush
-    inv_in_prepush=$(grep -cE '# INV[-:]' "$TARGET_DIR/.githooks/pre-push" 2>/dev/null || true)
+    inv_in_prepush=$(grep -cE '# INV[-:]' "$TARGET_DIR/.githooks/pre-push" 2>/dev/null || echo "0")
     inv_in_prepush=$(echo "$inv_in_prepush" | head -1 | tr -d '[:space:]')
     [[ -z "$inv_in_prepush" ]] && inv_in_prepush=0
 

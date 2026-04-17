@@ -142,6 +142,11 @@ grep -q '## Build' "$dir/AGENTS.md" && pass "AGENTS.md has Build section" || fai
 agents_lines=$(wc -l < "$dir/AGENTS.md" | tr -d '[:space:]')
 [[ "$agents_lines" -lt 150 ]] && pass "AGENTS.md under 150 lines ($agents_lines)" || fail "AGENTS.md too large ($agents_lines)"
 
+# Verify settings.json is valid JSON
+if [[ -f "$dir/.claude/settings.json" ]]; then
+  python3 -c "import json; json.load(open('$dir/.claude/settings.json'))" 2>/dev/null && pass "settings.json valid JSON" || fail "settings.json invalid JSON"
+fi
+
 echo ""
 
 # Test 6: Config-gated output (only AGENTS.md)

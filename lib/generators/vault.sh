@@ -3312,6 +3312,8 @@ populate_vault_from_index() {
       [[ -z "$mod_slug" ]] && mod_slug="root-module"
 
       local entity_file="$vault_root/wiki/entities/${mod_slug}.md"
+      local _entity_existed=false
+      [[ -f "$entity_file" ]] && _entity_existed=true
 
       # Regenerate entity pages on every run to pick up new symbols
 
@@ -3366,7 +3368,9 @@ populate_vault_from_index() {
         dependents_list="*No inbound dependents detected.*"
       fi
 
-      cat > "$entity_file" << MODENTEOF
+      local _entity_tmp
+      _entity_tmp=$(mktemp)
+      cat > "$_entity_tmp" << MODENTEOF
 ---
 title: "Module: ${mod_path}"
 type: entity
@@ -3415,11 +3419,19 @@ ${dependents_list}
 - [[project-overview]]
 MODENTEOF
 
-      new_index_entries="${new_index_entries}
+      if $_entity_existed && diff -q "$entity_file" "$_entity_tmp" >/dev/null 2>&1; then
+        # Content identical — skip writing and logging
+        rm -f "$_entity_tmp"
+      else
+        mv "$_entity_tmp" "$entity_file"
+        local _log_action="create-entity"
+        $_entity_existed && _log_action="update-entity"
+        new_index_entries="${new_index_entries}
 | ${mod_slug} | wiki/entities/${mod_slug}.md | entity | ${today} | current | domain/${mod_lang} |"
-      new_log_entries="${new_log_entries}
-| ${timestamp} | create-entity | aiframework/code-index | wiki/entities/${mod_slug}.md | success | Auto-generated from code index |"
-      pages_created=$((pages_created + 1))
+        new_log_entries="${new_log_entries}
+| ${timestamp} | ${_log_action} | aiframework/code-index | wiki/entities/${mod_slug}.md | success | Auto-generated from code index |"
+        pages_created=$((pages_created + 1))
+      fi
 
       i=$((i + 1))
     done
@@ -3575,6 +3587,8 @@ ${lang_stats}
 
       if [[ "$symbol_count" -ge 10 ]]; then
         local api_file="$vault_root/wiki/entities/${api_slug}-api.md"
+        local _api_entity_existed=false
+        [[ -f "$api_file" ]] && _api_entity_existed=true
         local api_mod_lang
         api_mod_lang=$(echo "$modules_json" | jq -r ".[$k].value.language // \"${lang}\"")
 
@@ -3602,7 +3616,9 @@ ${lang_stats}
           sym_idx=$((sym_idx + 1))
         done
 
-        cat > "$api_file" << APIEOF
+        local _api_entity_tmp
+        _api_entity_tmp=$(mktemp)
+        cat > "$_api_entity_tmp" << APIEOF
 ---
 title: "API Reference: ${api_mod_path}"
 type: entity
@@ -3633,11 +3649,19 @@ confidence: medium
 - [[tech-stack]]
 APIEOF
 
-        new_index_entries="${new_index_entries}
+        if $_api_entity_existed && diff -q "$api_file" "$_api_entity_tmp" >/dev/null 2>&1; then
+          # Content identical — skip writing and logging
+          rm -f "$_api_entity_tmp"
+        else
+          mv "$_api_entity_tmp" "$api_file"
+          local _api_log_action="create-entity"
+          $_api_entity_existed && _api_log_action="update-entity"
+          new_index_entries="${new_index_entries}
 | ${api_slug}-api | wiki/entities/${api_slug}-api.md | entity | ${today} | current | domain/${api_mod_lang} |"
-        new_log_entries="${new_log_entries}
-| ${timestamp} | create-entity | aiframework/code-index | wiki/entities/${api_slug}-api.md | success | API reference from code index |"
-        pages_created=$((pages_created + 1))
+          new_log_entries="${new_log_entries}
+| ${timestamp} | ${_api_log_action} | aiframework/code-index | wiki/entities/${api_slug}-api.md | success | API reference from code index |"
+          pages_created=$((pages_created + 1))
+        fi
       fi
 
       k=$((k + 1))

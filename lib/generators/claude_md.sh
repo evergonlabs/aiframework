@@ -15,6 +15,9 @@ _extract_claude_md_vars() {
 
   _cm_name=$(echo "$_cm_m" | jq -r '.identity.name')
   _cm_desc=$(echo "$_cm_m" | jq -r '.identity.description // "No description"')
+  # Sanitize for heredoc safety
+  _cm_name=$(echo "$_cm_name" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
+  _cm_desc=$(echo "$_cm_desc" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
   _cm_version=$(echo "$_cm_m" | jq -r '.identity.version // "0.1.0"')
   _cm_short=$(echo "$_cm_m" | jq -r '.identity.short_name')
   _cm_lang=$(echo "$_cm_m" | jq -r '.stack.language')
@@ -300,28 +303,31 @@ CLAUDEMD
 
   if [[ "$domain_count" -gt 0 ]]; then
     local inv_num=1
-    echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r domain; do
+    local _domains
+    _domains=$(echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null)
+    while IFS= read -r domain; do
+      [[ -z "$domain" ]] && continue
       case "$domain" in
         auth)
-          echo "- **INV-${inv_num}**: Auth guards on all protected endpoints"
+          echo "- **INV-${inv_num}**: Auth guards on all protected endpoints" >> "$out"
           ;;
         database)
           local orm_val
           orm_val=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "database") | .orm // "unknown"')
-          echo "- **INV-${inv_num}**: Database access through ORM only (${orm_val})"
+          echo "- **INV-${inv_num}**: Database access through ORM only (${orm_val})" >> "$out"
           ;;
         api)
-          echo "- **INV-${inv_num}**: Input validation on all API endpoints"
+          echo "- **INV-${inv_num}**: Input validation on all API endpoints" >> "$out"
           ;;
         ai)
-          echo "- **INV-${inv_num}**: LLM trust boundary — validate all AI output"
+          echo "- **INV-${inv_num}**: LLM trust boundary — validate all AI output" >> "$out"
           ;;
         sandbox)
-          echo "- **INV-${inv_num}**: Sandbox isolation for code execution"
+          echo "- **INV-${inv_num}**: Sandbox isolation for code execution" >> "$out"
           ;;
       esac
       inv_num=$((inv_num + 1))
-    done >> "$out"
+    done <<< "$_domains"
   fi
 
   # --- #8: Read-only dependency declarations ---
@@ -1001,38 +1007,41 @@ INVHEAD
     # Domain-based invariants
     if [[ "$domain_count" -gt 0 ]]; then
       local inv_num=1
-      echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r domain; do
+      local _ext_domains
+      _ext_domains=$(echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null)
+      while IFS= read -r domain; do
+        [[ -z "$domain" ]] && continue
         case "$domain" in
           auth)
-            echo "## INV-${inv_num}: Authentication guards on all protected endpoints"
-            echo "Every endpoint handling user data must have auth middleware/guards applied."
-            echo ""
+            echo "## INV-${inv_num}: Authentication guards on all protected endpoints" >> "$inv_out"
+            echo "Every endpoint handling user data must have auth middleware/guards applied." >> "$inv_out"
+            echo "" >> "$inv_out"
             ;;
           database)
             local orm_val
             orm_val=$(echo "$m" | jq -r '.domain.detected_domains[] | select(.name == "database") | .orm // "unknown"')
-            echo "## INV-${inv_num}: Database access through ORM only (${orm_val})"
-            echo "No raw SQL queries — all database access through the ORM layer."
-            echo ""
+            echo "## INV-${inv_num}: Database access through ORM only (${orm_val})" >> "$inv_out"
+            echo "No raw SQL queries — all database access through the ORM layer." >> "$inv_out"
+            echo "" >> "$inv_out"
             ;;
           api)
-            echo "## INV-${inv_num}: Input validation on all API endpoints"
-            echo "Every endpoint accepting user input must validate and sanitize before processing."
-            echo ""
+            echo "## INV-${inv_num}: Input validation on all API endpoints" >> "$inv_out"
+            echo "Every endpoint accepting user input must validate and sanitize before processing." >> "$inv_out"
+            echo "" >> "$inv_out"
             ;;
           ai)
-            echo "## INV-${inv_num}: LLM trust boundary enforcement"
-            echo "Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content."
-            echo ""
+            echo "## INV-${inv_num}: LLM trust boundary enforcement" >> "$inv_out"
+            echo "Never trust LLM output as safe — validate, sanitize, and scope all AI-generated content." >> "$inv_out"
+            echo "" >> "$inv_out"
             ;;
           sandbox)
-            echo "## INV-${inv_num}: Sandbox isolation for code execution"
-            echo "All user code execution must run in an isolated sandbox with resource limits."
-            echo ""
+            echo "## INV-${inv_num}: Sandbox isolation for code execution" >> "$inv_out"
+            echo "All user code execution must run in an isolated sandbox with resource limits." >> "$inv_out"
+            echo "" >> "$inv_out"
             ;;
         esac
         inv_num=$((inv_num + 1))
-      done >> "$inv_out"
+      done <<< "$_ext_domains"
     fi
 
     # #8: Read-only paths invariant in extended rules
@@ -1113,7 +1122,10 @@ INVHEAD
       echo "## Review Specialists" >> "$inv_out"
       echo "" >> "$inv_out"
 
-      echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r spec_domain; do
+      local _spec_domains
+      _spec_domains=$(echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null)
+      while IFS= read -r spec_domain; do
+        [[ -z "$spec_domain" ]] && continue
         local spec_display
         spec_display=$(echo "$m" | jq -r --arg n "$spec_domain" '.domain.detected_domains[] | select(.name == $n) | .display' 2>/dev/null)
         local spec_paths
@@ -1196,7 +1208,7 @@ INVHEAD
             ;;
         esac
         echo "" >> "$inv_out"
-      done
+      done <<< "$_spec_domains"
     fi
 
     log_ok "Written .claude/rules/invariants.md"

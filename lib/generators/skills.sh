@@ -78,62 +78,65 @@ SKILLMD
 
   # Add invariant checks from detected domains
   local inv_num=1
-  echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null | while IFS= read -r domain; do
+  local _skill_domains
+  _skill_domains=$(echo "$m" | jq -r '.domain.detected_domains[] | .name' 2>/dev/null)
+  while IFS= read -r domain; do
+    [[ -z "$domain" ]] && continue
     case "$domain" in
       auth)
-        echo "### 1.${inv_num} INV-${inv_num}: Authentication Guards"
-        echo "Verify all new/modified endpoints have auth middleware applied."
-        echo "Look for: unprotected routes, missing guards, public endpoints that should be private."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: Authentication Guards" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify all new/modified endpoints have auth middleware applied." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: unprotected routes, missing guards, public endpoints that should be private." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       database)
-        echo "### 1.${inv_num} INV-${inv_num}: Database Safety"
-        echo "Verify no raw SQL, all queries through ORM, migrations are reversible."
-        echo "Look for: raw SQL strings, missing migrations, schema changes without migration."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: Database Safety" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify no raw SQL, all queries through ORM, migrations are reversible." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: raw SQL strings, missing migrations, schema changes without migration." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       api)
-        echo "### 1.${inv_num} INV-${inv_num}: Input Validation"
-        echo "Verify all API endpoints validate input before processing."
-        echo "Look for: missing validation, untyped request bodies, direct user input in queries."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: Input Validation" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify all API endpoints validate input before processing." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: missing validation, untyped request bodies, direct user input in queries." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       ai)
-        echo "### 1.${inv_num} INV-${inv_num}: LLM Trust Boundary"
-        echo "Verify LLM output is never trusted as safe."
-        echo "Look for: unsanitized AI output in HTML, eval of AI-generated code, AI output in SQL."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: LLM Trust Boundary" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify LLM output is never trusted as safe." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: unsanitized AI output in HTML, eval of AI-generated code, AI output in SQL." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       sandbox)
-        echo "### 1.${inv_num} INV-${inv_num}: Sandbox Isolation"
-        echo "Verify code execution is sandboxed with resource limits."
-        echo "Look for: unsandboxed exec, missing timeouts, file system access."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: Sandbox Isolation" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify code execution is sandboxed with resource limits." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: unsandboxed exec, missing timeouts, file system access." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       frontend)
-        echo "### 1.${inv_num} INV-${inv_num}: Frontend Security & Quality"
-        echo "Verify no XSS vulnerabilities (dangerouslySetInnerHTML, v-html, innerHTML assignments)."
-        echo "Check accessibility: proper labels, alt text, ARIA attributes, keyboard navigation."
-        echo "Verify loading states exist for all async operations."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: Frontend Security & Quality" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify no XSS vulnerabilities (dangerouslySetInnerHTML, v-html, innerHTML assignments)." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Check accessibility: proper labels, alt text, ARIA attributes, keyboard navigation." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify loading states exist for all async operations." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       external-apis)
-        echo "### 1.${inv_num} INV-${inv_num}: External API Safety"
-        echo "Verify no API keys or secrets are hardcoded or exposed to client bundles."
-        echo "Check that all external API calls have proper error handling and timeout configuration."
-        echo "Look for: missing try/catch, no timeout set, leaked credentials."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: External API Safety" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify no API keys or secrets are hardcoded or exposed to client bundles." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Check that all external API calls have proper error handling and timeout configuration." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: missing try/catch, no timeout set, leaked credentials." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
       workers)
-        echo "### 1.${inv_num} INV-${inv_num}: Worker/Job Safety"
-        echo "Verify job handlers are idempotent — safe to retry without side effects."
-        echo "Check retry logic and backoff configuration."
-        echo "Look for: missing dead letter queue, no idempotency key, unbounded retries."
-        echo ""
+        echo "### 1.${inv_num} INV-${inv_num}: Worker/Job Safety" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Verify job handlers are idempotent — safe to retry without side effects." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Check retry logic and backoff configuration." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "Look for: missing dead letter queue, no idempotency key, unbounded retries." >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+        echo "" >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
         ;;
     esac
     inv_num=$((inv_num + 1))
-  done >> "$TARGET_DIR/.claude/skills/${short}-review/SKILL.md"
+  done <<< "$_skill_domains"
 
   # Count how many INV- entries were written and ensure at least 2
   local review_inv_count
@@ -654,12 +657,6 @@ LEARNMD
         fi
       fi
     fi
-
-    # #28 — Auto-allow generated skill names in permissions
-    local skill_allows=""
-    skill_allows+=",\n      \"Skill(${short}-review)\""
-    skill_allows+=",\n      \"Skill(${short}-ship)\""
-    skill_allows+=",\n      \"Skill(${short}-learn)\""
 
     cat > "$settings_file" << SETTINGS
 {

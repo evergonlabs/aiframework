@@ -21,6 +21,9 @@ generate_agents_md() {
   local name desc lang fw short
   name=$(echo "$m" | jq -r '.identity.name')
   desc=$(echo "$m" | jq -r '.identity.description // "No description"')
+  # Sanitize for heredoc safety
+  name=$(echo "$name" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
+  desc=$(echo "$desc" | sed 's/`//g; s/\$(/(/g; s/\${/{/g')
   lang=$(echo "$m" | jq -r '.stack.language')
   fw=$(echo "$m" | jq -r '.stack.framework // "none"')
   short=$(echo "$m" | jq -r '.identity.short_name')
