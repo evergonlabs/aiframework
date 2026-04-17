@@ -2,6 +2,7 @@
 # lib/knowledge/store.sh — Cross-repo learning system
 # Tracks repo profiles, scanner misses, and patterns across all analyzed repos.
 # Data stored at ~/.aiframework/knowledge/
+# All JSON construction uses jq --arg for safe escaping (INV-1 compliant).
 
 # Initialize knowledge store at ~/.aiframework/knowledge/
 knowledge_init() {
@@ -24,10 +25,19 @@ knowledge_record_profile() {
   fw=$(echo "$manifest" | jq -r '.stack.framework // "none"')
   arch=$(echo "$manifest" | jq -r '.archetype.type // "unknown"')
   files=$(echo "$manifest" | jq -r '.structure.total_files // 0')
-  domains=$(echo "$manifest" | jq '[.domain.detected_domains[]?.name] | join(",")')
+  domains=$(echo "$manifest" | jq -c '[.domain.detected_domains[]?.name]')
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-  echo "{\"timestamp\":\"$ts\",\"language\":\"$lang\",\"framework\":\"$fw\",\"archetype\":\"$arch\",\"total_files\":$files,\"domains\":$domains}" >> "$dir/repo_profiles.jsonl"
+  # Build JSON safely via jq --arg (INV-1 compliant)
+  jq -n -c \
+    --arg ts "$ts" \
+    --arg lang "$lang" \
+    --arg fw "$fw" \
+    --arg arch "$arch" \
+    --argjson files "$files" \
+    --argjson domains "$domains" \
+    '{timestamp:$ts, language:$lang, framework:$fw, archetype:$arch, total_files:$files, domains:$domains}' \
+    >> "$dir/repo_profiles.jsonl" 2>/dev/null || true
 }
 
 # Record what enhance found that scanners missed
@@ -39,7 +49,13 @@ knowledge_record_miss() {
   local ts
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-  echo "{\"timestamp\":\"$ts\",\"gap_id\":\"$gap_id\",\"description\":\"$description\"}" >> "$dir/scanner_misses.jsonl"
+  # Build JSON safely via jq --arg (INV-1 compliant)
+  jq -n -c \
+    --arg ts "$ts" \
+    --arg gap "$gap_id" \
+    --arg desc "$description" \
+    '{timestamp:$ts, gap_id:$gap, description:$desc}' \
+    >> "$dir/scanner_misses.jsonl" 2>/dev/null || true
 }
 
 # Show stats across all analyzed repos

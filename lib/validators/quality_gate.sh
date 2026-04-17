@@ -2,6 +2,11 @@
 # Validator: Quality Gate Dry Run
 # Attempts to run lint/test/build to verify they work
 
+# Ensure _aif_timeout is available (may not be if sourced standalone)
+if ! command -v _aif_timeout &>/dev/null; then
+  _aif_timeout() { local secs="$1"; shift; if command -v timeout &>/dev/null; then timeout "$secs" "$@"; else "$@"; fi; }
+fi
+
 validate_quality_gate() {
   local m="$MANIFEST"
   local lint
@@ -50,7 +55,7 @@ validate_quality_gate() {
   # --- Actually run lint/test/build commands (30s timeout each) ---
   if [[ "$lint" != "NOT_CONFIGURED" ]]; then
     local lint_output
-    lint_output=$(cd "$TARGET_DIR" && timeout 30 bash -c "$lint" 2>&1)
+    lint_output=$(cd "$TARGET_DIR" && _aif_timeout 30 bash -c "$lint" 2>&1)
     local lint_exit=$?
     if [[ $lint_exit -eq 0 ]]; then
       report_row "Lint execution" "PASS" "Exited 0"
@@ -65,7 +70,7 @@ validate_quality_gate() {
 
   if [[ "$test_cmd" != "NOT_CONFIGURED" ]]; then
     local test_output
-    test_output=$(cd "$TARGET_DIR" && timeout 30 bash -c "$test_cmd" 2>&1)
+    test_output=$(cd "$TARGET_DIR" && _aif_timeout 30 bash -c "$test_cmd" 2>&1)
     local test_exit=$?
     if [[ $test_exit -eq 0 ]]; then
       report_row "Test execution" "PASS" "Exited 0"
@@ -80,7 +85,7 @@ validate_quality_gate() {
 
   if [[ "$build" != "NOT_CONFIGURED" ]]; then
     local build_output
-    build_output=$(cd "$TARGET_DIR" && timeout 30 bash -c "$build" 2>&1)
+    build_output=$(cd "$TARGET_DIR" && _aif_timeout 30 bash -c "$build" 2>&1)
     local build_exit=$?
     if [[ $build_exit -eq 0 ]]; then
       report_row "Build execution" "PASS" "Exited 0"

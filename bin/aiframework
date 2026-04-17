@@ -22,6 +22,10 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 LIB_DIR="$ROOT_DIR/lib"
 TEMPLATES_DIR="$ROOT_DIR/templates"
 
+# Create a project-specific temp directory for this run
+_AIF_TMPDIR=$(mktemp -d /tmp/aiframework.XXXXXX 2>/dev/null || mktemp -d)
+export _AIF_TMPDIR
+
 # Cleanup trap — remove temp files on exit
 _aiframework_cleanup() {
   if [[ -n "${_AIF_TMPDIR:-}" && -d "$_AIF_TMPDIR" && "$_AIF_TMPDIR" == /tmp/* ]]; then
@@ -29,6 +33,16 @@ _aiframework_cleanup() {
   fi
 }
 trap _aiframework_cleanup EXIT
+
+# Portable timeout wrapper — falls back to bare execution on stock macOS
+_aif_timeout() {
+  local secs="$1"; shift
+  if command -v timeout &>/dev/null; then
+    timeout "$secs" "$@"
+  else
+    "$@"
+  fi
+}
 
 # Dependency check — validate required tools are available
 check_dependencies() {

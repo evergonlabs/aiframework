@@ -19,7 +19,7 @@ scan_sheal() {
     sheal_installed=true
     # Use timeout to prevent hanging; sanitize version output
     local _raw_ver
-    _raw_ver=$(timeout 5 sheal --version 2>/dev/null | head -1 | tr -dc '0-9.' || true)
+    _raw_ver=$(_aif_timeout 5 sheal --version 2>/dev/null | head -1 | tr -dc '0-9.' || true)
     if [[ -n "$_raw_ver" ]]; then
       sheal_version="$_raw_ver"
     fi

@@ -46,8 +46,10 @@ bridge_jsonl_to_sheal() {
       category=$(printf '%s' "$line" | jq -r '.category // "pattern"' 2>/dev/null)
       detail=$(printf '%s' "$line" | jq -r '.detail // ""' 2>/dev/null)
 
-      # Check for duplicates by searching quoted title field (matches written format)
-      if grep -rqF -- "title: \"${summary}\"" "$sheal_dir" 2>/dev/null; then
+      # Check for duplicates — use the same escaped form that gets written to disk
+      local _escaped_summary
+      _escaped_summary=$(printf '%s' "$summary" | tr -d '\n\r' | sed 's/"/\\"/g')
+      if grep -rqF -- "title: \"${_escaped_summary}\"" "$sheal_dir" 2>/dev/null; then
         continue
       fi
 
@@ -144,14 +146,15 @@ bridge_sheal_to_jsonl() {
         fi
         if [[ "$in_frontmatter" == true ]]; then
           case "$fmline" in
-            title:*)    title="${fmline#title:}"; title="${title# }"; title="${title#\"}"; title="${title%\"}" ;;
+            title:*)    title="${fmline#title:}"; title="${title# }"; title="${title#\"}"; title="${title%\"}"; title=$(printf '%s' "$title" | sed 's/\\"/"/g') ;;
             category:*) category="${fmline#category:}"; category="${category# }"; category="${category%% *}" ;;
             date:*)     date_val="${fmline#date:}"; date_val="${date_val# }"; date_val="${date_val%% *}" ;;
             severity:*) ;; # parsed but not used in JSONL conversion
           esac
         fi
       else
-        body+="$fmline "
+        body+="$fmline
+"
       fi
     done < "$learn_file"
 

@@ -9,7 +9,8 @@
 _sanitize_manifest_val() {
   local val="$1"
   # Allowlist: keep only safe characters for shell heredocs
-  val=$(printf '%s' "$val" | tr -dc 'a-zA-Z0-9 _./:=@,+^~-')
+  # Note: / excluded to prevent path traversal in directory names
+  val=$(printf '%s' "$val" | tr -dc 'a-zA-Z0-9 _.:=@,+^~-')
   printf '%s\n' "$val"
 }
 
@@ -708,6 +709,17 @@ LEARNMD
 }
 SETTINGS
     log_ok "Created .claude/settings.json"
+  else
+    # Warn upgrade users that their settings.json may be missing new features
+    local _sheal_in_settings=false
+    if grep -qF 'sheal-check' "$settings_file" 2>/dev/null; then
+      _sheal_in_settings=true
+    fi
+    local _sheal_detected
+    _sheal_detected=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
+    if [[ "$_sheal_detected" == "true" && "$_sheal_in_settings" == false ]]; then
+      log_warn "settings.json exists but lacks sheal hooks — delete .claude/settings.json and re-run to add sheal integration"
+    fi
   fi
 
   # --- #30-31: Code Reviewer Agent ---

@@ -58,7 +58,7 @@ generate_sheal() {
     log_ok "Generated .self-heal.json"
   else
     rm -f "$_sheal_tmp"
-    log_warn ".self-heal.json generation failed (non-fatal)"
+    log_warn ".self-heal.json generation failed — check manifest fields .commands.test, .stack.language (non-fatal)"
   fi
 
   # --- 3b: Run sheal init if .sheal/ doesn't exist ---
@@ -68,7 +68,7 @@ generate_sheal() {
     if command -v sheal &>/dev/null; then
       local _init_err
       _init_err=$(mktemp "${_AIF_TMPDIR:-/tmp}/sheal-init.XXXXXX" 2>/dev/null || mktemp)
-      if timeout 30 sheal init --project "$TARGET_DIR" 2>"$_init_err"; then
+      if _aif_timeout 30 sheal init --project "$TARGET_DIR" 2>"$_init_err"; then
         log_ok "Initialized sheal in project"
       else
         log_warn "sheal init failed — run 'sheal init --project . --verbose' to debug (non-fatal)"
@@ -82,10 +82,10 @@ generate_sheal() {
   if command -v sheal &>/dev/null; then
     local _rules_err
     _rules_err=$(mktemp "${_AIF_TMPDIR:-/tmp}/sheal-rules.XXXXXX" 2>/dev/null || mktemp)
-    if timeout 15 sheal rules --project "$TARGET_DIR" 2>"$_rules_err"; then
+    if _aif_timeout 15 sheal rules --project "$TARGET_DIR" 2>"$_rules_err"; then
       log_ok "Injected sheal rules"
     else
-      log_warn "sheal rules injection skipped (non-fatal)"
+      log_warn "sheal rules failed — run 'sheal rules --project . --verbose' to debug (non-fatal)"
       [[ -s "$_rules_err" ]] && log_warn "  $(head -3 "$_rules_err")"
     fi
     rm -f "$_rules_err"
