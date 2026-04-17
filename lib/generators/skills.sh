@@ -648,6 +648,35 @@ LEARNMD
       fi
     fi
 
+    # Add sheal skill permissions and SessionStart hook when sheal is detected
+    local sheal_perms=""
+    local sheal_hook=""
+    local _sheal_installed
+    _sheal_installed=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
+    if [[ "$_sheal_installed" == "true" ]]; then
+      sheal_perms=',
+      "Skill(sheal-check)",
+      "Skill(sheal-retro)",
+      "Skill(sheal-drift)",
+      "Skill(sheal-ask)"'
+      # Add SessionStart hook — merge with existing hooks
+      if [[ -n "$hooks_block" ]]; then
+        # Inject SessionStart into existing hooks block
+        hooks_block=$(echo "$hooks_block" | sed 's/}$/,\n    "SessionStart": [\n      {\n        "matcher": "",\n        "command": "sheal check --format json --skip tests 2>\/dev\/null | head -20 || true",\n        "timeout": 15000\n      }\n    ]\n  }/')
+      else
+        hooks_block=',
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "command": "sheal check --format json --skip tests 2>/dev/null | head -20 || true",
+        "timeout": 15000
+      }
+    ]
+  }'
+      fi
+    fi
+
     cat > "$settings_file" << SETTINGS
 {
   "permissions": {
@@ -661,7 +690,7 @@ LEARNMD
       "WebSearch",
       "Skill(${short}-review)",
       "Skill(${short}-ship)",
-      "Skill(${short}-learn)"
+      "Skill(${short}-learn)"${sheal_perms}
     ]
   }${hooks_block}
 }

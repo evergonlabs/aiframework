@@ -600,17 +600,47 @@ CLAUDEMD
   fi
 
   # --- Custom Skills ---
-  cat >> "$out" << SKILLS
-## Skills
+  {
+    echo "## Skills"
+    echo ""
+    echo "- \`/aif-ready\` — **Run first.** Researches your stack, enhances this file, makes repo Claude Code-ready"
+    echo "- \`/${short}-review\` — Pre-commit code review checking invariants"
+    echo "- \`/${short}-ship\` — Lint + review + changelog + commit (never pushes without approval)"
+    echo "- \`/${short}-learn\` — Capture gotchas to persistent storage"
+    echo "- \`/aif-evolve\` — Weekly: synthesize learnings into better rules"
+    echo "- \`/aif-pulse\` — Monthly: discover new Claude Code features"
+  } >> "$out"
 
-- \`/aif-ready\` — **Run first.** Researches your stack, enhances this file, makes repo Claude Code-ready
-- \`/${short}-review\` — Pre-commit code review checking invariants
-- \`/${short}-ship\` — Lint + review + changelog + commit (never pushes without approval)
-- \`/${short}-learn\` — Capture gotchas to persistent storage
-- \`/aif-evolve\` — Weekly: synthesize learnings into better rules
-- \`/aif-pulse\` — Monthly: discover new Claude Code features
+  # Add sheal skills when installed
+  local _sheal_inst
+  _sheal_inst=$(echo "$_cm_m" | jq -r '.sheal.installed // false' 2>/dev/null)
+  if [[ "$_sheal_inst" == "true" ]]; then
+    {
+      echo "- \`/sheal-check\` — Health check (tests, deps, env)"
+      echo "- \`/sheal-retro\` — Session retrospective + learning extraction"
+      echo "- \`/sheal-drift\` — Detect unapplied learnings, promote to rules"
+      echo "- \`/sheal-ask\` — Query session history"
+    } >> "$out"
+  fi
+  echo "" >> "$out"
 
-SKILLS
+  # Add Self-Healing Workflow section when sheal is installed
+  if [[ "$_sheal_inst" == "true" ]]; then
+    cat >> "$out" << 'SHEALWF'
+## Self-Healing Workflow
+
+Run `sheal check` at session start (automatic via hook). Run `sheal retro` at session end.
+
+| Command | When | What |
+|---------|------|------|
+| `sheal check` | Session start | Health check (auto via hook) |
+| `sheal retro` | Session end | Extract learnings from session |
+| `sheal drift` | Weekly | Detect when learnings aren't applied |
+| `sheal learn list` | Anytime | View active learnings |
+| `sheal ask "question"` | Anytime | Search session history |
+
+SHEALWF
+  fi
 
   # --- Vault quick reference (compact) ---
   cat >> "$out" << 'VAULT'

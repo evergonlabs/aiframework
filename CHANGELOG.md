@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-04-17
+### Added
+- **Sheal integration** — runtime session intelligence via [sheal](https://www.npmjs.com/package/@liwala/sheal). Full lifecycle: bootstrap (aiframework) → work → learn → evolve (sheal) → repeat
+- **Sheal scanner** (`lib/scanners/sheal.sh`) — 13th scanner detects sheal installation, `.sheal/` directory, learnings count, rules blocks, retro skill. Step 13 in discover phase
+- **Sheal generator** (`lib/generators/sheal.sh`) — generates `.self-heal.json` config, runs `sheal init`, injects rules, bridges existing learnings
+- **Learning bridge** (`lib/bridge/sheal_learnings.sh`) — bidirectional sync between aiframework JSONL and sheal markdown learnings. Category mapping: `bug`↔`failure-loop`, `gotcha`↔`missing-context`, `pattern`↔`workflow`. Dedup via title matching. Retro-to-vault bridge syncs session insights
+- **SessionStart hook** — when sheal is detected, `sheal check --format json --skip tests` runs automatically at session start via `.claude/settings.json`
+- **4 sheal skill wrappers** — `/sheal-check` (health check), `/sheal-retro` (session retrospective + JSONL bridge), `/sheal-drift` (detect unapplied learnings, promote to rules), `/sheal-ask` (query session history)
+- **Sheal verify step** — optional non-blocking runtime health check in `aiframework verify`
+- **CLAUDE.md Self-Healing Workflow section** — generated when sheal is detected, with command reference table
+- **Dual-write learnings** — `/aif-learn` now also writes to sheal when installed
+- **`/aif-evolve` sheal integration** — loads sheal learnings, retros, and drift data for cross-reference analysis
+- **4 sheal skill routing entries** in `.claude/rules/pipeline.md`
+- **Sheal in session protocol** — session start (step 8) and end-of-session checklist
+- **`make install` installs sheal** — `npm install -g @liwala/sheal` with graceful fallback if Node.js unavailable
+- **`make uninstall` removes sheal** — `npm uninstall -g @liwala/sheal`
+
 ## [1.1.0] — 2026-04-16
 ### Added
 - **Preserve existing files** — generators now detect and preserve existing CLAUDE.md, CHANGELOG.md, VERSION, STATUS.md, SETUP-DEV.md, CONTRIBUTING.md, docs/README.md, CI workflows, and git hooks. User content is never silently overwritten. Backups saved to `.aiframework/backups/`

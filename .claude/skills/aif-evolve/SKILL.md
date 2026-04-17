@@ -122,6 +122,29 @@ if frictions:
 "
 ```
 
+## Step 2b: Load Sheal Runtime Intelligence (if available)
+
+If sheal is installed (`command -v sheal`), load richer learning data:
+
+```bash
+# Check if sheal is available
+if command -v sheal &>/dev/null; then
+  # Load categorized learnings with severity and status
+  sheal learn list --project . 2>/dev/null | head -30
+
+  # Check recent retro insights
+  ls .sheal/retros/ 2>/dev/null | tail -5
+
+  # Check drift — are learnings being applied?
+  sheal drift --last 5 --json --project . 2>/dev/null | head -20
+fi
+```
+
+Cross-reference rules for sheal data:
+- **Drift on a learning + repeated friction in same area** → promote to CLAUDE.md invariant
+- **Consistent retro failure pattern** → create `.claude/rules/` file
+- **Healthy learnings with no drift** → keep as-is in sheal
+
 ## Step 2: Load Project Learnings
 
 ```bash

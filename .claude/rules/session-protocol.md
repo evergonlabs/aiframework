@@ -15,7 +15,8 @@ At the start of each session:
 5. Check `git status` — understand current state
 6. If a STATUS.md file exists — read it for multi-phase task progress
 7. Run `aiframework-update-check` — notify developer of updates or drift
-8. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+8. If sheal is installed → `sheal check` runs automatically via SessionStart hook
+9. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 ## End-of-Session Checklist
 
@@ -31,6 +32,7 @@ Before ending ANY session where code was changed, Claude MUST complete:
 - [ ] **STATUS.md**: Did I update STATUS.md with current progress for multi-phase tasks?
 - [ ] **Push**: Ready to push? Confirm with user before pushing.
 - [ ] **Vault**: Did I update vault/memory/status.md with session progress?
+- [ ] **Retro**: Did I run `sheal retro` to capture session learnings? (if sheal installed)
 - [ ] **Decisions**: Any significant decisions? → Log in vault/memory/decisions/
 
 ---

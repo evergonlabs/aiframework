@@ -21,7 +21,7 @@
 
 <br>
 
-[![version](https://img.shields.io/badge/v1.1.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
+[![version](https://img.shields.io/badge/v1.2.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
 [![tests](https://img.shields.io/badge/92_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
@@ -87,7 +87,7 @@ aiframework reads your repo the way a senior engineer would on their first day &
 ```
   $ aiframework run --target .
 
-  DISCOVER  ████████████████████ 12 scanners
+  DISCOVER  ████████████████████ 13 scanners
     typescript / nextjs / api-service
     47 endpoints, 209 symbols, 4 domains detected
 
@@ -172,6 +172,12 @@ aiframework generates **15 project-specific skills**. [gstack](https://github.co
        │
   Weekly: /aif-evolve     ← improve rules from accumulated learnings
   Monthly: /aif-pulse     ← discover new Claude Code features
+
+  ─── with sheal (runtime intelligence) ───
+
+  Session start → sheal check (auto)    ← health check via SessionStart hook
+  Session end   → /sheal-retro          ← extract learnings, bridge to JSONL
+  Weekly        → /sheal-drift          ← detect unapplied learnings, promote to rules
 ```
 
 ### aiframework skills
@@ -189,6 +195,10 @@ aiframework generates **15 project-specific skills**. [gstack](https://github.co
 | On demand | `/aif-enhance` | Deep-dive: research gaps, find framework conventions |
 | On demand | `/aif-research` | Search official docs for specific conventions |
 | On demand | `/aif-feedback` | Structured feedback for `/aif-evolve` |
+| Session start | `/sheal-check` | Runtime health check (tests, deps, env) |
+| Session end | `/sheal-retro` | Extract session learnings, bridge to JSONL |
+| Weekly | `/sheal-drift` | Detect unapplied learnings, promote to rules |
+| On demand | `/sheal-ask` | Query past session history |
 
 <br>
 
@@ -323,7 +333,8 @@ aiframework run --target /path/to/repo
 │   ├── domain          18 types (auth, db, ai, graphql...)
 │   ├── code_index      symbols + imports + edges (20 languages)
 │   ├── archetype       what kind of project is this?
-│   └── skill_suggest   what workflows would help?
+│   ├── skill_suggest   what workflows would help?
+│   └── sheal           runtime session intelligence (optional)
 │   │
 │   ╰──→  manifest.json + code-index.json
 │
@@ -366,6 +377,21 @@ Your CLAUDE.md gets smarter over time &mdash; most of it happens automatically.
 | **Ecosystem pulse** | `/aif-pulse` discovers new Claude Code features, suggests adoption | Monthly |
 
 The auto-refresh hook means you never have to think about keeping CLAUDE.md in sync &mdash; change a dependency, push, and it updates itself.
+
+### Runtime intelligence with sheal
+
+When [sheal](https://www.npmjs.com/package/@liwala/sheal) is installed (`npm install -g @liwala/sheal`), aiframework extends the lifecycle with **runtime session intelligence**:
+
+| Phase | What | How |
+|:------|:-----|:----|
+| **Bootstrap** | aiframework scans repo, generates configs | `aiframework run` |
+| **Session start** | sheal health check runs automatically | SessionStart hook |
+| **During work** | Both tools capture learnings in their formats | `/aif-learn` dual-writes |
+| **Session end** | sheal extracts patterns from the session | `/sheal-retro` |
+| **Weekly** | Drift detection promotes learnings to rules | `/sheal-drift` |
+| **Evolution** | `/aif-evolve` reads both sources | Bidirectional bridge |
+
+sheal is optional. If Node.js or npm is unavailable, aiframework works exactly as before. `make install` attempts to install sheal automatically with graceful fallback.
 
 <br>
 
@@ -438,6 +464,14 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 | Domains | 18 | `lib/data/domains.json` |
 | Deploy targets | 24 | `lib/data/deploy_targets.json` |
 | Archetypes | 11 | `lib/data/archetypes.json` |
+
+### Integration modules
+
+| Module | Purpose | File |
+|:-------|:--------|:-----|
+| Sheal scanner | Detect sheal installation & state | `lib/scanners/sheal.sh` |
+| Sheal generator | Generate `.self-heal.json`, init, inject rules | `lib/generators/sheal.sh` |
+| Learning bridge | Bidirectional JSONL ↔ markdown sync | `lib/bridge/sheal_learnings.sh` |
 
 <br>
 

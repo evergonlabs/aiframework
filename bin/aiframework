@@ -272,7 +272,7 @@ source "$LIB_DIR/freshness/track.sh"
 
 cmd_discover() {
   banner
-  log_phase "DISCOVER" 12
+  log_phase "DISCOVER" 13
   log_info "Scanning repo at ${BOLD}$TARGET_DIR${NC}"
   echo -e "  ${CYAN}│${NC}"
 
@@ -291,6 +291,7 @@ cmd_discover() {
   source "$LIB_DIR/scanners/code_index.sh"
   source "$LIB_DIR/scanners/archetype.sh"
   source "$LIB_DIR/scanners/skill_suggest.sh"
+  source "$LIB_DIR/scanners/sheal.sh"
 
   # Initialize manifest
   MANIFEST="{}"
@@ -336,6 +337,9 @@ cmd_discover() {
 
   log_step "Skill Suggestions"
   scan_skill_suggestions
+
+  log_step "Sheal Integration"
+  scan_sheal
 
   log_phase_done
 
@@ -389,6 +393,10 @@ cmd_generate() {
   tier_includes "hooks" && total_steps=$((total_steps + 1))
   tier_includes "ci" && total_steps=$((total_steps + 1))
   tier_includes "skills" && total_steps=$((total_steps + 1))
+  # Sheal integration adds a step when installed and tier includes skills
+  local _sheal_installed
+  _sheal_installed=$(echo "$MANIFEST" | jq -r '.sheal.installed // false' 2>/dev/null)
+  [[ "$_sheal_installed" == "true" ]] && tier_includes "skills" && total_steps=$((total_steps + 1))
   tier_includes "docs" && total_steps=$((total_steps + 1))
   tier_includes "tracking" && total_steps=$((total_steps + 1))
   tier_includes "vault-memory" && total_steps=$((total_steps + 1))
@@ -409,6 +417,7 @@ cmd_generate() {
   source "$LIB_DIR/generators/tracking.sh"
   source "$LIB_DIR/generators/vault.sh"
   source "$LIB_DIR/generators/vault_ingest.sh"
+  source "$LIB_DIR/generators/sheal.sh"
 
   local generated=0
 
@@ -446,6 +455,12 @@ cmd_generate() {
   if tier_includes "skills"; then
     log_step "Generating custom skills"
     generate_skills && generated=$((generated + 1)) || true
+  fi
+
+  # Sheal integration — when installed and tier includes skills
+  if [[ "$_sheal_installed" == "true" ]] && tier_includes "skills"; then
+    log_step "Generating sheal integration"
+    generate_sheal && generated=$((generated + 1)) || true
   fi
 
   # Documentation scaffold — full tier+
@@ -508,6 +523,23 @@ cmd_verify() {
   validate_security
   validate_quality_gate
   validate_freshness
+
+  # Optional sheal runtime checks (non-blocking)
+  if command -v sheal &>/dev/null; then
+    local _sheal_result _sheal_status
+    _sheal_result=$(sheal check --format json --project "$TARGET_DIR" --skip tests 2>/dev/null) || true
+    if [[ -n "$_sheal_result" ]]; then
+      _sheal_status=$(echo "$_sheal_result" | jq -r '.status // "unknown"' 2>/dev/null || echo "unknown")
+      total_checks=$((total_checks + 1))
+      if [[ "$_sheal_status" == "healthy" || "$_sheal_status" == "pass" ]]; then
+        passed=$((passed + 1))
+        printf "  ${CYAN}│${NC}  ${BOLD}│${NC} %-28s ${BOLD}│${NC} ${GREEN}%-8s${NC} ${BOLD}│${NC} %-27s ${BOLD}│${NC}\n" "Sheal Runtime" "PASS" "Runtime health OK"
+      else
+        warnings=$((warnings + 1))
+        printf "  ${CYAN}│${NC}  ${BOLD}│${NC} %-28s ${BOLD}│${NC} ${YELLOW}%-8s${NC} ${BOLD}│${NC} %-27s ${BOLD}│${NC}\n" "Sheal Runtime" "WARN" "Check: sheal check"
+      fi
+    fi
+  fi
 
   echo -e "  ${CYAN}│${NC}  ${BOLD}└──────────────────────────────┴──────────┴─────────────────────────────┘${NC}"
   echo -e "  ${CYAN}│${NC}"

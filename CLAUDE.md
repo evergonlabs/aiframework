@@ -104,6 +104,10 @@ make check
 - `/aiframework-learn` — Capture gotchas to persistent storage
 - `/aif-evolve` — Weekly: synthesize learnings into better rules
 - `/aif-pulse` — Monthly: discover new Claude Code features
+- `/sheal-check` — Health check (tests, deps, env)
+- `/sheal-retro` — Session retrospective + learning extraction
+- `/sheal-drift` — Detect unapplied learnings, promote to rules
+- `/sheal-ask` — Query session history
 
 ## Vault
 

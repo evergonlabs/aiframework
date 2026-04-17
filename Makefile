@@ -7,10 +7,16 @@ install:
 	@ln -sf $(CURDIR)/bin/aiframework $(PREFIX)/bin/aiframework
 	@ln -sf $(CURDIR)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-mcp
 	@echo "Installed aiframework + aiframework-mcp to $(PREFIX)/bin/"
+	@if command -v npm >/dev/null 2>&1; then \
+		npm install -g @liwala/sheal 2>/dev/null && echo "Installed sheal (runtime session intelligence)" || echo "Warning: sheal npm install failed (non-fatal)"; \
+	else \
+		echo "Note: Install Node.js 22+ and run 'npm install -g @liwala/sheal' for runtime session intelligence"; \
+	fi
 
 uninstall:
 	@rm -f $(PREFIX)/bin/aiframework $(PREFIX)/bin/aiframework-mcp
-	@echo "Removed aiframework + aiframework-mcp from $(PREFIX)/bin/"
+	@npm uninstall -g @liwala/sheal 2>/dev/null || true
+	@echo "Removed aiframework + aiframework-mcp + sheal from $(PREFIX)/bin/"
 
 lint:
 	@echo "Checking bash syntax..."

@@ -20,6 +20,7 @@
 │   ├── indexers/
 │   ├── knowledge/
 │   ├── mcp/
+│   ├── bridge/
 │   ├── scanners/
 │   ├── validators/
 ├── templates/
@@ -47,13 +48,14 @@
 | bin | entrypoint | 3 | - | lib/freshness, lib/generators, lib/knowledge |
 | lib | library | 1 | - | lib/indexers |
 | lib/freshness | general | 1 | - | - |
-| lib/generators | generation | 12 | - | - |
+| lib/bridge | integration | 1 | bridge_sync, bridge_jsonl_to_sheal, bridge_sheal_to_jsonl, bridge_retros_to_vault | - |
+| lib/generators | generation | 13 | - | - |
 | lib/indexers | general | 10 | - | lib/indexers |
 | lib/indexers/contrib | general | 1 | - | - |
 | lib/indexers/parsers | general | 7 | - | - |
 | lib/knowledge | general | 1 | - | - |
 | lib/mcp | general | 2 | - | - |
-| lib/scanners | discovery | 12 | - | - |
+| lib/scanners | discovery | 13 | - | - |
 | lib/validators | verification | 5 | - | - |
 | tests | testing | 4 | - | lib/generators, lib/scanners, lib/validators |
 | vault/.vault/hooks | general | 1 | - | - |
