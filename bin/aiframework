@@ -34,15 +34,41 @@ _aiframework_cleanup() {
 }
 trap _aiframework_cleanup EXIT
 
-# Portable timeout wrapper — falls back to bare execution on stock macOS
+# Cross-platform timeout wrapper
+# Priority: GNU timeout → gtimeout (Homebrew) → bash-native background+kill
 _aif_timeout() {
   local secs="$1"; shift
   if command -v timeout &>/dev/null; then
     timeout "$secs" "$@"
+  elif command -v gtimeout &>/dev/null; then
+    gtimeout "$secs" "$@"
   else
-    "$@"
+    # Pure bash fallback — works on any platform (macOS, Linux, WSL, Git Bash)
+    "$@" &
+    local pid=$!
+    (
+      sleep "$secs"
+      kill "$pid" 2>/dev/null
+    ) &
+    local watcher=$!
+    wait "$pid" 2>/dev/null
+    local exit_code=$?
+    kill "$watcher" 2>/dev/null
+    wait "$watcher" 2>/dev/null
+    return $exit_code
   fi
 }
+export -f _aif_timeout
+
+# Platform detection — used for OS-specific behavior
+_AIF_PLATFORM="unknown"
+case "$(uname -s 2>/dev/null)" in
+  Darwin*)  _AIF_PLATFORM="macos" ;;
+  Linux*)   _AIF_PLATFORM="linux" ;;
+  MINGW*|MSYS*|CYGWIN*) _AIF_PLATFORM="windows" ;;
+  *)        _AIF_PLATFORM="unknown" ;;
+esac
+export _AIF_PLATFORM
 
 # Dependency check — validate required tools are available
 check_dependencies() {

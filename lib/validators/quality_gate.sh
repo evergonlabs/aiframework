@@ -4,7 +4,20 @@
 
 # Ensure _aif_timeout is available (may not be if sourced standalone)
 if ! command -v _aif_timeout &>/dev/null; then
-  _aif_timeout() { local secs="$1"; shift; if command -v timeout &>/dev/null; then timeout "$secs" "$@"; else "$@"; fi; }
+  _aif_timeout() {
+    local secs="$1"; shift
+    if command -v timeout &>/dev/null; then timeout "$secs" "$@"
+    elif command -v gtimeout &>/dev/null; then gtimeout "$secs" "$@"
+    else
+      "$@" &
+      local pid=$!
+      ( sleep "$secs"; kill "$pid" 2>/dev/null ) &
+      local watcher=$!
+      wait "$pid" 2>/dev/null; local rc=$?
+      kill "$watcher" 2>/dev/null; wait "$watcher" 2>/dev/null
+      return $rc
+    fi
+  }
 fi
 
 validate_quality_gate() {

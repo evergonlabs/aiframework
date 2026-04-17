@@ -662,12 +662,18 @@ LEARNMD
       "Skill(sheal-retro)",
       "Skill(sheal-drift)",
       "Skill(sheal-ask)"'
-      # Build SessionStart block as a separate variable — no sed, fully portable
+      # Build SessionStart + Stop hooks — closes the autonomous loop
       local session_start_block=',
     "SessionStart": [
       {
         "command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true",
         "timeout": 15000
+      }
+    ],
+    "Stop": [
+      {
+        "command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi",
+        "timeout": 30000
       }
     ]'
       # Merge: strip trailing close from existing hooks_block, append SessionStart, re-close
@@ -684,6 +690,12 @@ LEARNMD
       {
         "command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true",
         "timeout": 15000
+      }
+    ],
+    "Stop": [
+      {
+        "command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi",
+        "timeout": 30000
       }
     ]
   }'
@@ -728,6 +740,7 @@ SETTINGS
           .permissions.allow += ["Skill(sheal-check)", "Skill(sheal-retro)", "Skill(sheal-drift)", "Skill(sheal-ask)"]
           | .permissions.allow |= unique
           | .hooks.SessionStart = [{"command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]
+          | .hooks.Stop = [{"command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi", "timeout": 30000}]
         ' "$settings_file" 2>/dev/null)
 
         if [[ -n "$_updated" ]] && echo "$_updated" | jq empty 2>/dev/null; then
