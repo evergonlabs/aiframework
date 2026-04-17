@@ -546,6 +546,25 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 
 ---
 
+## Known Gaps & Testing
+
+We believe in transparency. This framework has been through **335 independent expert reviews across 6 audit rounds**, with 90 automated tests passing. But some things can only be validated by real-world usage.
+
+**[Full testing checklist &rarr;](docs/KNOWN_GAPS.md)**
+
+| Area | Status | What needs validation |
+|:-----|:-------|:---------------------|
+| Core pipeline | Production-ready | Tested on synthetic fixtures; needs real-world repo validation |
+| sheal CLI flags | Unverified | Integration coded against assumed flags; needs live binary testing |
+| Windows (Git Bash/WSL) | Untested | Platform detection added; needs community validation |
+| Automation hooks | Verified in output | `SessionStart`/`Stop`/`PostToolUse` generated correctly; needs Claude Code runtime validation |
+
+If you test on your project and it works (or doesn't), [open an issue](https://github.com/evergonlabs/aiframework/issues) — it helps everyone.
+
+<br>
+
+---
+
 <div align="center">
 
 <br>

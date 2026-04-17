@@ -3,115 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>aiframework — Universal AI Development Framework</title>
+<title>aiframework — Make Any Repo AI-Ready</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #09090b;
-    --surface: #111113;
-    --surface2: #18181b;
-    --border: #27272a;
-    --text: #fafafa;
-    --muted: #a1a1aa;
-    --accent: #8b5cf6;
-    --green: #22c55e;
-    --blue: #3b82f6;
-    --amber: #f59e0b;
-    --rose: #f43f5e;
+    --bg: #ffffff;
+    --surface: #f8f9fb;
+    --surface2: #f0f1f4;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #6d28d9;
+    --accent-light: #ede9fe;
+    --green: #059669;
+    --green-light: #ecfdf5;
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --rose: #e11d48;
+    --rose-light: #fff1f2;
     --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.06);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; -webkit-font-smoothing: antialiased; }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-size: 0.88em; }
-  pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; overflow-x: auto; margin: 16px 0; }
-  pre code { background: none; padding: 0; font-size: 0.9rem; line-height: 1.6; color: var(--green); }
+  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; color: var(--accent); }
+  pre { background: var(--text); border-radius: var(--radius); padding: 24px; overflow-x: auto; margin: 20px 0; box-shadow: var(--shadow-lg); }
+  pre code { background: none; padding: 0; font-size: 0.9rem; line-height: 1.7; color: #a5f3fc; }
 
-  .w { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  .w { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
 
   /* Nav */
-  nav { position: sticky; top: 0; z-index: 100; background: rgba(9,9,11,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 14px 0; }
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 16px 0; }
   nav .w { display: flex; align-items: center; justify-content: space-between; }
-  nav .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
-  nav .links { display: flex; gap: 24px; font-size: 0.9rem; color: var(--muted); }
-  nav .links a { color: var(--muted); transition: color 0.2s; }
+  nav .logo { font-weight: 900; font-size: 1.15rem; letter-spacing: -0.03em; color: var(--accent); }
+  nav .links { display: flex; gap: 28px; font-size: 0.9rem; }
+  nav .links a { color: var(--muted); font-weight: 500; transition: color 0.15s; }
   nav .links a:hover { color: var(--text); text-decoration: none; }
 
   /* Hero */
-  .hero { padding: 100px 0 80px; text-align: center; }
-  .hero .badge { display: inline-block; padding: 6px 16px; border-radius: 100px; border: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); margin-bottom: 24px; }
-  .hero .badge span { color: var(--green); }
-  .hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 20px; }
-  .hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .hero .sub { font-size: 1.2rem; color: var(--muted); max-width: 640px; margin: 0 auto 40px; }
-  .hero .cta { display: inline-flex; gap: 12px; }
-  .hero .cta a { padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+  .hero { padding: 100px 0 72px; text-align: center; background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%); }
+  .hero .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 100px; background: var(--accent-light); font-size: 0.82rem; font-weight: 600; color: var(--accent); margin-bottom: 28px; }
+  .hero .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .hero h1 { font-size: clamp(2.6rem, 5vw, 4.2rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 20px; color: var(--text); }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .sub { font-size: 1.2rem; color: var(--muted); max-width: 620px; margin: 0 auto 36px; font-weight: 400; }
+  .hero .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .hero .cta a { padding: 14px 32px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; box-shadow: var(--shadow); }
   .hero .cta .primary { background: var(--accent); color: #fff; }
-  .hero .cta .primary:hover { background: #7c3aed; text-decoration: none; }
-  .hero .cta .secondary { border: 1px solid var(--border); color: var(--text); }
+  .hero .cta .primary:hover { background: #5b21b6; text-decoration: none; box-shadow: var(--shadow-lg); }
+  .hero .cta .secondary { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
   .hero .cta .secondary:hover { border-color: var(--accent); text-decoration: none; }
 
   /* Section */
   section { padding: 80px 0; }
   section + section { border-top: 1px solid var(--border); }
-  .section-label { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
-  .section-title { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
-  .section-desc { color: var(--muted); font-size: 1.05rem; margin-bottom: 40px; max-width: 640px; }
+  .label { font-size: 0.78rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .stitle { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 10px; }
+  .sdesc { color: var(--muted); font-size: 1.05rem; margin-bottom: 44px; max-width: 640px; }
 
   /* Metrics */
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; margin: 48px 0; }
-  .metric { background: var(--surface); padding: 28px 20px; text-align: center; }
-  .metric .val { font-size: 2rem; font-weight: 800; color: var(--text); }
-  .metric .lbl { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 52px 0; }
+  .metric { text-align: center; padding: 28px 16px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
+  .metric .val { font-size: 2.4rem; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .metric .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 500; margin-top: 4px; }
+
+  /* Cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); transition: all 0.2s; }
+  .card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px); }
+  .card .icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 16px; }
+  .card .icon.purple { background: var(--accent-light); }
+  .card .icon.green { background: var(--green-light); }
+  .card .icon.blue { background: var(--blue-light); }
+  .card .icon.amber { background: var(--amber-light); }
+  .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
 
   /* Pipeline */
-  .pipeline { position: relative; }
-  .pipe-step { display: grid; grid-template-columns: 60px 1fr; gap: 20px; padding: 28px 0; position: relative; }
-  .pipe-step + .pipe-step { border-top: 1px solid var(--border); }
-  .pipe-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; color: #fff; }
-  .pipe-icon.p1 { background: var(--accent); }
-  .pipe-icon.p2 { background: var(--blue); }
-  .pipe-icon.p3 { background: var(--green); }
-  .pipe-icon.p4 { background: var(--amber); }
-  .pipe-icon.p5 { background: var(--rose); }
-  .pipe-body h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
-  .pipe-body .cmd { display: inline-block; background: var(--surface2); border: 1px solid var(--border); padding: 2px 10px; border-radius: 6px; font-family: monospace; font-size: 0.82rem; color: var(--green); margin-bottom: 6px; }
-  .pipe-body p { color: var(--muted); font-size: 0.95rem; }
-
-  /* Capabilities */
-  .cap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-  .cap-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; transition: border-color 0.2s; }
-  .cap-card:hover { border-color: var(--accent); }
-  .cap-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-  .cap-card h3 .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .cap-card p { color: var(--muted); font-size: 0.9rem; }
+  .pipe { position: relative; }
+  .step { display: grid; grid-template-columns: 52px 1fr; gap: 20px; padding: 28px 0; }
+  .step + .step { border-top: 1px solid var(--border); }
+  .step-num { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; color: #fff; font-family: 'JetBrains Mono', monospace; }
+  .step-num.n1 { background: var(--accent); }
+  .step-num.n2 { background: var(--blue); }
+  .step-num.n3 { background: var(--green); }
+  .step-num.n4 { background: var(--amber); }
+  .step-num.n5 { background: var(--rose); }
+  .step-body h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+  .step-body .tag { display: inline-block; padding: 2px 10px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 600; margin-bottom: 8px; margin-right: 4px; }
+  .step-body .tag.auto { background: var(--green-light); color: var(--green); }
+  .step-body .tag.manual { background: var(--amber-light); color: var(--amber); }
+  .step-body p { color: var(--muted); font-size: 0.92rem; }
 
   /* Dependencies */
-  .dep-table { width: 100%; border-collapse: collapse; }
-  .dep-table th, .dep-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-  .dep-table th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  .dep-table td:first-child { font-weight: 600; }
-  .tag { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; }
-  .tag.req { background: rgba(139,92,246,0.15); color: var(--accent); }
-  .tag.opt { background: rgba(34,197,94,0.15); color: var(--green); }
-  .tag.auto { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .dep { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  .dep th, .dep td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .dep th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; background: var(--surface); }
+  .dep td:first-child { font-weight: 600; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .badge.req { background: var(--accent-light); color: var(--accent); }
+  .badge.rec { background: var(--blue-light); color: var(--blue); }
+  .badge.opt { background: var(--green-light); color: var(--green); }
+  .badge.aut { background: var(--surface2); color: var(--muted); }
 
   /* Install */
-  .install-steps { counter-reset: step; }
   .install-step { padding: 24px 0; }
   .install-step + .install-step { border-top: 1px solid var(--border); }
-  .install-step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-  .install-step h3::before { counter-increment: step; content: counter(step) ". "; color: var(--accent); }
+  .install-step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
   .install-step p { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+
+  /* Transparency */
+  .transparency { background: var(--surface); border-radius: var(--radius); padding: 32px; border: 1px solid var(--border); margin: 40px 0; }
+  .transparency h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
+  .transparency p { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+  .gap-list { list-style: none; }
+  .gap-list li { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; font-size: 0.9rem; }
+  .gap-list li:last-child { border-bottom: none; }
+  .gap-list .status { flex-shrink: 0; width: 80px; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; }
+  .gap-list .status.ready { color: var(--green); }
+  .gap-list .status.verify { color: var(--amber); }
+  .gap-list .status.untested { color: var(--rose); }
 
   /* Footer */
   footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
-  footer strong a { color: var(--text); }
+  footer strong { color: var(--text); }
 
   @media (max-width: 640px) {
-    .hero h1 { font-size: 2rem; }
+    .hero h1 { font-size: 2.2rem; }
     .metrics { grid-template-columns: repeat(3, 1fr); }
     nav .links { display: none; }
+    .cards { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -121,23 +148,23 @@
   <div class="w">
     <div class="logo">aiframework</div>
     <div class="links">
-      <a href="#what">What It Does</a>
-      <a href="#how">How It Works</a>
-      <a href="#capabilities">Capabilities</a>
+      <a href="#what">How It Works</a>
+      <a href="#auto">Automation</a>
       <a href="#deps">Dependencies</a>
       <a href="#install">Install</a>
+      <a href="#gaps">Transparency</a>
     </div>
   </div>
 </nav>
 
 <div class="hero">
   <div class="w">
-    <div class="badge">v1.2.0 &mdash; <span>335 expert reviews, 94 tests passing</span></div>
+    <div class="pill"><span class="dot"></span> v1.2.0 &mdash; 335 expert reviews &middot; 90 tests passing</div>
     <h1>Make any repo<br><em>AI-ready in 60 seconds</em></h1>
-    <p class="sub">aiframework is a universal automation bootstrap that scans your codebase, generates intelligent configurations for Claude Code, and continuously improves them through runtime learning and persistent memory.</p>
+    <p class="sub">aiframework scans your codebase, generates intelligent configs for Claude Code, and continuously improves them through runtime learning and persistent memory. Zero manual maintenance.</p>
     <div class="cta">
       <a href="#install" class="primary">Get Started</a>
-      <a href="https://github.com/evergonlabs/aiframework" class="secondary">View on GitHub</a>
+      <a href="https://github.com/evergonlabs/aiframework" class="secondary">GitHub</a>
     </div>
   </div>
 </div>
@@ -148,216 +175,186 @@
     <div class="metric"><div class="val">57</div><div class="lbl">Frameworks</div></div>
     <div class="metric"><div class="val">13</div><div class="lbl">Scanners</div></div>
     <div class="metric"><div class="val">52+</div><div class="lbl">Skills</div></div>
-    <div class="metric"><div class="val">18</div><div class="lbl">Domain Detectors</div></div>
-    <div class="metric"><div class="val">94</div><div class="lbl">Tests Passing</div></div>
+    <div class="metric"><div class="val">90</div><div class="lbl">Tests</div></div>
+    <div class="metric"><div class="val">335</div><div class="lbl">Expert Reviews</div></div>
   </div>
 </div>
 
-<!-- What It Does -->
 <section id="what">
   <div class="w">
-    <div class="section-label">Overview</div>
-    <h2 class="section-title">What aiframework does</h2>
-    <p class="section-desc">
-      Your repo already contains everything an AI assistant needs to be effective &mdash; it just can't read it yet. aiframework bridges that gap by scanning your codebase and generating a complete set of AI configurations that work with Claude Code, Cursor, Codex, and Copilot.
-    </p>
+    <div class="label">How It Works</div>
+    <h2 class="stitle">Four layers, one framework</h2>
+    <p class="sdesc">Each layer handles a different phase of the AI development lifecycle. Together, they create a feedback loop that makes your AI assistant smarter with every session.</p>
 
-    <p style="color: var(--muted); margin-bottom: 16px;">The framework operates across four layers, each handling a different part of the AI development lifecycle:</p>
-
-    <div class="cap-grid" style="margin-bottom: 32px;">
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--accent);"></span> Scanning &amp; Analysis</h3>
-        <p>13 scanners read your language, framework, commands, directory structure, CI/CD, environment variables, code quality tools, domain concerns, code symbols, project archetype, and more. The output is a deterministic manifest &mdash; same repo, same result, every time.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="icon purple">&#x1F50D;</div>
+        <h3>Scanning &amp; Analysis</h3>
+        <p>13 scanners read your language, framework, commands, CI, environment, domains, and architecture. The output is a deterministic manifest &mdash; same repo, same result, every time.</p>
       </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--blue);"></span> Config Generation</h3>
-        <p>From the manifest, aiframework generates CLAUDE.md (your project brain), .claude/rules/ (auto-loaded workflow rules), .claude/skills/ (slash commands), git hooks (auto-lint, auto-refresh), CI workflows, documentation scaffolds, and cross-tool configs for Cursor and Copilot.</p>
+      <div class="card">
+        <div class="icon blue">&#x2699;</div>
+        <h3>Config Generation</h3>
+        <p>Generates CLAUDE.md, .claude/rules/, .claude/skills/, git hooks, CI workflows, documentation scaffolds, and cross-tool configs for Cursor and Copilot.</p>
       </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--green);"></span> Runtime Learning</h3>
-        <p>As you work, the framework captures learnings from your coding sessions. A bidirectional bridge syncs insights between formats. Weekly evolution sessions analyze patterns and propose improvements to your CLAUDE.md rules. Your AI assistant gets smarter over time.</p>
+      <div class="card">
+        <div class="icon green">&#x1F504;</div>
+        <h3>Runtime Learning</h3>
+        <p>Captures learnings from coding sessions. A bidirectional bridge syncs insights between formats. Weekly evolution proposes improvements to your rules.</p>
       </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--amber);"></span> Persistent Memory</h3>
-        <p>A vault knowledge base persists decisions, wiki pages, session retros, and operational context across every session. Claude Code reads it at the start of each session, so context is never lost between restarts.</p>
+      <div class="card">
+        <div class="icon amber">&#x1F9E0;</div>
+        <h3>Persistent Memory</h3>
+        <p>A vault stores decisions, wiki pages, retro insights, and operational context across every session. Context is never lost between restarts.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- How It Works -->
-<section id="how">
+<section id="auto">
   <div class="w">
-    <div class="section-label">Process</div>
-    <h2 class="section-title">How it works</h2>
-    <p class="section-desc">
-      The framework follows a five-phase improvement loop. Each phase feeds into the next, creating a continuous cycle where your AI configurations become more precise with every coding session.
-    </p>
+    <div class="label">Automation</div>
+    <h2 class="stitle">What happens automatically</h2>
+    <p class="sdesc">After setup, you just code. The framework handles health checks, type checking, linting, quality gates, config refresh, and session retros &mdash; all via hooks.</p>
 
-    <div class="pipeline">
-      <div class="pipe-step">
-        <div class="pipe-icon p1">1</div>
-        <div class="pipe-body">
-          <h3>Bootstrap</h3>
-          <span class="cmd">aiframework run --target ~/your-project</span>
-          <p>Scans your entire repository with 13 specialized scanners. Detects language, framework, package manager, test commands, CI provider, environment variables, domain concerns (auth, database, API, AI/LLM, etc.), and project archetype. Produces a deterministic manifest and generates all configuration files in about 60 seconds.</p>
+    <div class="pipe">
+      <div class="step">
+        <div class="step-num n1">1</div>
+        <div class="step-body">
+          <h3>Session Opens</h3>
+          <span class="tag auto">Automatic</span>
+          <p><strong>SessionStart hook</strong> fires. Runs a health check (sheal check or aiframework verify). You see project status immediately &mdash; no command needed.</p>
         </div>
       </div>
-      <div class="pipe-step">
-        <div class="pipe-icon p2">2</div>
-        <div class="pipe-body">
-          <h3>Work</h3>
-          <span class="cmd">/aif-review</span> <span class="cmd">/ship</span> <span class="cmd">/qa</span> <span class="cmd">/aif-learn</span>
-          <p>You code with Claude Code using 52+ slash commands. Review code against your project's invariants, ship with automated lint-test-changelog-commit workflows, test in a real headless browser, and capture learnings as you discover gotchas. Learnings are stored in both JSONL format and synced to runtime intelligence tools.</p>
+      <div class="step">
+        <div class="step-num n2">2</div>
+        <div class="step-body">
+          <h3>You Edit Code</h3>
+          <span class="tag auto">Automatic</span>
+          <p><strong>PostToolUse hook</strong> fires on every file edit. Runs type checking for TypeScript, Rust, Go, or Python projects. Errors surface in real-time.</p>
         </div>
       </div>
-      <div class="pipe-step">
-        <div class="pipe-icon p3">3</div>
-        <div class="pipe-body">
-          <h3>Session Retrospective</h3>
-          <span class="cmd">/sheal-retro</span>
-          <p>At the end of each coding session, the runtime intelligence layer analyzes what happened &mdash; which patterns repeated, what failed, what worked. A bidirectional bridge converts these insights between formats so they are available to all parts of the framework. Retro insights are synced to the persistent vault.</p>
+      <div class="step">
+        <div class="step-num n3">3</div>
+        <div class="step-body">
+          <h3>You Commit &amp; Push</h3>
+          <span class="tag auto">Automatic</span>
+          <p><strong>pre-commit hook</strong> runs lint. <strong>pre-push hook</strong> runs quality gate (lint + test + build), config drift detection, and auto-refresh.</p>
         </div>
       </div>
-      <div class="pipe-step">
-        <div class="pipe-icon p4">4</div>
-        <div class="pipe-body">
-          <h3>Evolution</h3>
-          <span class="cmd">/aif-evolve</span>
-          <p>Weekly, the evolution skill reads all accumulated learnings from both the JSONL store and the runtime intelligence layer. It cross-references patterns, identifies repeated friction, and proposes concrete improvements to your CLAUDE.md &mdash; new invariants, updated rules, cleanup of stale entries. Changes are applied only with your approval.</p>
+      <div class="step">
+        <div class="step-num n4">4</div>
+        <div class="step-body">
+          <h3>Session Closes</h3>
+          <span class="tag auto">Automatic</span>
+          <p><strong>Stop hook</strong> fires. Runs session retrospective via sheal (if installed) to extract learnings. Or surfaces a reminder to capture learnings manually.</p>
         </div>
       </div>
-      <div class="pipe-step">
-        <div class="pipe-icon p5">5</div>
-        <div class="pipe-body">
-          <h3>Drift Detection</h3>
-          <span class="cmd">/sheal-drift</span>
-          <p>Detects when learnings are captured but not being followed. If the same mistake recurs three or more times, the learning is promoted from a temporary note to a permanent CLAUDE.md invariant or a <code>.claude/rules/</code> file. The pre-push hook auto-refreshes configs when source files change. The loop closes and repeats.</p>
+      <div class="step">
+        <div class="step-num n5">5</div>
+        <div class="step-body">
+          <h3>Weekly Evolution</h3>
+          <span class="tag manual">Manual &mdash; by design</span>
+          <p><code>/aif-evolve</code> reads all learnings and proposes CLAUDE.md improvements. Requires your approval before changing rules. This is a safety gate, not a missing feature.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Capabilities -->
-<section id="capabilities">
-  <div class="w">
-    <div class="section-label">Capabilities</div>
-    <h2 class="section-title">What you can do</h2>
-    <p class="section-desc">52+ slash commands organized by workflow phase. Every command works out of the box after running <code>/aif-ready</code>.</p>
-
-    <div class="cap-grid">
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--accent);"></span> Setup &amp; Config</h3>
-        <p><code>/aif-ready</code> researches your stack, enhances CLAUDE.md, and optimizes settings. <code>/aif-enhance</code> fills gaps. <code>/aif-pulse</code> discovers new Claude Code features monthly.</p>
-      </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--blue);"></span> Ship &amp; Review</h3>
-        <p><code>/ship</code> runs tests, reviews diff, bumps version, creates PR. <code>/review</code> checks for SQL safety, injection risks, and invariant violations. <code>/land-and-deploy</code> merges and verifies production.</p>
-      </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--green);"></span> QA &amp; Browser</h3>
-        <p><code>/qa</code> finds and fixes bugs using a real headless browser. <code>/browse</code> navigates pages at ~100ms per command. <code>/benchmark</code> tracks Core Web Vitals per PR. <code>/canary</code> monitors post-deploy.</p>
-      </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--amber);"></span> Debug &amp; Investigate</h3>
-        <p><code>/investigate</code> runs 4-phase root cause debugging. <code>/health</code> gives a 0-10 code quality score. <code>/cso</code> runs OWASP + STRIDE security audits. <code>/retro</code> provides weekly engineering retrospectives.</p>
-      </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: var(--rose);"></span> Plan &amp; Design</h3>
-        <p><code>/plan-ceo-review</code> for founder-mode scope review. <code>/plan-eng-review</code> locks architecture. <code>/design-shotgun</code> generates design variants. <code>/design-html</code> produces production HTML/CSS.</p>
-      </div>
-      <div class="cap-card">
-        <h3><span class="dot" style="background: #8b5cf6;"></span> Learn &amp; Evolve</h3>
-        <p><code>/aif-learn</code> captures gotchas. <code>/aif-evolve</code> proposes rule improvements. <code>/sheal-drift</code> detects unapplied learnings. <code>/sheal-retro</code> extracts session patterns. The framework improves itself.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Dependencies -->
 <section id="deps">
   <div class="w">
-    <div class="section-label">Dependencies</div>
-    <h2 class="section-title">What powers the framework</h2>
-    <p class="section-desc">aiframework integrates with three complementary tools. Only the core framework is required &mdash; everything else enhances it and installs with a single command.</p>
+    <div class="label">Dependencies</div>
+    <h2 class="stitle">What powers the framework</h2>
+    <p class="sdesc">One required install. Everything else is optional and enhances the experience.</p>
 
-    <table class="dep-table">
+    <table class="dep">
       <thead>
-        <tr>
-          <th>Component</th>
-          <th>Purpose</th>
-          <th>Installs via</th>
-          <th>Status</th>
-        </tr>
+        <tr><th>Component</th><th>Purpose</th><th>Install</th><th>Status</th></tr>
       </thead>
       <tbody>
         <tr>
           <td>aiframework</td>
-          <td>Core scanner, generator, and verification engine. Produces CLAUDE.md, rules, skills, hooks, vault, and CI configs from any repo.</td>
+          <td>Core scanner, generator, and verification engine</td>
           <td><code>make install</code></td>
-          <td><span class="tag req">Required</span></td>
+          <td><span class="badge req">Required</span></td>
         </tr>
         <tr>
           <td><a href="https://github.com/garrytan/gstack">gstack</a></td>
-          <td>37 additional skills for shipping, QA, browser testing, design, planning, and security. Adds a persistent headless Chromium daemon.</td>
+          <td>37 skills for shipping, QA, browser testing, design, and security</td>
           <td><code>git clone</code> + <code>./setup</code></td>
-          <td><span class="tag req">Recommended</span></td>
+          <td><span class="badge rec">Recommended</span></td>
         </tr>
         <tr>
           <td><a href="https://www.npmjs.com/package/@liwala/sheal">sheal</a></td>
-          <td>Runtime session intelligence. Watches AI coding sessions, extracts learnings, detects failure patterns, and bridges insights back into aiframework.</td>
+          <td>Runtime session intelligence &mdash; watches sessions, extracts learnings</td>
           <td>Auto with <code>make install</code></td>
-          <td><span class="tag opt">Optional</span></td>
+          <td><span class="badge opt">Optional</span></td>
         </tr>
         <tr>
-          <td>Vault (Agentic Memory)</td>
-          <td>Persistent knowledge base. Stores decisions (ADRs), wiki pages, session retro insights, and operational notes. Read by Claude Code at every session start.</td>
+          <td>Vault</td>
+          <td>Persistent memory &mdash; decisions, wiki, retros across sessions</td>
           <td>Auto-generated</td>
-          <td><span class="tag auto">Automatic</span></td>
+          <td><span class="badge aut">Automatic</span></td>
         </tr>
       </tbody>
     </table>
 
-    <p style="color: var(--muted); font-size: 0.9rem; margin-top: 16px;">
-      <strong>System requirements:</strong> bash 3.2+ &middot; jq 1.6+ &middot; git 2.0+ &middot; Python 3.10+ (recommended, bash fallback available) &middot; Node.js 18+ (only if using sheal)
+    <p style="color: var(--muted); font-size: 0.88rem; margin-top: 12px;">
+      <strong>System requirements:</strong> bash 3.2+ &middot; jq 1.6+ &middot; git 2.0+ &middot; Python 3.10+ (recommended) &middot; Node.js 18+ (only for sheal)
     </p>
   </div>
 </section>
 
-<!-- Install -->
-<section id="install">
+<section id="install" style="background: var(--surface);">
   <div class="w">
-    <div class="section-label">Getting Started</div>
-    <h2 class="section-title">Install in three steps</h2>
-    <p class="section-desc">From zero to a fully AI-ready repo in about two minutes.</p>
+    <div class="label">Getting Started</div>
+    <h2 class="stitle">Three steps to AI-ready</h2>
+    <p class="sdesc">From zero to a fully configured repo in about two minutes.</p>
 
-    <div class="install-steps">
-      <div class="install-step">
-        <h3>Install the framework</h3>
-        <p>This installs aiframework and automatically attempts to install sheal (optional, requires Node.js). If Node.js is not available, sheal is skipped and everything else works normally.</p>
-        <pre><code>git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
+    <div class="install-step">
+      <h3>1. Install the framework</h3>
+      <p>Installs aiframework. Automatically attempts to install sheal and gstack.</p>
+      <pre><code>git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
 git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup --no-prefix</code></pre>
-      </div>
-
-      <div class="install-step">
-        <h3>Bootstrap your project</h3>
-        <p>Point aiframework at any repo. It scans everything, generates all configs, and verifies the result. This is deterministic &mdash; same repo produces the same output every time.</p>
-        <pre><code>aiframework run --target ~/your-project</code></pre>
-      </div>
-
-      <div class="install-step">
-        <h3>Start coding with Claude Code</h3>
-        <p>Open your project in Claude Code and run the one-time enhancement command. After this, Claude knows your stack, your commands, your invariants, and your architecture.</p>
-        <pre><code>cd ~/your-project && claude
-
-# Then in Claude Code:
-/aif-ready</code></pre>
-      </div>
     </div>
 
-    <p style="color: var(--muted); font-size: 0.9rem; margin-top: 32px; text-align: center;">
-      After setup, your CLAUDE.md auto-refreshes on every <code>git push</code>. Run <code>/aif-evolve</code> weekly to improve rules from accumulated learnings. Run <code>/aif-pulse</code> monthly to discover new Claude Code features.
+    <div class="install-step">
+      <h3>2. Bootstrap your project</h3>
+      <p>Scans your repo with 13 scanners and generates all configs. Deterministic &mdash; same repo, same output.</p>
+      <pre><code>aiframework run --target ~/your-project</code></pre>
+    </div>
+
+    <div class="install-step">
+      <h3>3. Open Claude Code</h3>
+      <p>One command enhances your CLAUDE.md with stack-specific research. After this, just code.</p>
+      <pre><code>cd ~/your-project && claude
+/aif-ready</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="gaps">
+  <div class="w">
+    <div class="label">Transparency</div>
+    <h2 class="stitle">What we know &amp; what we need your help testing</h2>
+    <p class="sdesc">335 expert reviews found and fixed every security issue. Some things can only be validated by real-world usage.</p>
+
+    <div class="transparency">
+      <h3>Production Status</h3>
+      <p>The core pipeline is production-ready. These items need community validation:</p>
+      <ul class="gap-list">
+        <li><span class="status ready">Ready</span> <span>Core pipeline (scan, generate, verify) &mdash; 90 tests, 6 audit rounds, all critical/high/medium fixed</span></li>
+        <li><span class="status ready">Ready</span> <span>Security hardening &mdash; all JSON via jq --arg, no injection vectors, path traversal blocked</span></li>
+        <li><span class="status ready">Ready</span> <span>Cross-platform timeout &mdash; GNU timeout / gtimeout / bash-native fallback chain</span></li>
+        <li><span class="status verify">Verify</span> <span>sheal CLI flags &mdash; integration coded against assumed flags; needs live binary testing</span></li>
+        <li><span class="status verify">Verify</span> <span>Real-world repos &mdash; tested on synthetic fixtures; needs TypeScript, Python, Go, Rust repo validation</span></li>
+        <li><span class="status untested">Untested</span> <span>Windows (Git Bash / WSL) &mdash; platform detection added, bash fallback written, not yet validated</span></li>
+      </ul>
+    </div>
+
+    <p style="color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: 24px;">
+      <a href="https://github.com/evergonlabs/aiframework/blob/main/docs/KNOWN_GAPS.md">View the full testing checklist &rarr;</a>
     </p>
   </div>
 </section>
@@ -365,7 +362,7 @@ git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gsta
 <footer>
   <div class="w">
     <p><strong><a href="https://github.com/evergonlabs">Evergon Labs</a></strong> &middot; MIT License</p>
-    <p style="margin-top: 8px;">Your repo already knows everything. Now Claude does too.</p>
+    <p style="margin-top: 8px; color: var(--muted);">Your repo already knows everything. Now Claude does too.</p>
   </div>
 </footer>
 
