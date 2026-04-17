@@ -17,13 +17,13 @@
 
 **Your repo already knows everything. Claude Code just can't read it yet.**
 
-*One command. 23+ generated files. 47 skills. Zero config.*
+*Two commands. Any repo. Fully Claude Code-ready.*
 
 <br>
 
 [![version](https://img.shields.io/badge/v1.1.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/36_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/93_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
@@ -31,7 +31,7 @@
 
 <br>
 
-[Quick Start](#quick-start) · [What You Get](#what-you-get) · [47 Skills](#47-skills) · [Languages](#13-languages--20-frameworks) · [Architecture](#architecture) · [gstack](#gstack-included)
+[Quick Start](#quick-start) · [What You Get](#what-you-get) · [48 Skills](#48-skills) · [Languages](#13-languages--20-frameworks) · [Architecture](#architecture) · [gstack](#gstack-included)
 
 </div>
 
@@ -43,19 +43,34 @@
 
 ## Quick Start
 
+### Step 1: Install (once)
+
 ```bash
-# Install aiframework + gstack (< 60 seconds)
 git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
 git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup --no-prefix
+```
 
-# Point it at any repo
+### Step 2: Bootstrap your repo (once per project)
+
+```bash
 aiframework run --target ~/your-project
+```
 
-# Done. Open Claude Code.
+### Step 3: Open Claude Code and run one command
+
+```bash
 cd ~/your-project && claude
 ```
 
-That's it. Claude now knows your stack, your commands, your invariants, your architecture, and has 47 skills loaded. From the first prompt.
+Then in Claude Code:
+
+```
+/aif-ready
+```
+
+**That's it.** `/aif-ready` researches your stack, enhances CLAUDE.md with framework-specific rules, optimizes your settings, and tells you what to do next. No API key needed &mdash; it uses Claude Code's built-in web search.
+
+After that, just code. Claude knows your stack, commands, invariants, and architecture.
 
 <br>
 
@@ -123,7 +138,15 @@ CHANGELOG.md + VERSION   → release tracking
 </tr>
 </table>
 
+**For any AI agent** &mdash; *universal compatibility*
+
+```
+AGENTS.md               → works with Codex, Cursor, Copilot, Gemini
+.cursorrules             → Cursor IDE integration
+```
+
 Everything is deterministic. Same repo, same output. Every time.
+Then `/aif-ready` enhances it with framework-specific knowledge from the web.
 
 <br>
 
@@ -131,24 +154,39 @@ Everything is deterministic. Same repo, same output. Every time.
 
 <br>
 
-## 47 Skills
+## 48 Skills
 
-aiframework generates **10 project-specific skills**. [gstack](https://github.com/garrytan/gstack) adds **37 more**. Together, Claude Code goes from a chatbot to a full engineering team.
+aiframework generates **11 project-specific skills**. [gstack](https://github.com/garrytan/gstack) adds **37 more**. Together, Claude Code goes from a chatbot to a full engineering team.
 
-### aiframework skills (generated per-project)
+### Your workflow
 
-| | Skill | What it does |
-|:--|:------|:-------------|
-| :mag: | `/aif-review` | Code review against your project's invariants |
-| :rocket: | `/aif-ship` | lint &rarr; review &rarr; docs &rarr; changelog &rarr; commit |
-| :brain: | `/aif-learn` | Capture gotchas to persistent JSONL storage |
-| :telescope: | `/aif-enhance` | Research gaps, find framework conventions, enrich vault |
-| :books: | `/aif-research` | Search official docs for conventions and invariants |
-| :bar_chart: | `/aif-analyze` | Find missing tests, circular deps, god modules |
-| :dna: | `/aif-evolve` | Synthesize learnings into CLAUDE.md improvements |
-| :satellite: | `/aif-pulse` | Discover latest Claude Code features |
-| :speech_balloon: | `/aif-feedback` | Structured feedback for `/aif-evolve` |
-| :inbox_tray: | `/aif-ingest` | Deposit documents into vault knowledge base |
+```
+  /aif-ready          ← run once: research stack, enhance CLAUDE.md, optimize settings
+       │
+       ▼
+  Start coding ──── /aif-review ──── /aif-ship ──── push
+       │                                              │
+       ├── /aif-learn "discovered X"     hooks auto-refresh ──→ CLAUDE.md stays current
+       │
+  Weekly: /aif-evolve     ← improve rules from accumulated learnings
+  Monthly: /aif-pulse     ← discover new Claude Code features
+```
+
+### aiframework skills
+
+| When | Skill | What it does |
+|:-----|:------|:-------------|
+| **Setup** | **`/aif-ready`** | **Researches your stack, enhances CLAUDE.md, optimizes settings. Run once.** |
+| Daily | `/aif-review` | Code review against your project's invariants |
+| Daily | `/aif-ship` | lint &rarr; review &rarr; docs &rarr; changelog &rarr; commit |
+| Daily | `/aif-learn` | Capture gotchas to persistent JSONL storage |
+| On demand | `/aif-analyze` | Find missing tests, circular deps, god modules |
+| On demand | `/aif-ingest` | Deposit documents into vault knowledge base |
+| Weekly | `/aif-evolve` | Synthesize learnings into CLAUDE.md improvements |
+| Monthly | `/aif-pulse` | Discover latest Claude Code features |
+| On demand | `/aif-enhance` | Deep-dive: research gaps, find framework conventions |
+| On demand | `/aif-research` | Search official docs for specific conventions |
+| On demand | `/aif-feedback` | Structured feedback for `/aif-evolve` |
 
 <br>
 
@@ -316,27 +354,16 @@ aiframework run --target /path/to/repo
 
 ## Self-Evolution
 
-Your project configuration gets smarter without you doing anything.
+Your CLAUDE.md gets smarter over time &mdash; most of it happens automatically.
 
-| What happens | How | When |
-|:-------------|:----|:-----|
-| **Auto-refresh** | Pre-push hook detects drift in deps/config, re-runs `aiframework refresh`, auto-commits | Every `git push` |
-| **Update check** | `aiframework-update-check` compares local vs remote version, caches results, escalating snooze | Every Claude Code session |
-| **Learning capture** | `/aif-learn` persists gotchas and patterns to JSONL | When you discover something |
-| **Rule evolution** | `/aif-evolve` reads learnings + feedback, proposes CLAUDE.md updates | Weekly |
-| **Ecosystem pulse** | `/aif-pulse` discovers new Claude Code features, suggests adoption | Weekly |
-| **Feedback loop** | `/aif-feedback` collects structured quality ratings for `/aif-evolve` | After major runs |
+| What | How | When |
+|:-----|:----|:-----|
+| **Auto-refresh** | Pre-push hook detects config drift, re-runs `aiframework refresh`, auto-commits | Every `git push` |
+| **Learning capture** | `/aif-learn "description"` persists gotchas to JSONL | When you discover something |
+| **Rule evolution** | `/aif-evolve` reads all learnings, proposes CLAUDE.md improvements | Weekly |
+| **Ecosystem pulse** | `/aif-pulse` discovers new Claude Code features, suggests adoption | Monthly |
 
-```
-  You write code
-       │
-       ▼
-  git push ──── hook detects drift ──── auto-refresh ──── auto-commit
-       │
-       ├── /aif-learn ──→ captures gotcha to JSONL
-       ├── /aif-evolve ──→ reads learnings, improves CLAUDE.md
-       └── /aif-pulse ──→ discovers new Claude Code features
-```
+The auto-refresh hook means you never have to think about keeping CLAUDE.md in sync &mdash; change a dependency, push, and it updates itself.
 
 <br>
 
