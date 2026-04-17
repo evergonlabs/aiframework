@@ -421,11 +421,14 @@ CLAUDEMD
 
   # --- Custom Skills ---
   cat >> "$out" << SKILLS
-## Custom Skills
+## Skills
 
-- \`/${short}-review\` — Project-specific code review
-- \`/${short}-ship\` — Full shipping workflow
-- \`/${short}-learn\` — Capture learnings to persistent storage
+- \`/aif-ready\` — **Run first.** Researches your stack, enhances this file, makes repo Claude Code-ready
+- \`/${short}-review\` — Pre-commit code review checking invariants
+- \`/${short}-ship\` — Lint + review + changelog + commit (never pushes without approval)
+- \`/${short}-learn\` — Capture gotchas to persistent storage
+- \`/aif-evolve\` — Weekly: synthesize learnings into better rules
+- \`/aif-pulse\` — Monthly: discover new Claude Code features
 
 SKILLS
 
@@ -454,11 +457,10 @@ DOCSYNC
 
     # Session start one-liner for complex projects
     cat >> "$out" << SESSIONREF
-## Session Start
+## Getting Started
 
-First time? Run \`/aif-status\` to check setup and see what to do next.
-Returning? Read \`vault/memory/status.md\`, check \`git log --oneline -10\`, check \`git status\`.
-Full protocol in \`.claude/rules/session-protocol.md\`.
+First time? Run \`/aif-ready\` — it researches your stack, enhances this file, and makes your repo fully Claude Code-ready.
+Returning? Read \`vault/memory/status.md\`, check \`git log --oneline -10\`.
 
 SESSIONREF
   fi

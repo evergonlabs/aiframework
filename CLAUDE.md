@@ -67,11 +67,14 @@ make test
 make check
 ```
 
-## Custom Skills
+## Skills
 
-- `/aiframework-review` — Project-specific code review
-- `/aiframework-ship` — Full shipping workflow
-- `/aiframework-learn` — Capture learnings to persistent storage
+- `/aif-ready` — **Run first.** Researches your stack, enhances this file, makes repo Claude Code-ready
+- `/aiframework-review` — Pre-commit code review checking invariants
+- `/aiframework-ship` — Lint + review + changelog + commit (never pushes without approval)
+- `/aiframework-learn` — Capture gotchas to persistent storage
+- `/aif-evolve` — Weekly: synthesize learnings into better rules
+- `/aif-pulse` — Monthly: discover new Claude Code features
 
 ## Vault
 
@@ -87,10 +90,10 @@ vault/.vault/scripts/vault-tools.sh lint     # Quality scan
 After structural changes, update docs per `.claude/rules/pipeline.md` matrix.
 See `docs/reference/architecture.md` for module map and structure tree.
 
-## Session Start
+## Getting Started
 
-At session start: read `vault/memory/status.md`, check `git log --oneline -10`, check `git status`.
-Full protocol in `.claude/rules/session-protocol.md`.
+First time? Run `/aif-ready` — it researches your stack, enhances this file, and makes your repo fully Claude Code-ready.
+Returning? Read `vault/memory/status.md`, check `git log --oneline -10`.
 
 ## Self-Evolution
 
