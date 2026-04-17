@@ -1,6 +1,6 @@
 # CLAUDE.md — aiframework
 
-> Your repo already knows everything. Claude Code just can't read it yet. Stack: bash/none.
+> Your repo already knows everything. Claude Code just can't read it yet. Stack: bash+python/none.
 
 | You need to... | Read |
 |----------------|------|
@@ -42,16 +42,16 @@ make test
 - **Data**: `lib/data/` — detection registries and config
 
 **Most important files** (by dependency rank):
-- `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/validators/security.sh`
-- `lib/scanners/skill_suggest.sh`
+- `lib/indexers/registry.py`
 - `lib/validators/files.sh`
-- `lib/validators/freshness.sh`
-- `lib/generators/preserve.sh`
 - `lib/validators/quality_gate.sh`
-- `lib/validators/consistency.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/validators/security.sh`
+- `lib/generators/preserve.sh`
 - `lib/generators/skills.sh`
+- `lib/validators/freshness.sh`
+- `lib/validators/consistency.sh`
 
 ## Environment Variables
 

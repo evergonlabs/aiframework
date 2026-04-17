@@ -668,6 +668,9 @@ LEARNMD
       "Read",
       "Glob",
       "Grep",
+      "Bash",
+      "Edit",
+      "Write",
       "WebSearch",
       "Skill(${short}-review)",
       "Skill(${short}-ship)",
@@ -687,7 +690,7 @@ SETTINGS
 ---
 name: code-reviewer
 description: Focused code review agent with restricted tools
-model: sonnet
+model: claude-sonnet-4-6
 allowed-tools: [Read, Glob, Grep, Bash]
 ---
 

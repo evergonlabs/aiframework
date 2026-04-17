@@ -1,3 +1,8 @@
+---
+description: "Project invariants, archetype rules, review specialist checklists"
+globs: "**/*"
+---
+
 # Invariants & Project Profile
 
 ## INV-1: LLM trust boundary enforcement

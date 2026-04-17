@@ -68,21 +68,21 @@
 
 > Files ranked by architectural importance (how many other files depend on them).
 
-- `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/validators/security.sh`
-- `lib/scanners/skill_suggest.sh`
+- `lib/indexers/registry.py`
 - `lib/validators/files.sh`
-- `lib/validators/freshness.sh`
-- `lib/generators/preserve.sh`
 - `lib/validators/quality_gate.sh`
-- `lib/validators/consistency.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/validators/security.sh`
+- `lib/generators/preserve.sh`
 - `lib/generators/skills.sh`
-- `lib/generators/cursor_rules.sh`
-- `lib/generators/claude_md.sh`
+- `lib/validators/freshness.sh`
+- `lib/validators/consistency.sh`
 - `lib/generators/vault.sh`
-- `lib/generators/report.sh`
-- `lib/scanners/structure.sh`
+- `lib/scanners/user_context.sh`
+- `lib/scanners/code_index.sh`
+- `lib/generators/vault_ingest.sh`
+- `lib/generators/hooks.sh`
 
 ## Core Principles
 

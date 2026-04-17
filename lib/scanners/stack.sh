@@ -304,6 +304,55 @@ scan_stack() {
   fi
   [[ -z "$python_version" ]] && python_version="3.12"
 
+  # Secondary language detection: scan by file extension count
+  # Add languages with 5+ files that aren't the primary language
+  if [[ -f "$data_file" ]] && command -v jq &>/dev/null; then
+    for sec_lang in $(jq -r '.languages | keys[]' "$data_file"); do
+      # Skip if already detected
+      local already=false
+      if [[ ${#detected_languages[@]} -gt 0 ]]; then
+        for dl in "${detected_languages[@]}"; do
+          [[ "$dl" == "$sec_lang" ]] && already=true && break
+        done
+      fi
+      [[ "$already" == true ]] && continue
+      [[ "$sec_lang" == "$language" ]] && continue
+
+      # Count files with this language's extensions
+      local sec_exts
+      sec_exts=$(jq -r --arg l "$sec_lang" '.languages[$l].extensions[]? // empty' "$data_file" 2>/dev/null)
+      if [[ -n "$sec_exts" ]]; then
+        local sec_count=0
+        while IFS= read -r ext; do
+          [[ -z "$ext" ]] && continue
+          local c
+          c=$(find "$TARGET_DIR" -maxdepth 4 -name "*${ext}" -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/vault/*' -not -path '*/__pycache__/*' 2>/dev/null | wc -l | tr -d '[:space:]')
+          sec_count=$((sec_count + c))
+        done <<< "$sec_exts"
+        if [[ "$sec_count" -ge 5 ]]; then
+          detected_languages+=("$sec_lang")
+        fi
+      fi
+    done
+  fi
+
+  # Ensure primary language is in the list
+  if [[ "$language" != "unknown" ]]; then
+    local primary_in=false
+    if [[ ${#detected_languages[@]} -gt 0 ]]; then
+      for dl in "${detected_languages[@]}"; do
+        [[ "$dl" == "$language" ]] && primary_in=true && break
+      done
+    fi
+    if [[ "$primary_in" == false ]]; then
+      if [[ ${#detected_languages[@]} -gt 0 ]]; then
+        detected_languages=("$language" "${detected_languages[@]}")
+      else
+        detected_languages=("$language")
+      fi
+    fi
+  fi
+
   # Build languages JSON array
   local langs_json="[]"
   if [[ ${#detected_languages[@]} -gt 0 ]]; then

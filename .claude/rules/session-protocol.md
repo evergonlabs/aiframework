@@ -1,3 +1,8 @@
+---
+description: "Session start/end protocol, execution matrices, failure recovery"
+globs: "**/*"
+---
+
 # Session Protocol & Execution Matrices
 
 ## Session Start Protocol

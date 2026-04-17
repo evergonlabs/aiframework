@@ -251,7 +251,17 @@ generate_claude_md_lean() {
   cat > "$out" << CLAUDEMD
 # CLAUDE.md — ${name}
 
-$(if [[ "$desc" != "NOT_FOUND" && "$desc" != "No description" && "$desc" != "<"* && -n "$desc" ]]; then local _d="${desc%.}"; _d="${_d%\*}"; echo "> ${_d}. Stack: ${lang}/${fw}."; else echo "> Stack: ${lang}/${fw}."; fi)
+$(
+  local _sec_langs
+  _sec_langs=$(echo "$m" | jq -r '.stack.languages[]?' 2>/dev/null | grep -v "^${lang}$" | tr '\n' '+' | sed 's/+$//')
+  local _stack_str="${lang}"
+  [[ -n "$_sec_langs" ]] && _stack_str="${lang}+${_sec_langs}"
+  if [[ "$desc" != "NOT_FOUND" && "$desc" != "No description" && "$desc" != "<"* && -n "$desc" ]]; then
+    local _d="${desc%.}"; _d="${_d%\*}"; echo "> ${_d}. Stack: ${_stack_str}/${fw}."
+  else
+    echo "> Stack: ${_stack_str}/${fw}."
+  fi
+)
 
 | You need to... | Read |
 |----------------|------|
@@ -841,6 +851,11 @@ PIPE3
   local session_out="$rules_dir/session-protocol.md"
   if preserve_rule "$session_out"; then
     cat > "$session_out" << SESSIONHEAD
+---
+description: "Session start/end protocol, execution matrices, failure recovery"
+globs: "**/*"
+---
+
 # Session Protocol & Execution Matrices
 
 ## Session Start Protocol
@@ -974,6 +989,11 @@ GSTACK_RULES
   local inv_out="$rules_dir/invariants.md"
   if preserve_rule "$inv_out"; then
     cat > "$inv_out" << 'INVHEAD'
+---
+description: "Project invariants, archetype rules, review specialist checklists"
+globs: "**/*"
+---
+
 # Invariants & Project Profile
 
 INVHEAD
