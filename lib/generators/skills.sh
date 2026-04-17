@@ -9,8 +9,8 @@
 _sanitize_manifest_val() {
   local val="$1"
   # Allowlist: keep only safe characters for shell heredocs
-  val=$(echo "$val" | tr -dc 'a-zA-Z0-9 _./:=@,+^~-\n')
-  echo "$val"
+  val=$(printf '%s' "$val" | tr -dc 'a-zA-Z0-9 _./:=@,+^~-')
+  printf '%s\n' "$val"
 }
 
 generate_skills() {
@@ -542,14 +542,14 @@ LEARNMD
   # Generate .claude/settings.json with safe defaults + PostToolUse hooks
   local settings_file="$TARGET_DIR/.claude/settings.json"
   if [[ ! -f "$settings_file" ]]; then
-    local lang
-    lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
+    local _settings_lang
+    _settings_lang=$(echo "$m" | jq -r '.stack.language // "unknown"')
     local typecheck_cmd
     typecheck_cmd=$(echo "$m" | jq -r '.commands.typecheck // empty')
 
     # Build PostToolUse hook for type checking on file edits
     local hooks_block=""
-    case "$lang" in
+    case "$_settings_lang" in
       typescript|javascript)
         if [[ -n "$typecheck_cmd" ]]; then
           hooks_block=',
@@ -665,7 +665,7 @@ LEARNMD
       local session_start_block=',
     "SessionStart": [
       {
-        "command": "sheal check --format json 2>/dev/null | head -20 || true",
+        "command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true",
         "timeout": 15000
       }
     ]'
@@ -681,7 +681,7 @@ LEARNMD
   "hooks": {
     "SessionStart": [
       {
-        "command": "sheal check --format json 2>/dev/null | head -20 || true",
+        "command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true",
         "timeout": 15000
       }
     ]

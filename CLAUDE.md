@@ -75,7 +75,7 @@ make test
 
 ## Key State
 
-- Source files: 70
+- Source files: 63
 - Tests: [run `make test` to count]
 
 ## Makefile
@@ -104,10 +104,10 @@ make check
 - `/aiframework-learn` — Capture gotchas to persistent storage
 - `/aif-evolve` — Weekly: synthesize learnings into better rules
 - `/aif-pulse` — Monthly: discover new Claude Code features
-- `/sheal-check` — Health check (tests, deps, env)
-- `/sheal-retro` — Session retrospective + learning extraction
-- `/sheal-drift` — Detect unapplied learnings, promote to rules
-- `/sheal-ask` — Query session history
+- `/sheal-check` — Health check (tests, deps, env) *(requires sheal)*
+- `/sheal-retro` — Session retrospective + learning extraction *(requires sheal)*
+- `/sheal-drift` — Detect unapplied learnings, promote to rules *(requires sheal)*
+- `/sheal-ask` — Query session history *(requires sheal)*
 
 ## Vault
 

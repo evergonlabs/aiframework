@@ -32,9 +32,14 @@ If the learning is significant (would affect future architecture decisions):
 
 ## Step 3b: Dual-write to sheal (if installed)
 
-If sheal is installed (`command -v sheal`), also save to sheal:
+If sheal is installed (`command -v sheal`), also save to sheal using the mapped category:
+- bug → failure-loop
+- gotcha → missing-context
+- pattern/decision → workflow
+
 ```bash
-sheal learn add "the learning summary" --tags=relevant,tags --category="$CATEGORY" --severity=medium --project . 2>/dev/null || true
+# Replace <sheal-category> with the mapped value from above
+sheal learn add "the learning summary" --tags=relevant,tags --category=<sheal-category> --severity=medium --project . 2>/dev/null || true
 ```
 
 This ensures learnings are available to both aiframework (JSONL) and sheal (markdown).

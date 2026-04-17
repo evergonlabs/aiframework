@@ -54,8 +54,9 @@ scan_sheal() {
     has_retro_skill=true
   fi
 
-  # Store in manifest (guard against jq failure to not break discover pipeline)
-  MANIFEST=$(echo "$MANIFEST" | jq \
+  # Store in manifest (preserve MANIFEST on jq failure — don't clobber with empty)
+  local _sheal_manifest
+  _sheal_manifest=$(echo "$MANIFEST" | jq \
     --argjson installed "$sheal_installed" \
     --arg version "$sheal_version" \
     --argjson initialized "$sheal_initialized" \
@@ -73,7 +74,7 @@ scan_sheal() {
         "has_rules_block": $rules,
         "has_retro_skill": $retro
       }
-    }' 2>/dev/null) || true
+    }' 2>/dev/null) && MANIFEST="$_sheal_manifest" || true
 
   if [[ "$sheal_installed" == true ]]; then
     log_ok "Sheal detected v${sheal_version} (project learnings: ${project_learnings}, global: ${global_learnings})"

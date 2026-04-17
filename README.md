@@ -342,7 +342,7 @@ aiframework run --target /path/to/repo
 │   │
 │   ├── CLAUDE.md           80-150 lines, lean, high-signal
 │   ├── .claude/rules/      auto-loaded by path pattern
-│   ├── .claude/skills/     10 slash commands
+│   ├── .claude/skills/     3 project skills + framework skills
 │   ├── .githooks/          pre-commit + pre-push with auto-refresh
 │   ├── .github/workflows/  CI pipeline for your language
 │   ├── vault/              31-file knowledge base

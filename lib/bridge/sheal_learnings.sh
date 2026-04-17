@@ -46,8 +46,8 @@ bridge_jsonl_to_sheal() {
       category=$(printf '%s' "$line" | jq -r '.category // "pattern"' 2>/dev/null)
       detail=$(printf '%s' "$line" | jq -r '.detail // ""' 2>/dev/null)
 
-      # Check for duplicates by fixed-string title match (not regex)
-      if grep -rqFl -- "$summary" "$sheal_dir" 2>/dev/null; then
+      # Check for duplicates by searching title: field specifically (not body)
+      if grep -rqF -- "title: ${summary}" "$sheal_dir" 2>/dev/null; then
         continue
       fi
 
@@ -68,7 +68,7 @@ bridge_jsonl_to_sheal() {
 
       # Generate slug from summary using printf (not echo, to preserve backslashes)
       local slug
-      slug=$(printf '%s' "$summary" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-//;s/-$//' | cut -c1-40)
+      slug=$(printf '%s' "$summary" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed -e 's/^-//' -e 's/-$//' | cut -c1-40)
       [[ -z "$slug" ]] && slug="entry"
 
       max_num=$((max_num + 1))
@@ -79,14 +79,16 @@ bridge_jsonl_to_sheal() {
       # Write markdown safely using printf (no heredoc, no shell expansion)
       # Strip newlines from summary to prevent YAML frontmatter injection
       local safe_summary
-      safe_summary=$(printf '%s' "$summary" | tr -d '\n' | tr -d '\r')
+      safe_summary=$(printf '%s' "$summary" | tr -d '\n\r')
+      local safe_date
+      safe_date=$(printf '%s' "$date_val" | tr -d '\n\r' | cut -c1-20)
       {
         printf '%s\n' "---"
-        printf 'title: %s\n' "$safe_summary"
+        printf 'title: "%s"\n' "$(printf '%s' "$safe_summary" | sed 's/"/\\"/g')"
         printf 'category: %s\n' "$sheal_category"
         printf '%s\n' "severity: medium"
         printf '%s\n' "status: active"
-        printf 'date: %s\n' "$date_val"
+        printf 'date: %s\n' "$safe_date"
         printf '%s\n' "source: aiframework"
         printf '%s\n' "---"
         printf '\n'
@@ -109,9 +111,11 @@ bridge_sheal_to_jsonl() {
 
   [[ -d "$sheal_dir" ]] || return 0
 
-  # Determine the JSONL file to append to
+  # Determine the JSONL file to append to (sanitize short_name to prevent path traversal)
   local short_name
   short_name=$(jq -r '.identity.short_name // "project"' "$target/.aiframework/manifest.json" 2>/dev/null || echo "project")
+  short_name=$(printf '%s' "$short_name" | tr -dc 'a-zA-Z0-9_-')
+  [[ -z "$short_name" ]] && short_name="project"
   local jsonl_file="$jsonl_dir/${short_name}-learnings.jsonl"
 
   mkdir -p "$jsonl_dir"

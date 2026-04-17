@@ -74,7 +74,7 @@ The manifest is the intermediate representation. Generators read it to produce a
   },
   "_meta": {
     "generated_at": "2026-04-16T00:00:00Z",
-    "aiframework_version": "1.1.0"
+    "aiframework_version": "1.2.0"
   }
 }
 ```

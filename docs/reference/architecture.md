@@ -64,7 +64,7 @@
 ### Architecture Hot Spots
 
 - **Highest fan-in**: `lib/generators` (imported by 22 modules)
-- **Most complex**: `lib/generators` (78 symbols across 12 files)
+- **Most complex**: `lib/generators` (80+ symbols across 13 files)
 
 ## Repo Map (Most Important Files)
 

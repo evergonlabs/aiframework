@@ -63,7 +63,7 @@ setup_fixture() {
   "domain": {"detected_domains": []},
   "structure": {"file_counts": {}},
   "archetype": {"type": "minimal", "complexity": "simple", "maturity": "greenfield"},
-  "_meta": {"generated_at": "2026-04-16T00:00:00Z", "aiframework_version": "1.1.0", "target_dir": "/tmp/test", "scanner": "aiframework/discover"}
+  "_meta": {"generated_at": "2026-04-16T00:00:00Z", "aiframework_version": "1.2.0", "target_dir": "/tmp/test", "scanner": "aiframework/discover"}
 }
 MANIFEST
 

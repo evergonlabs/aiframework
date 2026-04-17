@@ -37,8 +37,11 @@ generate_sheal() {
   fi
 
   # Build entire JSON via jq — no heredoc interpolation of untrusted data
+  # Write atomically via temp file to prevent corrupt .self-heal.json on failure
   local config_file="$TARGET_DIR/.self-heal.json"
-  jq -n \
+  local _sheal_tmp
+  _sheal_tmp=$(mktemp "${TARGET_DIR}/.self-heal.json.XXXXXX" 2>/dev/null || mktemp)
+  if jq -n \
     --arg test_cmd "$test_cmd" \
     --argjson env_vars "$env_json" \
     --arg ecosystem "$lang" \
@@ -50,9 +53,13 @@ generate_sheal() {
         environment: { requiredVars: $env_vars }
       },
       learnings: { tags: $tags }
-    }' > "$config_file"
-
-  log_ok "Generated .self-heal.json"
+    }' > "$_sheal_tmp" 2>/dev/null; then
+    mv "$_sheal_tmp" "$config_file"
+    log_ok "Generated .self-heal.json"
+  else
+    rm -f "$_sheal_tmp"
+    log_warn ".self-heal.json generation failed (non-fatal)"
+  fi
 
   # --- 3b: Run sheal init if .sheal/ doesn't exist ---
   local sheal_initialized
