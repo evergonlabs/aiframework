@@ -344,15 +344,15 @@ INV_TAIL
   cat >> "$TARGET_DIR/.githooks/pre-push" << 'REFRESH_GATE'
 
 # Auto-refresh: regenerate aiframework output if key files drifted
+# Uses aiframework refresh CLI directly (not library functions — they aren't sourced here)
 if command -v aiframework >/dev/null 2>&1; then
-  _drift=$(freshness_check_drift "." 2>/dev/null || echo "unknown")
-  if [[ "$_drift" == drifted:* ]]; then
-    echo "  [refresh] Key files changed — running aiframework refresh..."
-    aiframework refresh --target . --non-interactive 2>&1 | tail -3
+  _refresh_output=$(aiframework refresh --target . --non-interactive 2>&1) || true
+  if echo "$_refresh_output" | grep -q "Drift detected\|Re-running"; then
+    echo "  [refresh] Key files changed — aiframework auto-refreshed configs"
     # Auto-commit refreshed files if any changed
     if [[ -n "$(git diff --name-only 2>/dev/null)" ]]; then
       git add CLAUDE.md .claude/ vault/ .aiframework/ 2>/dev/null || true
-      git commit -m "chore(aiframework): auto-refresh on push [skip ci]" 2>/dev/null || true
+      git commit -m "chore(aiframework): auto-refresh on push [skip ci]" --no-verify 2>/dev/null || true
       echo "  [refresh] Auto-committed refreshed files"
     fi
   fi

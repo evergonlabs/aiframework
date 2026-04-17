@@ -652,7 +652,7 @@ LEARNMD
       fi
     fi
 
-    # Add sheal skill permissions and SessionStart hook when sheal is detected
+    # Add sheal skill permissions when detected
     local sheal_perms=""
     local _sheal_installed
     _sheal_installed=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
@@ -662,44 +662,62 @@ LEARNMD
       "Skill(sheal-retro)",
       "Skill(sheal-drift)",
       "Skill(sheal-ask)"'
-      # Build SessionStart + Stop hooks — closes the autonomous loop
-      local session_start_block=',
+    fi
+
+    # Build SessionStart + Stop hooks for ALL repos (not just sheal)
+    # This is the autonomous loop — no manual commands needed
+    local _start_cmd _stop_cmd
+
+    # SessionStart: drift check + sheal health (if available)
+    if [[ "$_sheal_installed" == "true" ]]; then
+      _start_cmd="sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true"
+    else
+      _start_cmd="if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi"
+    fi
+
+    # Stop: auto-retro + learning bridge + weekly evolve reminder
+    if [[ "$_sheal_installed" == "true" ]]; then
+      _stop_cmd="if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi"
+    else
+      _stop_cmd="echo '[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.' 2>/dev/null || true"
+    fi
+
+    # Build the hooks block — always present for all repos
+    local session_hooks_block=',
     "SessionStart": [
       {
-        "command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true",
+        "command": "'"$_start_cmd"'",
         "timeout": 15000
       }
     ],
     "Stop": [
       {
-        "command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi",
+        "command": "'"$_stop_cmd"'",
         "timeout": 30000
       }
     ]'
-      # Merge: strip trailing close from existing hooks_block, append SessionStart, re-close
-      if [[ -n "$hooks_block" ]]; then
-        # Remove the trailing "  }" that closes the hooks object
-        # and append SessionStart before re-closing
-        hooks_block="${hooks_block%\}}"
-        hooks_block+="${session_start_block}
+
+    # Merge with existing hooks_block (PostToolUse etc.)
+    if [[ -n "$hooks_block" ]]; then
+      hooks_block="${hooks_block%\}}"
+      hooks_block+="${session_hooks_block}
   }"
-      else
-        hooks_block=',
+    else
+      hooks_block=',
   "hooks": {
     "SessionStart": [
       {
-        "command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true",
+        "command": "'"$_start_cmd"'",
         "timeout": 15000
       }
     ],
     "Stop": [
       {
-        "command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi",
+        "command": "'"$_stop_cmd"'",
         "timeout": 30000
       }
     ]
   }'
-      fi
     fi
 
     cat > "$settings_file" << SETTINGS
@@ -722,33 +740,41 @@ LEARNMD
 SETTINGS
     log_ok "Created .claude/settings.json"
   else
-    # Upgrade path: merge sheal permissions + hooks into existing settings.json
-    local _sheal_detected
-    _sheal_detected=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
-    if [[ "$_sheal_detected" == "true" ]]; then
-      local _needs_update=false
+    # Upgrade path: ensure hooks exist in existing settings.json
+    local _needs_hook_update=false
 
-      # Check if sheal permissions are missing
-      if ! grep -qF 'sheal-check' "$settings_file" 2>/dev/null; then
-        _needs_update=true
-      fi
+    # Check if SessionStart hook is missing (all repos need this)
+    if ! grep -qF 'SessionStart' "$settings_file" 2>/dev/null; then
+      _needs_hook_update=true
+    fi
 
-      if [[ "$_needs_update" == true ]]; then
-        # Add sheal permissions and SessionStart hook via jq merge
-        local _updated
-        _updated=$(jq '
+    if [[ "$_needs_hook_update" == true ]]; then
+      local _sheal_detected
+      _sheal_detected=$(echo "$m" | jq -r '.sheal.installed // false' 2>/dev/null)
+
+      local _jq_expr
+      if [[ "$_sheal_detected" == "true" ]]; then
+        _jq_expr='
           .permissions.allow += ["Skill(sheal-check)", "Skill(sheal-retro)", "Skill(sheal-drift)", "Skill(sheal-ask)"]
           | .permissions.allow |= unique
           | .hooks.SessionStart = [{"command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]
           | .hooks.Stop = [{"command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi", "timeout": 30000}]
-        ' "$settings_file" 2>/dev/null)
+        '
+      else
+        _jq_expr='
+          .hooks.SessionStart = [{"command": "if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi", "timeout": 15000}]
+          | .hooks.Stop = [{"command": "echo \"[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.\" 2>/dev/null || true", "timeout": 5000}]
+        '
+      fi
 
-        if [[ -n "$_updated" ]] && echo "$_updated" | jq empty 2>/dev/null; then
-          echo "$_updated" | jq '.' > "$settings_file"
-          log_ok "Updated settings.json with sheal permissions + SessionStart hook"
-        else
-          log_warn "Could not auto-update settings.json — delete it and re-run to add sheal integration"
-        fi
+      local _updated
+      _updated=$(jq "$_jq_expr" "$settings_file" 2>/dev/null)
+
+      if [[ -n "$_updated" ]] && echo "$_updated" | jq empty 2>/dev/null; then
+        echo "$_updated" | jq '.' > "$settings_file"
+        log_ok "Updated settings.json with SessionStart + Stop hooks"
+      else
+        log_warn "Could not auto-update settings.json hooks — delete .claude/settings.json and re-run"
       fi
     fi
   fi
