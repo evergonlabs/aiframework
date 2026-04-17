@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Bridge dedup accuracy** — grep now uses escaped summary matching on-disk format; titles with `"` no longer create duplicates
+- **Bridge round-trip** — title parser unescapes `\"` back to `"` on sheal→JSONL conversion
+- **Bridge body preservation** — newlines preserved (was collapsing to spaces)
+- **Portable timeout** — `_aif_timeout` wrapper falls back to bare execution on stock macOS (no GNU coreutils required)
+- **Knowledge store INV-1** — `echo` JSONL construction replaced with `jq -n --arg` for safe escaping
+- **Sanitizer path traversal** — removed `/` from `_sanitize_manifest_val` allowlist
+- **_AIF_TMPDIR lifecycle** — now created via `mktemp -d` and exported; cleanup trap is functional
+- **Error messages** — sheal generator warns now include recovery hints and manifest field references
+- **Settings.json upgrade** — existing users get `log_warn` when sheal detected but hooks missing
+- **README badge** — test count updated to 94 (actual)
+- **6-round 335-expert audit** — all CRITICAL, HIGH, MEDIUM, LOW findings resolved
+
 ## [1.2.0] — 2026-04-17
 ### Added
 - **Sheal integration** — runtime session intelligence via [sheal](https://www.npmjs.com/package/@liwala/sheal). Full lifecycle: bootstrap (aiframework) → work → learn → evolve (sheal) → repeat

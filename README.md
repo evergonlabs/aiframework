@@ -95,7 +95,7 @@ aiframework reads your repo the way a senior engineer would on their first day &
     CLAUDE.md · .claude/rules/ · .claude/skills/ · vault/
     .githooks/ · .github/workflows/ · docs/ · AGENTS.md
 
-  VERIFY    ████████████████████ 34 checks — ALL PASSED
+  VERIFY    ████████████████████ all checks — PASSED
 
   Claude Code now knows your entire project.
 ```
@@ -356,7 +356,7 @@ aiframework run --target /path/to/repo
 │   ├── quality_gate    are lint/test commands actually working?
 │   └── freshness       is the manifest stale? did files drift?
 │
-╰──→  PASS / FAIL / WARN  (34 checks)
+╰──→  PASS / FAIL / WARN
 ```
 
 <br>
@@ -380,7 +380,32 @@ The auto-refresh hook means you never have to think about keeping CLAUDE.md in s
 
 ### Runtime intelligence with sheal
 
-When [sheal](https://www.npmjs.com/package/@liwala/sheal) is installed (`npm install -g @liwala/sheal`), aiframework extends the lifecycle with **runtime session intelligence**:
+aiframework handles **setup-time** intelligence &mdash; it scans your repo once and generates configs. But what about learning from actual coding sessions?
+
+[sheal](https://www.npmjs.com/package/@liwala/sheal) handles **runtime** intelligence &mdash; it watches your AI coding sessions, extracts what went wrong, and feeds those learnings back into your configs. Together, they create a complete loop:
+
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │                    THE IMPROVEMENT LOOP                      │
+  │                                                              │
+  │   1. BOOTSTRAP ──→ aiframework scans repo, generates        │
+  │      │              CLAUDE.md + rules + skills + vault       │
+  │      ▼                                                       │
+  │   2. WORK ──────→ you code with Claude Code                 │
+  │      │              /aif-learn captures gotchas (dual-write) │
+  │      ▼                                                       │
+  │   3. RETRO ─────→ /sheal-retro extracts session patterns    │
+  │      │              bridge syncs learnings ↔ JSONL           │
+  │      ▼                                                       │
+  │   4. EVOLVE ────→ /aif-evolve reads both sources            │
+  │      │              proposes CLAUDE.md improvements          │
+  │      ▼                                                       │
+  │   5. DRIFT ─────→ /sheal-drift detects unapplied learnings │
+  │      │              promotes to permanent rules              │
+  │      ▼                                                       │
+  │   └──────────────→ repeat (your CLAUDE.md gets smarter)     │
+  └─────────────────────────────────────────────────────────────┘
+```
 
 | Phase | What | How |
 |:------|:-----|:----|
@@ -391,7 +416,7 @@ When [sheal](https://www.npmjs.com/package/@liwala/sheal) is installed (`npm ins
 | **Weekly** | Drift detection promotes learnings to rules | `/sheal-drift` |
 | **Evolution** | `/aif-evolve` reads both sources | Bidirectional bridge |
 
-sheal is optional. If Node.js or npm is unavailable, aiframework works exactly as before. `make install` attempts to install sheal automatically with graceful fallback.
+**sheal is optional.** If Node.js or npm is unavailable, aiframework works exactly as before. `make install` attempts to install sheal automatically with graceful fallback. When sheal is absent, the framework produces zero behavioral change &mdash; no extra output, no extra files, no extra steps.
 
 <br>
 
@@ -439,7 +464,7 @@ $ aiframework <command> [options]
   run            full pipeline: discover → generate → verify → report
   discover       scan repo → manifest.json + code-index.json
   generate       read manifest → generate all files
-  verify         validate generated files (46+ checks)
+  verify         validate generated files (5 validators)
   refresh        re-discover + generate only if drift detected
   report         human-readable report
   index          build code index only
