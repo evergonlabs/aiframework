@@ -1,8 +1,8 @@
 ---
 title: "API Reference: lib/generators"
 type: entity
-created: 2026-04-16
-updated: 2026-04-16
+created: 2026-04-17
+updated: 2026-04-17
 status: current
 tags:
   - type/entity
@@ -14,25 +14,17 @@ confidence: medium
 
 # API Reference: lib/generators
 
-> Function and class reference for `lib/generators` (85 symbols).
+> Function and class reference for `lib/generators` (78 symbols).
 
 ## Symbols
 
 | Name | Kind | File | Description |
 |------|------|------|-------------|
 | `_backup_file` | function | `lib/generators/preserve.sh` | Backup a file before overwriting |
-| `_emit_ci_and_key_locations` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_decision_priority_and_workflow` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_header_and_doc_table` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_invariants_and_config` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_key_commands` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_pipeline_and_routing` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_project_identity` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_project_structure` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_qa_autofix` | function | `lib/generators/claude_md.sh` | — |
-| `_emit_skills_vault_and_footer` | function | `lib/generators/claude_md.sh` | — |
 | `_extract_claude_md_vars` | function | `lib/generators/claude_md.sh` | --- Shared variable extraction (called by both lean and full) --- |
 | `_file_exists` | function | `lib/generators/preserve.sh` | Check if a file exists and is non-empty |
+| `_generate_extended_rules` | function | `lib/generators/claude_md.sh` | --- Extended rules generator (complex/enterprise projects) --- |
+| `_generate_reference_docs` | function | `lib/generators/claude_md.sh` | --- Reference architecture doc (complex/enterprise projects) --- |
 | `_generate_workflow_rules` | function | `lib/generators/claude_md.sh` | --- Generate .claude/rules/workflow.md --- |
 | `_init_preserve` | function | `lib/generators/preserve.sh` | — |
 | `_sanitize_manifest_val` | function | `lib/generators/skills.sh` | Sanitize manifest values for safe use in heredocs and echo statements. |
@@ -53,10 +45,11 @@ confidence: medium
 | `extract_wikilinks` | function | `lib/generators/vault.sh` | ── Wikilink Parsing ── |
 | `file_age_days` | function | `lib/generators/vault.sh` | Get file age in days. |
 | `find_vault_root` | function | `lib/generators/vault.sh` | Locate vault root (this hook may be in .git/hooks/ or .vault/hooks/) |
+| `generate_agents_md` | function | `lib/generators/agents_md.sh` | — |
 | `generate_ci` | function | `lib/generators/ci.sh` | — |
 | `generate_claude_md` | function | `lib/generators/claude_md.sh` | --- Dispatcher: picks lean vs full based on project complexity --- |
-| `generate_claude_md_full` | function | `lib/generators/claude_md.sh` | --- Full CLAUDE.md generator (verbose, for complex/enterprise projects) --- |
 | `generate_claude_md_lean` | function | `lib/generators/claude_md.sh` | --- Lean CLAUDE.md generator (80-150 lines, high-signal only) --- |
+| `generate_cursor_rules` | function | `lib/generators/cursor_rules.sh` | — |
 | `generate_docs` | function | `lib/generators/docs.sh` | — |
 | `generate_hooks` | function | `lib/generators/hooks.sh` | — |
 | `generate_report` | function | `lib/generators/report.sh` | — |

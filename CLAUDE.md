@@ -32,18 +32,19 @@ make test
 - **Scripts**: `bin/`
 - **Scripts**: `tools/`
 - **CI**: `.github/`
+- **Data**: `lib/data/` — detection registries and config
 
 **Most important files** (by dependency rank):
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/scanners/code_index.sh`
-- `lib/indexers/lang_go.py`
+- `tests/test_e2e.sh`
+- `lib/scanners/quality.sh`
 - `lib/scanners/structure.sh`
-- `lib/indexers/lang_bash.py`
-- `lib/scanners/env.sh`
-- `lib/indexers/parsers/ruby.py`
 - `lib/generators/hooks.sh`
-- `lib/indexers/parsers/python.py`
+- `lib/scanners/identity.sh`
+- `lib/indexers/parsers/ruby.py`
+- `lib/generators/ci.sh`
+- `lib/indexers/lang_go.py`
 
 ## Environment Variables
 

@@ -1,8 +1,8 @@
 ---
 title: "Module: lib/generators"
 type: entity
-created: 2026-04-16
-updated: 2026-04-16
+created: 2026-04-17
+updated: 2026-04-17
 status: current
 tags:
   - type/entity
@@ -21,12 +21,14 @@ confidence: medium
 |----------|-------|
 | Path | `lib/generators` |
 | Language | bash |
-| Files | 10 |
+| Files | 12 |
 
 ## Files
 
+- `agents_md.sh`
 - `ci.sh`
 - `claude_md.sh`
+- `cursor_rules.sh`
 - `docs.sh`
 - `hooks.sh`
 - `preserve.sh`
@@ -39,15 +41,15 @@ confidence: medium
 ## Key Symbols
 
 - `_backup_file`
-- `_emit_ci_and_key_locations`
-- `_emit_decision_priority_and_workflow`
-- `_emit_header_and_doc_table`
-- `_emit_invariants_and_config`
-- `_emit_key_commands`
-- `_emit_pipeline_and_routing`
-- `_emit_project_identity`
-- `_emit_project_structure`
-- `_emit_qa_autofix`
+- `_extract_claude_md_vars`
+- `_file_exists`
+- `_generate_extended_rules`
+- `_generate_reference_docs`
+- `_generate_workflow_rules`
+- `_init_preserve`
+- `_sanitize_manifest_val`
+- `cmd_content_audit`
+- `cmd_doctor`
 
 ## Dependencies (outbound)
 

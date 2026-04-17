@@ -1,8 +1,8 @@
 ---
 title: "Module: lib/indexers"
 type: entity
-created: 2026-04-16
-updated: 2026-04-16
+created: 2026-04-17
+updated: 2026-04-17
 status: current
 tags:
   - type/entity
@@ -21,7 +21,7 @@ confidence: medium
 |----------|-------|
 | Path | `lib/indexers` |
 | Language | bash |
-| Files | 9 |
+| Files | 10 |
 
 ## Files
 
@@ -34,10 +34,10 @@ confidence: medium
 - `lang_rust.py`
 - `lang_typescript.py`
 - `parse.py`
+- `registry.py`
 
 ## Key Symbols
 
-- `_adapt`
 - `_extract_doc_comment`
 - `_extract_docstring`
 - `_extract_jsdoc`
@@ -47,6 +47,7 @@ confidence: medium
 - `_lang_bash`
 - `_lang_csharp`
 - `_lang_elixir`
+- `_lang_go`
 
 ## Dependencies (outbound)
 

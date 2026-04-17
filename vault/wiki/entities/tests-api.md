@@ -1,8 +1,8 @@
 ---
 title: "API Reference: tests"
 type: entity
-created: 2026-04-16
-updated: 2026-04-16
+created: 2026-04-17
+updated: 2026-04-17
 status: current
 tags:
   - type/entity
@@ -14,7 +14,7 @@ confidence: medium
 
 # API Reference: tests
 
-> Function and class reference for `tests` (60 symbols).
+> Function and class reference for `tests` (75 symbols).
 
 ## Symbols
 
@@ -23,8 +23,10 @@ confidence: medium
 | `TestEdgeCases` | class | `tests/test_indexer.py` | Edge case tests. |
 | `TestGraph` | class | `tests/test_indexer.py` | — |
 | `TestIndexRepo` | class | `tests/test_indexer.py` | — |
+| `TestMcpServer` | class | `tests/test_mcp.py` | Test the MCP server dispatch and handlers. |
 | `TestNewParsers` | class | `tests/test_indexer.py` | Tests for newly added language parsers. |
 | `TestParsers` | class | `tests/test_indexer.py` | — |
+| `_dispatch` | method | `tests/test_mcp.py` | — |
 | `_parse` | method | `tests/test_indexer.py` | — |
 | `fail` | function | `tests/test_e2e.sh` | — |
 | `log_info` | function | `tests/test_validators.sh` | --- Logging stubs for generator modules --- |
@@ -32,7 +34,9 @@ confidence: medium
 | `log_warn` | function | `tests/test_validators.sh` | — |
 | `pass` | function | `tests/test_e2e.sh` | — |
 | `reset_counters` | function | `tests/test_validators.sh` | — |
+| `setUp` | method | `tests/test_mcp.py` | Create a temp project with manifest. |
 | `setup_fixture` | function | `tests/test_e2e.sh` | — |
+| `tearDown` | method | `tests/test_mcp.py` | — |
 | `teardown_fixture` | function | `tests/test_validators.sh` | — |
 | `test_backup_file_creates_backup` | function | `tests/test_validators.sh` | ============================================================ |
 | `test_backup_file_skips_symlink` | function | `tests/test_validators.sh` | ============================================================ |
@@ -50,10 +54,12 @@ confidence: medium
 | `test_freshness_happy` | function | `tests/test_validators.sh` | ============================================================ |
 | `test_go_parser` | method | `tests/test_indexer.py` | — |
 | `test_indexes_this_repo` | method | `tests/test_indexer.py` | Smoke test: index the aiframework repo itself. |
+| `test_initialize` | method | `tests/test_mcp.py` | — |
 | `test_java_parser` | method | `tests/test_indexer.py` | — |
 | `test_kotlin_parser` | method | `tests/test_indexer.py` | — |
 | `test_large_file_skipped` | method | `tests/test_indexer.py` | Files > 100KB get file-level only, no symbols. |
 | `test_module_grouping` | method | `tests/test_indexer.py` | Files in same directory are grouped into a module. |
+| `test_notification_no_response` | method | `tests/test_mcp.py` | — |
 | `test_output_schema_complete` | method | `tests/test_indexer.py` | Verify all required top-level keys present. |
 | `test_php_parser` | method | `tests/test_indexer.py` | — |
 | `test_preserve_doc_skip` | function | `tests/test_validators.sh` | ============================================================ |
@@ -62,6 +68,11 @@ confidence: medium
 | `test_preserve_tracking_skip` | function | `tests/test_validators.sh` | ============================================================ |
 | `test_python_parser` | method | `tests/test_indexer.py` | Python parser detects functions and classes. |
 | `test_quality_gate_happy` | function | `tests/test_validators.sh` | ============================================================ |
+| `test_resources_list` | method | `tests/test_mcp.py` | — |
+| `test_resources_read_architecture` | method | `tests/test_mcp.py` | — |
+| `test_resources_read_commands` | method | `tests/test_mcp.py` | — |
+| `test_resources_read_invariants` | method | `tests/test_mcp.py` | — |
+| `test_resources_read_manifest` | method | `tests/test_mcp.py` | — |
 | `test_ruby_parser` | method | `tests/test_indexer.py` | — |
 | `test_rust_parser` | method | `tests/test_indexer.py` | — |
 | `test_sanitize_preserves_normal` | function | `tests/test_validators.sh` | ============================================================ |
@@ -75,8 +86,12 @@ confidence: medium
 | `test_skill_suggest_docker` | function | `tests/test_validators.sh` | ============================================================ |
 | `test_skill_suggest_empty` | function | `tests/test_validators.sh` | ============================================================ |
 | `test_swift_parser` | method | `tests/test_indexer.py` | — |
+| `test_tool_analyze_file` | method | `tests/test_mcp.py` | — |
+| `test_tool_check_invariants` | method | `tests/test_mcp.py` | — |
+| `test_tools_list` | method | `tests/test_mcp.py` | — |
 | `test_typescript_parser` | method | `tests/test_indexer.py` | — |
 | `test_unknown_language` | method | `tests/test_indexer.py` | — |
+| `test_unknown_method` | method | `tests/test_mcp.py` | — |
 
 ## Related
 

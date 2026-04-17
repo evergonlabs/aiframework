@@ -1,8 +1,8 @@
 ---
 title: "Module: lib/validators"
 type: entity
-created: 2026-04-16
-updated: 2026-04-16
+created: 2026-04-17
+updated: 2026-04-17
 status: current
 tags:
   - type/entity

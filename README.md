@@ -23,7 +23,7 @@
 
 [![version](https://img.shields.io/badge/v1.1.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/93_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/92_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
@@ -31,7 +31,7 @@
 
 <br>
 
-[Quick Start](#quick-start) · [What You Get](#what-you-get) · [48 Skills](#48-skills) · [Languages](#13-languages--20-frameworks) · [Architecture](#architecture) · [gstack](#gstack-included)
+[Quick Start](#quick-start) · [What You Get](#what-you-get) · [Skills](#52-skills) · [Languages](#20-languages--57-frameworks) · [Architecture](#architecture) · [gstack](#gstack-included)
 
 </div>
 
@@ -93,7 +93,7 @@ aiframework reads your repo the way a senior engineer would on their first day &
     CLAUDE.md · .claude/rules/ · .claude/skills/ · vault/
     .githooks/ · .github/workflows/ · docs/ · AGENTS.md
 
-  VERIFY    ████████████████████ 46 checks — ALL PASSED
+  VERIFY    ████████████████████ 34 checks — ALL PASSED
 
   Claude Code now knows your entire project.
 ```
@@ -115,7 +115,7 @@ CLAUDE.md               → project brain
   ├── testing.md         → test conventions
   └── security.md        → auth/api guardrails
 .claude/settings.json    → safe permissions
-.claude/skills/          → 10 slash commands
+.claude/skills/          → 15 slash commands
 AGENTS.md                → cross-tool config
 ```
 
@@ -154,9 +154,9 @@ Then `/aif-ready` enhances it with framework-specific knowledge from the web.
 
 <br>
 
-## 48 Skills
+## 52 Skills
 
-aiframework generates **11 project-specific skills**. [gstack](https://github.com/garrytan/gstack) adds **37 more**. Together, Claude Code goes from a chatbot to a full engineering team.
+aiframework generates **15 project-specific skills**. [gstack](https://github.com/garrytan/gstack) adds **37 more**. Together, Claude Code goes from a chatbot to a full engineering team.
 
 ### Your workflow
 
@@ -264,7 +264,7 @@ aiframework generates **11 project-specific skills**. [gstack](https://github.co
 
 <br>
 
-## 13 Languages · 20+ Frameworks
+## 20 Languages · 57 Frameworks
 
 aiframework's code indexer parses symbols, imports, and dependency edges. It's not guessing &mdash; it's reading your actual AST.
 
@@ -319,7 +319,7 @@ aiframework run --target /path/to/repo
 │   ├── env             variables from .env, config files
 │   ├── quality         linter, formatter, type checker, test runner
 │   ├── domain          18 types (auth, db, ai, graphql...)
-│   ├── code_index      symbols + imports + edges (13 languages)
+│   ├── code_index      symbols + imports + edges (20 languages)
 │   ├── archetype       what kind of project is this?
 │   └── skill_suggest   what workflows would help?
 │   │
@@ -343,7 +343,7 @@ aiframework run --target /path/to/repo
 │   ├── quality_gate    are lint/test commands actually working?
 │   └── freshness       is the manifest stale? did files drift?
 │
-╰──→  PASS / FAIL / WARN  (46+ checks)
+╰──→  PASS / FAIL / WARN  (34 checks)
 ```
 
 <br>

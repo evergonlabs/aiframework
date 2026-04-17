@@ -25,11 +25,11 @@ generate_cursor_rules() {
   short=$(echo "$m" | jq -r '.identity.short_name')
 
   local build_cmd test_cmd lint_cmd typecheck format_cmd
-  build_cmd=$(echo "$m" | jq -r '.commands.build // empty')
-  test_cmd=$(echo "$m" | jq -r '.commands.test // empty')
-  lint_cmd=$(echo "$m" | jq -r '.commands.lint // empty')
-  typecheck=$(echo "$m" | jq -r '.commands.typecheck // empty')
-  format_cmd=$(echo "$m" | jq -r '.commands.format // empty')
+  build_cmd=$(echo "$m" | jq -r '.commands.build // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  test_cmd=$(echo "$m" | jq -r '.commands.test // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  lint_cmd=$(echo "$m" | jq -r '.commands.lint // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  typecheck=$(echo "$m" | jq -r '.commands.typecheck // empty' | grep -v '^NOT_CONFIGURED$' || true)
+  format_cmd=$(echo "$m" | jq -r '.commands.format // empty' | grep -v '^NOT_CONFIGURED$' || true)
 
   cat > "$out" << CURSOR_HEADER
 # .cursorrules — ${name}

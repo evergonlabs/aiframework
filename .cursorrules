@@ -4,11 +4,9 @@
 
 ## Commands
 
-- Build: `NOT_CONFIGURED`
 - Test: `make test`
 - Lint: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck`
 - Type check: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n`
-- Format: `NOT_CONFIGURED`
 
 ## Conventions
 

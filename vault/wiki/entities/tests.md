@@ -1,8 +1,8 @@
 ---
 title: "Module: tests"
 type: entity
-created: 2026-04-16
-updated: 2026-04-16
+created: 2026-04-17
+updated: 2026-04-17
 status: current
 tags:
   - type/entity
@@ -21,12 +21,13 @@ confidence: medium
 |----------|-------|
 | Path | `tests` |
 | Language | bash |
-| Files | 3 |
+| Files | 4 |
 
 ## Files
 
 - `test_e2e.sh`
 - `test_indexer.py`
+- `test_mcp.py`
 - `test_validators.sh`
 
 ## Key Symbols
@@ -34,13 +35,13 @@ confidence: medium
 - `TestEdgeCases`
 - `TestGraph`
 - `TestIndexRepo`
+- `TestMcpServer`
 - `TestNewParsers`
 - `TestParsers`
+- `_dispatch`
 - `_parse`
 - `fail`
 - `log_info`
-- `log_ok`
-- `log_warn`
 
 ## Dependencies (outbound)
 

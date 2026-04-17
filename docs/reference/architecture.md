@@ -67,19 +67,19 @@
 
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/scanners/code_index.sh`
-- `lib/indexers/lang_go.py`
+- `tests/test_e2e.sh`
+- `lib/scanners/quality.sh`
 - `lib/scanners/structure.sh`
-- `lib/indexers/lang_bash.py`
-- `lib/scanners/env.sh`
-- `lib/indexers/parsers/ruby.py`
 - `lib/generators/hooks.sh`
-- `lib/indexers/parsers/python.py`
-- `lib/indexers/parsers/go.py`
-- `lib/generators/vault_ingest.sh`
-- `lib/generators/tracking.sh`
-- `lib/generators/skills.sh`
-- `lib/indexers/lang_ruby.py`
+- `lib/scanners/identity.sh`
+- `lib/indexers/parsers/ruby.py`
+- `lib/generators/ci.sh`
+- `lib/indexers/lang_go.py`
+- `lib/generators/agents_md.sh`
+- `vault/.vault/hooks/pre-commit.sh`
+- `lib/indexers/parsers/typescript.py`
+- `lib/scanners/user_context.sh`
+- `vault/.vault/scripts/vault-tools.sh`
 
 ## Core Principles
 

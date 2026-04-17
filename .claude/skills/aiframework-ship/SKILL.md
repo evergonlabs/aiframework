@@ -20,10 +20,9 @@ allowed-tools:
 ## Step 1: Verify
 
 ```bash
-cppcheck --enable=all .
+find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 make test
-make
 ```
 
 ## Step 2: Invariant Scan

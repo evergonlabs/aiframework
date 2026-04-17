@@ -330,6 +330,18 @@ CLAUDEMD
     done <<< "$kl_ci_dirs"
   fi
 
+  # Data/config directories (detection registries, schemas, etc.)
+  if [[ "$loc_count" -lt 12 ]]; then
+    local data_dirs
+    for ddir in "lib/data" "src/data" "config" "schemas" "data"; do
+      if [[ -d "$TARGET_DIR/$ddir" ]]; then
+        echo "- **Data**: \`${ddir}/\` — detection registries and config" >> "$out"
+        ((loc_count++)) || true
+        break
+      fi
+    done
+  fi
+
   # Repo Map (PageRank top files) — compact
   local code_index_path="${OUTPUT_DIR}/code-index.json"
   if [[ -f "$code_index_path" ]] && command -v jq &>/dev/null; then
