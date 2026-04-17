@@ -1,6 +1,6 @@
 # AGENTS.md — aiframework
 
-> Your repo already knows everything. Claude Code just can't read it yet.
+> Your repo already knows everything. Claude Code just can't read it yet
 
 **Stack:** bash / none
 

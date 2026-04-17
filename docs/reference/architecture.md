@@ -43,6 +43,8 @@
 
 | Module | Role | Files | Key Symbols | Depends On |
 |--------|------|-------|-------------|------------|
+| .githooks | general | 2 | - | - |
+| bin | entrypoint | 3 | - | lib/freshness, lib/generators, lib/knowledge |
 | lib | library | 1 | - | lib/indexers |
 | lib/freshness | general | 1 | - | - |
 | lib/generators | generation | 12 | - | - |
@@ -53,12 +55,13 @@
 | lib/mcp | general | 2 | - | - |
 | lib/scanners | discovery | 12 | - | - |
 | lib/validators | verification | 5 | - | - |
-| tests | testing | 4 | - | - |
+| tests | testing | 4 | - | lib/generators, lib/scanners, lib/validators |
 | vault/.vault/hooks | general | 1 | - | - |
 | vault/.vault/scripts | tooling | 4 | - | - |
 
 ### Architecture Hot Spots
 
+- **Highest fan-in**: `lib/generators` (imported by 22 modules)
 - **Most complex**: `lib/generators` (78 symbols across 12 files)
 
 ## Repo Map (Most Important Files)
@@ -67,19 +70,19 @@
 
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `tests/test_e2e.sh`
-- `lib/scanners/quality.sh`
-- `lib/scanners/structure.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/generators/preserve.sh`
+- `lib/validators/files.sh`
+- `lib/validators/consistency.sh`
+- `lib/validators/freshness.sh`
+- `lib/validators/quality_gate.sh`
+- `lib/validators/security.sh`
+- `lib/generators/skills.sh`
+- `lib/generators/report.sh`
+- `lib/scanners/code_index.sh`
 - `lib/generators/hooks.sh`
-- `lib/scanners/identity.sh`
-- `lib/indexers/parsers/ruby.py`
-- `lib/generators/ci.sh`
-- `lib/indexers/lang_go.py`
-- `lib/generators/agents_md.sh`
-- `vault/.vault/hooks/pre-commit.sh`
-- `lib/indexers/parsers/typescript.py`
-- `lib/scanners/user_context.sh`
-- `vault/.vault/scripts/vault-tools.sh`
+- `lib/generators/tracking.sh`
+- `lib/generators/docs.sh`
 
 ## Core Principles
 

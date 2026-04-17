@@ -1,6 +1,6 @@
 # CLAUDE.md — aiframework
 
-> Your repo already knows everything. Claude Code just can't read it yet.. Stack: bash/none.
+> Your repo already knows everything. Claude Code just can't read it yet. Stack: bash/none.
 
 ## Commands
 
@@ -37,14 +37,14 @@ make test
 **Most important files** (by dependency rank):
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `tests/test_e2e.sh`
-- `lib/scanners/quality.sh`
-- `lib/scanners/structure.sh`
-- `lib/generators/hooks.sh`
-- `lib/scanners/identity.sh`
-- `lib/indexers/parsers/ruby.py`
-- `lib/generators/ci.sh`
-- `lib/indexers/lang_go.py`
+- `lib/scanners/skill_suggest.sh`
+- `lib/generators/preserve.sh`
+- `lib/validators/files.sh`
+- `lib/validators/consistency.sh`
+- `lib/validators/freshness.sh`
+- `lib/validators/quality_gate.sh`
+- `lib/validators/security.sh`
+- `lib/generators/skills.sh`
 
 ## Environment Variables
 
