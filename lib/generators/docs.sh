@@ -204,4 +204,28 @@ CONTRIBMD
 
     log_ok "Created CONTRIBUTING.md"
   fi
+
+  # --- docs/LESSONS_LEARNED.md ---
+  local lessons_file="$TARGET_DIR/docs/LESSONS_LEARNED.md"
+  if ! preserve_doc "$lessons_file"; then
+    cat > "$lessons_file" << 'LESSONSMD'
+# Lessons Learned
+
+> Hard-won operational patterns. Criteria for inclusion:
+> (a) broadly reusable across many tasks, (b) easy to violate without a reminder,
+> (c) costly when forgotten, (d) not already in CLAUDE.md Invariants.
+
+## Common Mistakes
+
+*Add recurring agent mistakes here as they're discovered. Examples:*
+*- Editing the wrong config file (staging vs production)*
+*- Forgetting to update the sidebar after adding a page*
+*- Not running the full test suite before marking done*
+
+## Operational Patterns
+
+*Add patterns that emerge from repeated sessions. Use `/aif-learn` to capture.*
+LESSONSMD
+    log_ok "Created docs/LESSONS_LEARNED.md"
+  fi
 }

@@ -118,6 +118,8 @@ Run doc-sync check against this matrix:
 ## Doc-Sync Matrix
 
 When any file in a domain's key files changes, update the corresponding docs.
+**Skip when:** pure bug fixes with no API/UI surface change, test-only changes, dependency updates.
+**Always check:** no doc references stale counts, removed features, or outdated file paths.
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|

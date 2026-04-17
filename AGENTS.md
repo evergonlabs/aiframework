@@ -28,6 +28,8 @@ find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
 - All scripts must pass shellcheck with zero warnings
 - All scripts must start with set -euo pipefail for strict error handling
 - All user-supplied variables must be quoted — no unquoted $VAR expansions
+- NEVER use `|| true` to silence errors without understanding the failure
+- NEVER use `set +e` to disable error handling without re-enabling it
 
 ## Security
 

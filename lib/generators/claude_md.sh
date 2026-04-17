@@ -97,6 +97,7 @@ globs: "**/*"
 - Use subagents for research, exploration, and parallel analysis
 - Limit to 6-8 agents per wave maximum
 - After each wave: summarize results, commit, then start next wave
+- For large outputs: agents write results to files, not stdout
 
 ## QA Auto-Fix
 When QA discovers issues, ALL must be automatically fixed:
@@ -121,7 +122,9 @@ After marking any feature complete and before pushing:
 - NEVER clone or run external GitHub repos — read READMEs via WebFetch only
 - NEVER push to main without confirmation — pushes may trigger deploys that cost money
 - Before changing 3+ files: list every file and what changes, wait for approval
-- When in doubt: run more checks, not fewer
+- Verify correct file before editing — wrong Dockerfile, wrong config, wrong component
+- When in doubt: run more checks, not fewer. Ask yourself: would a staff engineer approve this?
+- Complete all phases in a single session when requested — do not suggest splitting work across sessions
 
 ## New Feature Checklist
 - [ ] Feature works as specified
@@ -220,6 +223,13 @@ generate_claude_md_lean() {
 # CLAUDE.md — ${name}
 
 $(if [[ "$desc" != "NOT_FOUND" && "$desc" != "No description" && "$desc" != "<"* && -n "$desc" ]]; then local _d="${desc%.}"; _d="${_d%\*}"; echo "> ${_d}. Stack: ${lang}/${fw}."; else echo "> Stack: ${lang}/${fw}."; fi)
+
+| You need to... | Read |
+|----------------|------|
+| Understand this repo | This file |
+| Debug a recurring issue | \`docs/LESSONS_LEARNED.md\` |
+| See architecture/modules | \`docs/reference/architecture.md\` |
+| Check workflow rules | \`.claude/rules/workflow.md\` |
 
 ## Commands
 
@@ -387,6 +397,8 @@ CLAUDEMD
   # --- Gotchas / Learnings ---
   echo "## Gotchas" >> "$out"
   echo "" >> "$out"
+  echo "> Criteria: (a) broadly reusable, (b) easy to violate, (c) costly when forgotten. Use \`/${short}-learn\` to add." >> "$out"
+  echo "" >> "$out"
 
   local learnings_file="$TARGET_DIR/tools/learnings/${short}-learnings.jsonl"
   if [[ -f "$learnings_file" ]] && [[ -s "$learnings_file" ]]; then
@@ -435,6 +447,19 @@ CLAUDEMD
       echo "make ${target}" >> "$out"
     done <<< "$makefile_targets_json"
     echo '```' >> "$out"
+    echo "" >> "$out"
+  fi
+
+  # --- Automated Enforcement ---
+  if [[ -f "$TARGET_DIR/.githooks/pre-push" || -f "$TARGET_DIR/.githooks/pre-commit" ]]; then
+    echo "## Automated Enforcement" >> "$out"
+    echo "" >> "$out"
+    echo "| Trigger | What runs |" >> "$out"
+    echo "|---------|-----------|" >> "$out"
+    [[ -f "$TARGET_DIR/.githooks/pre-commit" ]] && echo "| \`git commit\` | lint check |" >> "$out"
+    [[ -f "$TARGET_DIR/.githooks/pre-push" ]] && echo "| \`git push\` | lint + test + invariant scan |" >> "$out"
+    local ci_file="$TARGET_DIR/.github/workflows/ci.yml"
+    [[ -f "$ci_file" ]] && echo "| PR to main | CI: full build + test + lint |" >> "$out"
     echo "" >> "$out"
   fi
 
@@ -675,6 +700,8 @@ PIPE2
 ## Doc-Sync Matrix
 
 When any file in a domain's key files changes, update the corresponding docs.
+**Skip when:** pure bug fixes with no API/UI surface change, test-only changes, dependency updates.
+**Always check:** no doc references stale counts, removed features, or outdated file paths.
 
 PIPE3
 

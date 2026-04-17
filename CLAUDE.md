@@ -2,6 +2,13 @@
 
 > Your repo already knows everything. Claude Code just can't read it yet. Stack: bash/none.
 
+| You need to... | Read |
+|----------------|------|
+| Understand this repo | This file |
+| Debug a recurring issue | `docs/LESSONS_LEARNED.md` |
+| See architecture/modules | `docs/reference/architecture.md` |
+| Check workflow rules | `.claude/rules/workflow.md` |
+
 ## Commands
 
 ```bash
@@ -37,20 +44,22 @@ make test
 **Most important files** (by dependency rank):
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/scanners/skill_suggest.sh`
-- `lib/generators/preserve.sh`
-- `lib/validators/files.sh`
-- `lib/validators/consistency.sh`
 - `lib/validators/freshness.sh`
-- `lib/validators/quality_gate.sh`
-- `lib/validators/security.sh`
+- `lib/validators/files.sh`
 - `lib/generators/skills.sh`
+- `lib/validators/security.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/validators/quality_gate.sh`
+- `lib/validators/consistency.sh`
+- `lib/generators/preserve.sh`
 
 ## Environment Variables
 
 *None discovered. Add variables here when .env.example is created.*
 
 ## Gotchas
+
+> Criteria: (a) broadly reusable, (b) easy to violate, (c) costly when forgotten. Use `/aiframework-learn` to add.
 
 - Lint functions follow lint_hrNNN_name() convention with pass/fail return
 - Bash 3.2 compatibility requires avoiding associative arrays
@@ -67,6 +76,14 @@ make lint
 make test
 make check
 ```
+
+## Automated Enforcement
+
+| Trigger | What runs |
+|---------|-----------|
+| `git commit` | lint check |
+| `git push` | lint + test + invariant scan |
+| PR to main | CI: full build + test + lint |
 
 ## Skills
 
