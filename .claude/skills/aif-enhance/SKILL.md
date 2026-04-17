@@ -1,6 +1,6 @@
 ---
 name: aif-enhance
-description: Enhance manifest with deeper analysis. Identifies gaps in the heuristic scan, researches unknown infrastructure, analyzes code patterns, and enriches the vault. No API key needed — uses Claude Code's native tools.
+description: "Deep-dive manifest enhancement. Use /aif-ready first (it covers most cases). Use /aif-enhance only when you need targeted gap analysis: unknown deploy targets, missing framework invariants, or code complexity issues."
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch, AskUserQuestion]
 ---
 
@@ -10,11 +10,13 @@ Enrich the project manifest with deeper analysis that heuristic scanners can't c
 
 ## When to Use
 
-Run after `aiframework discover` when:
+**Most users should run `/aif-ready` instead** — it covers the common case.
+
+Use `/aif-enhance` for targeted deep-dives:
 - Unknown deploy targets or infrastructure detected
 - Framework detected but no invariants generated
-- Code complexity warrants deeper analysis
-- Vault needs richer content
+- Code complexity warrants deeper analysis (circular deps, god modules)
+- Vault needs richer content from official documentation
 
 ## Step 1: Load Manifest and Identify Gaps
 

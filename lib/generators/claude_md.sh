@@ -212,7 +212,7 @@ generate_claude_md_lean() {
   cat > "$out" << CLAUDEMD
 # CLAUDE.md — ${name}
 
-$(if [[ "$desc" != "NOT_FOUND" && "$desc" != "No description" && "$desc" != "<"* && -n "$desc" ]]; then echo "> ${desc}. Stack: ${lang}/${fw}."; else echo "> Stack: ${lang}/${fw}."; fi)
+$(if [[ "$desc" != "NOT_FOUND" && "$desc" != "No description" && "$desc" != "<"* && -n "$desc" ]]; then local _d="${desc%.}"; _d="${_d%\*}"; echo "> ${_d}. Stack: ${lang}/${fw}."; else echo "> Stack: ${lang}/${fw}."; fi)
 
 ## Commands
 

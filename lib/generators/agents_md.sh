@@ -38,6 +38,10 @@ generate_agents_md() {
   local clean_desc="$desc"
   if [[ "$clean_desc" == "<"* || "$clean_desc" == "NOT_FOUND" || "$clean_desc" == "No description" || -z "$clean_desc" ]]; then
     clean_desc=""
+  else
+    # Strip trailing period/markdown artifacts
+    clean_desc="${clean_desc%.}"
+    clean_desc="${clean_desc%\*}"
   fi
 
   cat > "$out" << AGENTS_HEADER
