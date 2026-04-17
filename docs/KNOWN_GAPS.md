@@ -1,6 +1,6 @@
 # Known Gaps & Testing Checklist
 
-> Last updated: 2026-04-17 after 335 expert reviews across 6 audit rounds.
+> Last updated: 2026-04-17. Extensively self-tested; needs real-world validation.
 
 This document lists everything we know is not yet verified in production. If you're an early adopter, testing any of these items and reporting back helps enormously.
 

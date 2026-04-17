@@ -16,7 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Error messages** — sheal generator warns now include recovery hints and manifest field references
 - **Settings.json upgrade** — existing users get `log_warn` when sheal detected but hooks missing
 - **README badge** — test count updated to 94 (actual)
-- **6-round 335-expert audit** — all CRITICAL, HIGH, MEDIUM, LOW findings resolved
+- **Multi-round self-audit** — all CRITICAL, HIGH, MEDIUM, LOW findings resolved
 
 ## [1.2.0] — 2026-04-17
 ### Added

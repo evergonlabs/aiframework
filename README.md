@@ -548,7 +548,7 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 
 ## Known Gaps & Testing
 
-We believe in transparency. This framework has been through **335 independent expert reviews across 6 audit rounds**, with 90 automated tests passing. But some things can only be validated by real-world usage.
+We believe in transparency. The core pipeline has been extensively self-tested with automated checks passing. But some things can only be validated by real-world usage.
 
 **[Full testing checklist &rarr;](docs/KNOWN_GAPS.md)**
 
