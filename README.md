@@ -623,9 +623,20 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 
 aiframework collects anonymous usage data to understand adoption and prioritize features.
 
-**What is sent:** command name, version, OS, bash version, anonymous machine hash (SHA-256 of hostname + username).
+**What is collected:**
 
-**What is never sent:** source code, file paths, project names, personal data.
+| Data | Example | Why |
+|:-----|:--------|:----|
+| Event type | `run`, `refresh`, `upgrade`, `verify_failed` | Know which commands are used |
+| Version, OS, bash, Python, jq | `1.2.0`, `macos`, `5.2`, `3.12`, `1.7` | Know what environments to support |
+| Anonymous machine ID | SHA-256 hash (not reversible) | Count unique users, not sessions |
+| Pipeline outcome | `lang=python`, `framework=fastapi`, `archetype=api-service` | Know what stacks to prioritize |
+| Integration status | `sheal=true`, `gstack=true`, `node=true` | Know which integrations matter |
+| Error phase and message | `verify: failed=2 passed=8` | Fix the most common failures |
+| Vault stats | `vault_pages=87`, `total_symbols=335` | Understand scale and usage |
+| Duration | `12s` | Detect performance regressions |
+
+**What is never collected:** source code, file contents, file paths, project names, git history, commit messages, personal data, IP addresses, usernames.
 
 **Opt out:**
 
