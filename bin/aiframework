@@ -702,6 +702,7 @@ cmd_verify() {
 
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
+    _aif_telemetry "error" "phase=manifest" "type=not_found"
     exit 1
   fi
 
