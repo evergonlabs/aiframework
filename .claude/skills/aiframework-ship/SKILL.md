@@ -17,6 +17,12 @@ allowed-tools:
 
 # /aiframework-ship — Shipping Workflow
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=aiframework-ship 2>/dev/null || true
+```
+
 ## Step 1: Verify
 
 ```bash

@@ -6,7 +6,8 @@ install:
 	@mkdir -p $(PREFIX)/bin
 	@ln -sf $(CURDIR)/bin/aiframework $(PREFIX)/bin/aiframework
 	@ln -sf $(CURDIR)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-mcp
-	@echo "Installed aiframework + aiframework-mcp to $(PREFIX)/bin/"
+	@ln -sf $(CURDIR)/bin/aiframework-telemetry $(PREFIX)/bin/aiframework-telemetry
+	@echo "Installed aiframework + aiframework-mcp + aiframework-telemetry to $(PREFIX)/bin/"
 	@if command -v npm >/dev/null 2>&1; then \
 		npm install -g @liwala/sheal@latest 2>/dev/null && echo "Installed sheal (runtime session intelligence)" || echo "Warning: sheal npm install failed (non-fatal)"; \
 	else \
@@ -14,7 +15,7 @@ install:
 	fi
 
 uninstall:
-	@rm -f $(PREFIX)/bin/aiframework $(PREFIX)/bin/aiframework-mcp
+	@rm -f $(PREFIX)/bin/aiframework $(PREFIX)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-telemetry
 	@npm uninstall -g @liwala/sheal 2>/dev/null || true
 	@echo "Removed aiframework + aiframework-mcp + sheal from $(PREFIX)/bin/"
 

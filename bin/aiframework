@@ -461,49 +461,62 @@ cmd_discover() {
   MANIFEST="{}"
 
   # Run each scanner — each appends to MANIFEST
+  # Track per-scanner outcomes for telemetry
+  local _scanners_ok=0 _scanners_fail=0 _scanners_list=""
+
+  _run_scanner() {
+    local name="$1"; shift
+    if "$@" 2>/dev/null; then
+      _scanners_ok=$((_scanners_ok + 1))
+    else
+      _scanners_fail=$((_scanners_fail + 1))
+      _scanners_list="${_scanners_list:+$_scanners_list,}$name"
+    fi
+  }
+
   log_step "Project Identity"
-  scan_identity
+  _run_scanner "identity" scan_identity
 
   log_step "Stack Detection"
-  scan_stack
+  _run_scanner "stack" scan_stack
 
   log_step "Commands & Package Manager"
-  scan_commands
+  _run_scanner "commands" scan_commands
 
   log_step "Directory Structure"
-  scan_structure
+  _run_scanner "structure" scan_structure
 
   log_step "CI/CD & Deploy"
-  scan_ci
+  _run_scanner "ci" scan_ci
 
   log_step "Environment Variables"
-  scan_env
+  _run_scanner "env" scan_env
 
   log_step "Quality Tools"
-  scan_quality
+  _run_scanner "quality" scan_quality
 
   log_step "Domain-Specific Concerns"
-  scan_domain
+  _run_scanner "domain" scan_domain
 
   log_step "User Context"
-  scan_user_context
+  _run_scanner "user_context" scan_user_context
 
   if [[ "$NO_INDEX" != "true" ]]; then
     log_step "Code Index"
-    scan_code_index
+    _run_scanner "code_index" scan_code_index
   else
     _AIF_STEP=$((_AIF_STEP + 1))
     echo -e "  ${CYAN}├─${NC} ${DIM}[${_AIF_STEP}/${_AIF_STEP_TOTAL}]${NC} ${DIM}Code Index (skipped)${NC}"
   fi
 
   log_step "Archetype Detection"
-  scan_archetype
+  _run_scanner "archetype" scan_archetype
 
   log_step "Skill Suggestions"
-  scan_skill_suggestions
+  _run_scanner "skill_suggest" scan_skill_suggestions
 
   log_step "Sheal Integration"
-  scan_sheal || true
+  _run_scanner "sheal" scan_sheal || true
 
   log_phase_done
 
@@ -550,7 +563,10 @@ cmd_discover() {
     "total_files=$_d_files" \
     "ci=$_d_ci" \
     "sheal_detected=$_d_sheal_found" \
-    "no_index=$NO_INDEX"
+    "no_index=$NO_INDEX" \
+    "scanners_ok=$_scanners_ok" \
+    "scanners_fail=$_scanners_fail" \
+    "scanners_failed=$_scanners_list"
 }
 
 cmd_generate() {

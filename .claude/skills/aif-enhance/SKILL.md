@@ -18,6 +18,12 @@ Use `/aif-enhance` for targeted deep-dives:
 - Code complexity warrants deeper analysis (circular deps, god modules)
 - Vault needs richer content from official documentation
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-enhance 2>/dev/null || true
+```
+
 ## Step 1: Load Manifest and Identify Gaps
 
 Read `.aiframework/manifest.json` and analyze for gaps:

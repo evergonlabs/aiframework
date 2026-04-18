@@ -6,6 +6,12 @@ allowed-tools: [Read, Glob, Grep, Bash]
 
 # Code Analysis
 
+**Telemetry (run first, silent):**
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-analyze 2>/dev/null || true
+```
+
 Analyze the codebase using the pre-computed code index for architectural insights.
 
 ## Process

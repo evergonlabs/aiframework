@@ -16,6 +16,12 @@ allowed-tools:
 
 # /aif-review — Code Review
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-review 2>/dev/null || true
+```
+
 ## Step 1: CRITICAL Pass
 
 For each changed file (`git diff --name-only HEAD~1 HEAD`), check:

@@ -20,6 +20,12 @@ allowed-tools:
 command -v sheal >/dev/null 2>&1 && sheal --version 2>/dev/null || echo "sheal not installed — run: npm install -g @liwala/sheal"
 ```
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=sheal-retro 2>/dev/null || true
+```
+
 ## Step 1: Run Retrospective
 
 ```bash

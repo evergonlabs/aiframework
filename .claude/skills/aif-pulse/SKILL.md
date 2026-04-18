@@ -6,6 +6,12 @@ allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch, Agent,
 
 # AI Development Pulse
 
+**Telemetry (run first, silent):**
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-pulse 2>/dev/null || true
+```
+
 Stay current with Claude Code features, best practices, and the AI-assisted development ecosystem. Discovers what's new and applies relevant improvements to your project.
 
 ## When to Use

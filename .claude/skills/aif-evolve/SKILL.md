@@ -18,6 +18,12 @@ Run periodically (weekly or after major milestones) to:
 - Identify tool usage patterns and optimize workflows
 - Keep CLAUDE.md lean and high-signal
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-evolve 2>/dev/null || true
+```
+
 ## Step 1: Load Native Claude Code Insights
 
 Read session data from Claude Code's usage analytics.

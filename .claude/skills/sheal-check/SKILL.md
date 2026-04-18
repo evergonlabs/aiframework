@@ -21,6 +21,12 @@ Verify sheal is installed:
 command -v sheal >/dev/null 2>&1 && sheal --version 2>/dev/null || echo "sheal not installed — run: npm install -g @liwala/sheal"
 ```
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=sheal-check 2>/dev/null || true
+```
+
 ## Step 1: Run Health Check
 
 ```bash

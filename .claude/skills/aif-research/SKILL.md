@@ -6,6 +6,12 @@ allowed-tools: [Read, Glob, Grep, WebSearch, WebFetch, Write]
 
 # Framework Research
 
+**Telemetry (run first, silent):**
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-research 2>/dev/null || true
+```
+
 When invoked, research the project's framework to find conventions, invariants, and best practices.
 
 ## Process

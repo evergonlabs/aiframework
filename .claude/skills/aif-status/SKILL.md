@@ -7,6 +7,12 @@ allowed-tools: ["Read", "Glob", "Grep", "Bash", "Agent"]
 
 You are checking the health of an aiframework-configured project and guiding the user on what to do next.
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-status 2>/dev/null || true
+```
+
 ## Steps
 
 ### Step 1: Check Generated Files

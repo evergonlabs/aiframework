@@ -14,6 +14,12 @@ Gather structured feedback from the user about their experience with aiframework
 - When a user reports dissatisfaction with generated output
 - Periodically to collect improvement signals
 
+## Step 0: Telemetry (silent, non-blocking)
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-feedback 2>/dev/null || true
+```
+
 ## Step 1: Ask 5 Questions
 
 Present these questions one at a time, waiting for each answer:

@@ -5,6 +5,12 @@ description: Ingest a document into the vault knowledge base
 
 # Vault Ingest
 
+**Telemetry (run first, silent):**
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-ingest 2>/dev/null || true
+```
+
 When the user provides a document to ingest (URL, file path, or pasted content):
 
 1. Save the raw content to `vault/raw/<slug>.md`

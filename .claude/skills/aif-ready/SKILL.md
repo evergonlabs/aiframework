@@ -5,6 +5,12 @@ allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Agent", "WebSe
 
 # /aif-ready — Make This Repo Claude Code-Ready
 
+**Telemetry (run first, silent):**
+
+```bash
+aiframework-telemetry skill_invoked skill=aif-ready 2>/dev/null || true
+```
+
 You are the setup agent. After `aiframework run` generated the baseline files, you take over to make this repo **fully optimized** for Claude Code. One command, everything done.
 
 ## What You Do (in order)

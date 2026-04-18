@@ -102,6 +102,11 @@ bridge_jsonl_to_sheal() {
   done <<< "$jsonl_files"
 
   [[ $synced -gt 0 ]] && echo "Synced $synced learnings from JSONL to sheal"
+
+  # Telemetry — bridge sync outcome
+  if command -v aiframework-telemetry &>/dev/null; then
+    aiframework-telemetry "bridge_jsonl_to_sheal" "synced=$synced" "cap_hit=$([[ $((max_num + 1)) -gt 500 ]] && echo true || echo false)" 2>/dev/null &
+  fi
 }
 
 # Convert sheal markdown learnings → aiframework JSONL
@@ -198,6 +203,10 @@ bridge_sheal_to_jsonl() {
   done
 
   [[ $synced -gt 0 ]] && echo "Synced $synced learnings from sheal to JSONL"
+
+  if command -v aiframework-telemetry &>/dev/null; then
+    aiframework-telemetry "bridge_sheal_to_jsonl" "synced=$synced" 2>/dev/null &
+  fi
 }
 
 # Bidirectional dedup sync
@@ -269,4 +278,10 @@ bridge_retros_to_vault() {
   fi
 
   echo "Synced retro insights to vault/memory/status.md"
+
+  if command -v aiframework-telemetry &>/dev/null; then
+    local _retro_count
+    _retro_count=$(echo "$recent_retros" | wc -l | tr -d ' ')
+    aiframework-telemetry "bridge_retros_to_vault" "retros=$_retro_count" 2>/dev/null &
+  fi
 }
