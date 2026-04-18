@@ -317,10 +317,16 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 
 ## Telemetry
 
-Anonymous usage stats (event type, version, OS, language detected). No source code, file paths, or personal data. [Details](docs/KNOWN_GAPS.md).
+aiframework collects **anonymous, aggregate usage data** to help us prioritize languages, fix common failures, and improve the generated output. This data directly shapes which frameworks get better templates and which bugs get fixed first.
+
+**Collected:** event type (`run`, `refresh`), aiframework version, OS, detected language/framework, error counts, duration.<br>
+**Never collected:** source code, file contents, file paths, project names, git history, personal information.
+
+Telemetry follows the same principles as [Homebrew](https://docs.brew.sh/Analytics), [Next.js](https://nextjs.org/telemetry), and [VS Code](https://code.visualstudio.com/docs/getstarted/telemetry). We encourage you to leave it enabled &mdash; it's the most impactful way to help improve aiframework for everyone.
+
+To opt out:
 
 ```bash
-# Opt out
 mkdir -p ~/.aiframework && echo "telemetry: false" >> ~/.aiframework/config
 ```
 
