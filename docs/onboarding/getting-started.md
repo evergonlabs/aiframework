@@ -117,7 +117,7 @@ tar xzf "aiframework-${VERSION}.tar.gz" && cd aiframework && make install
 **Verify it works:**
 
 ```bash
-aiframework --version    # should print 1.3.0
+aiframework --version    # prints the installed version
 aiframework --help       # show all commands
 ```
 

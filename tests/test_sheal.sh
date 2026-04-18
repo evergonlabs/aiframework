@@ -51,10 +51,31 @@ echo ""
 echo -e "${BOLD}test_scanner_not_installed${NC}"
 setup_fixture
 
+# Hide sheal by creating a shadow PATH dir without it
+_ORIG_PATH="$PATH"
+if command -v sheal &>/dev/null; then
+  _sheal_real="$(command -v sheal)"
+  _shadow_dir=$(mktemp -d)
+  # Create a shadow of the dir containing sheal, minus sheal itself
+  _sheal_dir="$(dirname "$_sheal_real")"
+  for f in "$_sheal_dir"/*; do
+    fname="$(basename "$f")"
+    [[ "$fname" == "sheal" ]] && continue
+    ln -sf "$f" "$_shadow_dir/$fname" 2>/dev/null || true
+  done
+  PATH=$(echo "$PATH" | sed "s|${_sheal_dir}|${_shadow_dir}|g")
+  hash -r 2>/dev/null || true
+fi
+
 MANIFEST="{}"
 TARGET_DIR="$FIXTURE_DIR"
 source "$LIB_DIR/scanners/sheal.sh"
 scan_sheal 2>/dev/null || true
+
+# Restore PATH
+PATH="$_ORIG_PATH"
+hash -r 2>/dev/null || true
+[[ -n "${_shadow_dir:-}" ]] && rm -rf "$_shadow_dir"
 
 # Verify manifest has sheal block with installed=false
 installed=$(echo "$MANIFEST" | jq -r '.sheal.installed')
@@ -109,10 +130,29 @@ teardown_fixture
 echo -e "${BOLD}test_scanner_manifest_preserved${NC}"
 setup_fixture
 
+# Hide sheal by creating a shadow PATH dir without it
+_ORIG_PATH="$PATH"
+if command -v sheal &>/dev/null; then
+  _sheal_real="$(command -v sheal)"
+  _shadow_dir=$(mktemp -d)
+  _sheal_dir="$(dirname "$_sheal_real")"
+  for f in "$_sheal_dir"/*; do
+    fname="$(basename "$f")"
+    [[ "$fname" == "sheal" ]] && continue
+    ln -sf "$f" "$_shadow_dir/$fname" 2>/dev/null || true
+  done
+  PATH=$(echo "$PATH" | sed "s|${_sheal_dir}|${_shadow_dir}|g")
+  hash -r 2>/dev/null || true
+fi
+
 MANIFEST='{"identity":{"name":"test"}}'
 TARGET_DIR="$FIXTURE_DIR"
 source "$LIB_DIR/scanners/sheal.sh"
 scan_sheal 2>/dev/null || true
+
+PATH="$_ORIG_PATH"
+hash -r 2>/dev/null || true
+[[ -n "${_shadow_dir:-}" ]] && rm -rf "$_shadow_dir"
 
 # MANIFEST should still have identity AND sheal
 has_identity=$(echo "$MANIFEST" | jq -r '.identity.name')

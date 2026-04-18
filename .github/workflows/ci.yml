@@ -21,7 +21,7 @@ jobs:
         uses: ludeeus/action-shellcheck@2.0.0
         with:
           scandir: './lib'
-          additional_files: 'bin/aiframework'
+          additional_files: 'bin/aiframework bin/aiframework-mcp bin/aiframework-telemetry bin/aiframework-update-check'
 
   python:
     runs-on: ubuntu-latest

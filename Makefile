@@ -7,7 +7,8 @@ install:
 	@ln -sf $(CURDIR)/bin/aiframework $(PREFIX)/bin/aiframework
 	@ln -sf $(CURDIR)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-mcp
 	@ln -sf $(CURDIR)/bin/aiframework-telemetry $(PREFIX)/bin/aiframework-telemetry
-	@echo "Installed aiframework + aiframework-mcp + aiframework-telemetry to $(PREFIX)/bin/"
+	@ln -sf $(CURDIR)/bin/aiframework-update-check $(PREFIX)/bin/aiframework-update-check
+	@echo "Installed aiframework binaries to $(PREFIX)/bin/"
 	@if command -v npm >/dev/null 2>&1; then \
 		npm install -g @liwala/sheal@latest 2>/dev/null && echo "Installed sheal (runtime session intelligence)" || echo "Warning: sheal npm install failed (non-fatal)"; \
 	else \
@@ -15,9 +16,9 @@ install:
 	fi
 
 uninstall:
-	@rm -f $(PREFIX)/bin/aiframework $(PREFIX)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-telemetry
+	@rm -f $(PREFIX)/bin/aiframework $(PREFIX)/bin/aiframework-mcp $(PREFIX)/bin/aiframework-telemetry $(PREFIX)/bin/aiframework-update-check
 	@npm uninstall -g @liwala/sheal 2>/dev/null || true
-	@echo "Removed aiframework + aiframework-mcp + sheal from $(PREFIX)/bin/"
+	@echo "Removed aiframework binaries from $(PREFIX)/bin/"
 
 lint:
 	@echo "Checking bash syntax..."

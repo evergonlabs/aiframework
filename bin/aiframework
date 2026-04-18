@@ -871,30 +871,47 @@ _upgrade_via_tarball() {
     return 1
   fi
 
-  # Verify the checksum if available
+  # Verify the checksum (required for security)
   local checksums_url
   checksums_url=$(echo "$release_json" | jq -r '.assets[]? | select(.name == "checksums-sha256.txt") | .browser_download_url' 2>/dev/null)
-  if [[ -n "$checksums_url" ]]; then
-    log_info "Verifying checksum..."
-    local expected_sha
-    if command -v curl &>/dev/null; then
-      expected_sha=$(curl -fsSL "$checksums_url" 2>/dev/null | grep "aiframework-" | awk '{print $1}')
-    fi
-    if [[ -n "$expected_sha" ]]; then
-      local actual_sha
-      if command -v sha256sum &>/dev/null; then
-        actual_sha=$(sha256sum "$tmp_tarball" | awk '{print $1}')
-      elif command -v shasum &>/dev/null; then
-        actual_sha=$(shasum -a 256 "$tmp_tarball" | awk '{print $1}')
-      fi
-      if [[ -n "$actual_sha" && "$actual_sha" != "$expected_sha" ]]; then
-        log_warn "Checksum mismatch — aborting update"
-        rm -rf "$tmp_dir"
-        return 1
-      fi
-      log_ok "Checksum verified"
-    fi
+  if [[ -z "$checksums_url" ]]; then
+    log_warn "No checksums file in release — aborting update (integrity cannot be verified)"
+    rm -rf "$tmp_dir"
+    return 1
   fi
+
+  log_info "Verifying checksum..."
+  local tarball_name="aiframework-${remote_ver}.tar.gz"
+  local expected_sha=""
+  if command -v curl &>/dev/null; then
+    expected_sha=$(curl -fsSL "$checksums_url" 2>/dev/null | grep -F "$tarball_name" | head -1 | awk '{print $1}')
+  elif command -v wget &>/dev/null; then
+    expected_sha=$(wget -qO- "$checksums_url" 2>/dev/null | grep -F "$tarball_name" | head -1 | awk '{print $1}')
+  fi
+
+  if [[ -z "$expected_sha" ]]; then
+    log_warn "Could not retrieve expected checksum from release — aborting update"
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  local actual_sha=""
+  if command -v sha256sum &>/dev/null; then
+    actual_sha=$(sha256sum "$tmp_tarball" | awk '{print $1}')
+  elif command -v shasum &>/dev/null; then
+    actual_sha=$(shasum -a 256 "$tmp_tarball" | awk '{print $1}')
+  else
+    log_warn "No sha256 tool available (need sha256sum or shasum) — aborting update"
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  if [[ "$actual_sha" != "$expected_sha" ]]; then
+    log_warn "Checksum mismatch — aborting update (expected: ${expected_sha:0:16}..., got: ${actual_sha:0:16}...)"
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+  log_ok "Checksum verified"
 
   # Extract over existing install
   log_info "Installing v${remote_ver}..."

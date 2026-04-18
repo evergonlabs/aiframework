@@ -23,7 +23,7 @@
 
 [![version](https://img.shields.io/badge/v1.3.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/146_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/151_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)

@@ -11,14 +11,17 @@ class Aiframework < Formula
   sha256 "__SHA256__"
   license "MIT"
 
+  head "https://github.com/evergonlabs/aiframework.git", branch: "main"
+
   depends_on "jq"
-  depends_on "python@3.12"
+  depends_on "python@3"
 
   def install
     prefix.install Dir["*"]
     bin.install_symlink prefix/"bin/aiframework"
     bin.install_symlink prefix/"bin/aiframework-mcp"
     bin.install_symlink prefix/"bin/aiframework-telemetry"
+    bin.install_symlink prefix/"bin/aiframework-update-check"
   end
 
   def caveats

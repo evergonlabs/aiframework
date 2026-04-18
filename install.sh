@@ -165,7 +165,7 @@ check_dependencies() {
     py_ver="$($PY_CMD -c 'import sys; print("{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro))')"
     py_minor="$($PY_CMD -c 'import sys; print(sys.version_info.minor)')"
     py_major="$($PY_CMD -c 'import sys; print(sys.version_info.major)')"
-    if [ "$py_major" -ge 3 ] && [ "$py_minor" -ge 10 ]; then
+    if [ "$py_major" -gt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -ge 10 ]; }; then
       ok "$PY_CMD $py_ver"
     else
       err "python 3.10+ required (found $py_ver)"
@@ -245,6 +245,7 @@ install_aiframework() {
       cp -f "$AIFRAMEWORK_DIR/bin/aiframework" "$BIN_DIR/aiframework"
       cp -f "$AIFRAMEWORK_DIR/bin/aiframework-mcp" "$BIN_DIR/aiframework-mcp"
       cp -f "$AIFRAMEWORK_DIR/bin/aiframework-telemetry" "$BIN_DIR/aiframework-telemetry"
+      cp -f "$AIFRAMEWORK_DIR/bin/aiframework-update-check" "$BIN_DIR/aiframework-update-check"
       ok "Copied binaries to $BIN_DIR"
       warn "On Windows, run 'aiframework update' after updates (files are copied, not symlinked)"
       ;;
@@ -252,6 +253,7 @@ install_aiframework() {
       ln -sf "$AIFRAMEWORK_DIR/bin/aiframework" "$BIN_DIR/aiframework"
       ln -sf "$AIFRAMEWORK_DIR/bin/aiframework-mcp" "$BIN_DIR/aiframework-mcp"
       ln -sf "$AIFRAMEWORK_DIR/bin/aiframework-telemetry" "$BIN_DIR/aiframework-telemetry"
+      ln -sf "$AIFRAMEWORK_DIR/bin/aiframework-update-check" "$BIN_DIR/aiframework-update-check"
       ok "Symlinked binaries to $BIN_DIR"
       ;;
   esac
@@ -278,6 +280,14 @@ install_aiframework() {
 # ── PATH setup ──
 
 ensure_path() {
+  # Skip PATH modification if --no-modify-rc was passed or BIN_DIR is under /tmp
+  if [ "${NO_MODIFY_RC:-0}" = "1" ]; then
+    return 0
+  fi
+  case "$BIN_DIR" in
+    /tmp/*|/private/tmp/*|/var/tmp/*) return 0 ;;
+  esac
+
   case ":$PATH:" in
     *":$BIN_DIR:"*) return 0 ;;
   esac
@@ -328,11 +338,29 @@ uninstall_aiframework() {
   set_default_paths
 
   info "Removing aiframework..."
-  rm -f "$BIN_DIR/aiframework" "$BIN_DIR/aiframework-mcp" "$BIN_DIR/aiframework-telemetry"
+  rm -f "$BIN_DIR/aiframework" "$BIN_DIR/aiframework-mcp" "$BIN_DIR/aiframework-telemetry" "$BIN_DIR/aiframework-update-check"
   if [ -d "$AIFRAMEWORK_DIR" ]; then
     rm -rf "$AIFRAMEWORK_DIR"
     ok "Removed $AIFRAMEWORK_DIR"
   fi
+
+  # Remove the exact PATH block we added (2-line: "# aiframework" + PATH export)
+  for rc_file in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.profile" "$HOME/.config/fish/config.fish"; do
+    if [ -f "$rc_file" ] && grep -qF "$BIN_DIR" "$rc_file" 2>/dev/null; then
+      cp "$rc_file" "${rc_file}.aif-backup"
+      # Only remove lines that are exactly "# aiframework" followed by a PATH line containing our BIN_DIR
+      awk -v bindir="$BIN_DIR" '
+        /^# aiframework$/ { pending = $0; next }
+        pending && index($0, bindir) > 0 { pending = ""; next }
+        pending { print pending; pending = "" }
+        { print }
+        END { if (pending) print pending }
+      ' "$rc_file" > "${rc_file}.aif-tmp"
+      mv "${rc_file}.aif-tmp" "$rc_file"
+      ok "Removed PATH entry from $rc_file (backup: ${rc_file}.aif-backup)"
+    fi
+  done
+
   ok "aiframework uninstalled"
   info "Note: ~/.aiframework/ config directory preserved. Remove manually if desired."
 }
@@ -353,6 +381,9 @@ main() {
         uninstall_aiframework
         exit 0
         ;;
+      --no-modify-rc)
+        NO_MODIFY_RC=1
+        ;;
       --help|-h)
         echo "Usage: curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh"
         echo ""
@@ -366,6 +397,7 @@ main() {
         echo ""
         echo "Flags:"
         echo "  --uninstall            Remove aiframework"
+        echo "  --no-modify-rc         Don't modify shell RC files (PATH)"
         echo "  --help                 Show this help"
         exit 0
         ;;

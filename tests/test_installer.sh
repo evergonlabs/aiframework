@@ -47,6 +47,7 @@ mkdir -p "$FAKE_AIFRAMEWORK_DIR/bin"
 cp -r "$ROOT_DIR/bin/aiframework" "$FAKE_AIFRAMEWORK_DIR/bin/"
 cp -r "$ROOT_DIR/bin/aiframework-mcp" "$FAKE_AIFRAMEWORK_DIR/bin/"
 cp -r "$ROOT_DIR/bin/aiframework-telemetry" "$FAKE_AIFRAMEWORK_DIR/bin/"
+cp -r "$ROOT_DIR/bin/aiframework-update-check" "$FAKE_AIFRAMEWORK_DIR/bin/"
 cp "$ROOT_DIR/VERSION" "$FAKE_AIFRAMEWORK_DIR/"
 
 # Create symlinks manually (what install_aiframework does)
@@ -54,11 +55,13 @@ mkdir -p "$TMP_PREFIX/bin"
 ln -sf "$FAKE_AIFRAMEWORK_DIR/bin/aiframework" "$TMP_PREFIX/bin/aiframework"
 ln -sf "$FAKE_AIFRAMEWORK_DIR/bin/aiframework-mcp" "$TMP_PREFIX/bin/aiframework-mcp"
 ln -sf "$FAKE_AIFRAMEWORK_DIR/bin/aiframework-telemetry" "$TMP_PREFIX/bin/aiframework-telemetry"
+ln -sf "$FAKE_AIFRAMEWORK_DIR/bin/aiframework-update-check" "$TMP_PREFIX/bin/aiframework-update-check"
 
 # Verify symlinks
 [[ -L "$TMP_PREFIX/bin/aiframework" ]] && pass "aiframework symlink created" || fail "aiframework symlink missing"
 [[ -L "$TMP_PREFIX/bin/aiframework-mcp" ]] && pass "aiframework-mcp symlink created" || fail "aiframework-mcp symlink missing"
 [[ -L "$TMP_PREFIX/bin/aiframework-telemetry" ]] && pass "aiframework-telemetry symlink created" || fail "aiframework-telemetry symlink missing"
+[[ -L "$TMP_PREFIX/bin/aiframework-update-check" ]] && pass "aiframework-update-check symlink created" || fail "aiframework-update-check symlink missing"
 
 # Verify symlinks point to correct location
 target=$(readlink "$TMP_PREFIX/bin/aiframework" 2>/dev/null || true)
@@ -68,10 +71,18 @@ else
   fail "symlink target wrong: $target"
 fi
 
-# Test 5: Idempotent re-install (re-create symlinks)
+# Test 5: Idempotent re-install (overwrite existing symlinks and verify)
 echo "Test 5: Idempotent install"
+# Change a symlink to point elsewhere, then re-create — proving idempotency
+ln -sf "/nonexistent/old-path" "$TMP_PREFIX/bin/aiframework"
+# Re-apply the correct symlink (what installer does on re-run)
 ln -sf "$FAKE_AIFRAMEWORK_DIR/bin/aiframework" "$TMP_PREFIX/bin/aiframework"
-[[ -L "$TMP_PREFIX/bin/aiframework" ]] && pass "symlink still exists after re-install" || fail "symlink missing after re-install"
+new_target=$(readlink "$TMP_PREFIX/bin/aiframework" 2>/dev/null || true)
+if [[ "$new_target" == *"aiframework-src/bin/aiframework" ]]; then
+  pass "symlink correctly updated after re-install"
+else
+  fail "symlink not updated: $new_target"
+fi
 
 # Test 6: Uninstall
 echo "Test 6: Uninstall"
@@ -79,6 +90,7 @@ export PREFIX="$TMP_PREFIX"
 export AIFRAMEWORK_DIR="$FAKE_AIFRAMEWORK_DIR"
 "$INSTALLER" --uninstall 2>/dev/null && pass "uninstall completed" || fail "uninstall failed"
 [[ ! -L "$TMP_PREFIX/bin/aiframework" ]] && pass "symlink removed" || fail "symlink still exists"
+[[ ! -L "$TMP_PREFIX/bin/aiframework-update-check" ]] && pass "update-check symlink removed" || fail "update-check symlink still exists"
 [[ ! -d "$FAKE_AIFRAMEWORK_DIR" ]] && pass "source dir removed" || fail "source dir still exists"
 
 # Cleanup
