@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Lightweight telemetry for hook events — fire-and-forget, never blocks
+_aif_hook_telemetry() {
+  local _cfg="${HOME}/.aiframework/config"
+  [[ -f "$_cfg" ]] && grep -q 'telemetry: false' "$_cfg" 2>/dev/null && return 0
+  local _event="$1"; shift
+  local _ver; _ver=$(cat "$(git rev-parse --show-toplevel 2>/dev/null)/VERSION" 2>/dev/null || echo "0.0.0")
+  local _mid; _mid=$(echo "${HOSTNAME:-x}:${USER:-x}" | shasum -a 256 2>/dev/null | cut -d' ' -f1 || echo "x")
+  local _os="unknown"; case "$(uname -s 2>/dev/null)" in Darwin*) _os="macos";; Linux*) _os="linux";; MINGW*|MSYS*) _os="windows";; esac
+  local _extra=""; for _kv in "$@"; do _extra="${_extra:+$_extra, }\"${_kv%%=*}\": \"${_kv#*=}\""; done
+  command -v curl &>/dev/null && curl -fsSL --connect-timeout 2 --max-time 3 \
+    -X POST -H "Content-Type: application/json" \
+    -d "{\"event\":\"$_event\",\"version\":\"$_ver\",\"machine\":\"$_mid\",\"platform\":\"$_os\"${_extra:+, $_extra}}" \
+    "https://telemetry.evergonlabs.com/v1/event" &>/dev/null || true
+}
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  aiframework Pre-Push Quality Gate"
@@ -42,6 +57,7 @@ echo "  [1/1] Linting..."
 find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck --severity=error 2>&1
 if [ $? -ne 0 ]; then
   echo "  BLOCKED: Lint errors. Fix before pushing."
+  _aif_hook_telemetry "prepush_blocked" "reason=lint" &>/dev/null &
   exit 1
 fi
 echo "  [1/1] Lint passed"
@@ -82,6 +98,7 @@ if [ "$INVARIANT_FAIL" = true ]; then
   echo "  Fix the issues above before pushing."
   echo "  To bypass (not recommended): git push --no-verify"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  _aif_hook_telemetry "prepush_blocked" "reason=invariant" &>/dev/null &
   exit 1
 fi
 # Version check
@@ -112,4 +129,5 @@ echo ""
 echo "  All gates passed — push allowed"
 echo "  TIP: Run /review and /cso before creating a PR"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+_aif_hook_telemetry "prepush_passed" &>/dev/null &
 exit 0

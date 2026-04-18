@@ -3289,15 +3289,19 @@ populate_vault_from_index() {
       --verify \
       --today "$today" 2>&1); then
       log_ok "$output"
+      _aif_telemetry "wiki_graph" "mode=python" "outcome=success" 2>/dev/null || true
       return 0
     else
       log_warn "wiki_graph.py failed, falling back to legacy: $output"
+      _aif_telemetry "wiki_graph" "mode=legacy_fallback" "outcome=python_failed" 2>/dev/null || true
     fi
   else
     if [[ ! -f "$wiki_graph_py" ]]; then
       log_warn "wiki_graph.py not found at $wiki_graph_py — using legacy vault population"
+      _aif_telemetry "wiki_graph" "mode=legacy" "outcome=file_not_found" 2>/dev/null || true
     elif ! command -v python3 &>/dev/null; then
       log_warn "python3 not available — using legacy vault population"
+      _aif_telemetry "wiki_graph" "mode=legacy" "outcome=no_python" 2>/dev/null || true
     fi
   fi
 

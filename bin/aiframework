@@ -211,6 +211,10 @@ check_dependencies() {
   if [[ $missing -ne 0 ]]; then
     echo ""
     echo "Install missing dependencies and try again."
+    local _missing_list=""
+    command -v jq &>/dev/null || _missing_list="jq"
+    command -v git &>/dev/null || _missing_list="${_missing_list:+$_missing_list,}git"
+    _aif_telemetry "dependency_missing" "tools=$_missing_list"
     exit 1
   fi
 }
@@ -528,6 +532,25 @@ cmd_discover() {
   echo ""
   log_ok "Manifest written to ${BOLD}$MANIFEST_PATH${NC}"
   echo ""
+
+  # Telemetry — discover outcomes
+  local _d_lang _d_fw _d_arch _d_domains_count _d_files _d_ci _d_sheal_found
+  _d_lang=$(echo "$MANIFEST" | jq -r '.stack.language // "unknown"' 2>/dev/null)
+  _d_fw=$(echo "$MANIFEST" | jq -r '.stack.framework // "none"' 2>/dev/null)
+  _d_arch=$(echo "$MANIFEST" | jq -r '.archetype.type // "unknown"' 2>/dev/null)
+  _d_domains_count=$(echo "$MANIFEST" | jq '[.domain.detected_domains[]?] | length' 2>/dev/null || echo "0")
+  _d_files=$(echo "$MANIFEST" | jq '.structure.total_files // 0' 2>/dev/null || echo "0")
+  _d_ci=$(echo "$MANIFEST" | jq -r '.ci.provider // "none"' 2>/dev/null)
+  _d_sheal_found=$(echo "$MANIFEST" | jq -r '.sheal.installed // false' 2>/dev/null)
+  _aif_telemetry "discover" \
+    "lang=$_d_lang" \
+    "framework=$_d_fw" \
+    "archetype=$_d_arch" \
+    "domains=$_d_domains_count" \
+    "total_files=$_d_files" \
+    "ci=$_d_ci" \
+    "sheal_detected=$_d_sheal_found" \
+    "no_index=$NO_INDEX"
 }
 
 cmd_generate() {
@@ -647,6 +670,12 @@ cmd_generate() {
   log_ok "Generated ${BOLD}$generated/$total_steps${NC} file groups (tier: ${AIF_RESOLVED_TIER})"
   print_preserve_summary
   echo ""
+
+  _aif_telemetry "generate" \
+    "tier=${AIF_RESOLVED_TIER}" \
+    "generated=$generated" \
+    "total_steps=$total_steps" \
+    "sheal_integrated=$_sheal_installed"
 }
 
 cmd_verify() {
@@ -719,6 +748,7 @@ cmd_verify() {
     exit 1
   else
     log_ok "Verification ${BOLD}PASSED${NC}"
+    _aif_telemetry "verify_passed" "passed=$passed" "failed=$failed" "warnings=$warnings"
   fi
 }
 
@@ -901,6 +931,10 @@ EOF
 cmd_run() {
   local _run_start=$SECONDS
 
+  # Detect first run vs repeat
+  local _is_first_run="true"
+  [[ -f "$TARGET_DIR/.aiframework/manifest.json" ]] && _is_first_run="false"
+
   cmd_discover
 
   # Analysis summary (A20)
@@ -967,7 +1001,9 @@ cmd_run() {
     "checks_passed=$_checks_passed" \
     "checks_failed=$_checks_failed" \
     "files_generated=$_files_gen" \
-    "duration=${_run_elapsed}s"
+    "duration=${_run_elapsed}s" \
+    "first_run=$_is_first_run" \
+    "non_interactive=$NON_INTERACTIVE"
 }
 
 # Main
