@@ -21,7 +21,7 @@
 
 <br>
 
-[![version](https://img.shields.io/badge/v1.2.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
+[![version](https://img.shields.io/badge/v1.3.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
 [![tests](https://img.shields.io/badge/126_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
@@ -47,8 +47,29 @@
 
 ### Step 1: Install (once)
 
+**One-line install** (macOS, Linux, WSL, Windows Git Bash):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
+```
+
+<details>
+<summary>Alternative install methods</summary>
+
+**Homebrew** (macOS/Linux):
+```bash
+brew tap evergonlabs/tap && brew install aiframework
+```
+
+**Manual** (any platform):
 ```bash
 git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
+```
+
+</details>
+
+**Optional:** Add gstack skills (37 Claude Code skills):
+```bash
 git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup --no-prefix
 ```
 
@@ -541,27 +562,23 @@ The wiki auto-updates on every `git push` via the pre-push hook. Change a file, 
 
 ## Upgrading
 
-aiframework is installed as a symlink from a git clone. Upgrading is one command:
+One command, works regardless of how you installed:
 
 ```bash
-aiframework upgrade
+aiframework update
 ```
 
-**What it does:**
+**Auto-detects your install method** and does the right thing:
 
-1. Pulls latest code (`git pull --ff-only` on the aiframework repo)
-2. Updates sheal to latest via npm
-3. Finds every repo you've bootstrapped (tracked in `~/.aiframework/knowledge/`)
-4. Runs `aiframework refresh` on each &mdash; surgical, incremental, only regenerates what changed
+| Install method | What `update` does |
+|---|---|
+| curl\|sh / git clone | `git pull --ff-only` |
+| Homebrew | `brew upgrade aiframework` |
+| Release tarball | Downloads latest release, verifies checksum, extracts |
 
-New features (like the knowledge graph) are applied to all your existing projects automatically. No need to re-run `aiframework run` from scratch.
+After updating itself, it refreshes all your bootstrapped projects automatically.
 
-**First time upgrading** (if you installed before `upgrade` existed):
-
-```bash
-cd ~/aiframework && git pull    # get the upgrade command
-aiframework upgrade             # from now on, this is all you need
-```
+**Aliases:** `aiframework upgrade`, `aiframework self-update` &mdash; all do the same thing.
 
 <br>
 
@@ -579,7 +596,8 @@ $ aiframework <command> [options]
   generate       read manifest → generate all files
   verify         validate generated files (5 validators)
   refresh        re-discover + generate only if drift detected
-  upgrade        pull latest + refresh all bootstrapped repos
+  update         auto-detect install method + update + refresh all repos
+  upgrade        alias for update
   report         human-readable report
   index          build code index only
   stats          cross-repo learning patterns

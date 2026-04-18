@@ -784,25 +784,179 @@ cmd_index() {
   log_ok "Code index written to ${BOLD}$OUTPUT_DIR/code-index.json${NC}"
 }
 
+_detect_install_method() {
+  # Detect how aiframework was installed
+  if [[ -d "$ROOT_DIR/.git" ]]; then
+    echo "git"
+  elif command -v brew &>/dev/null && brew list aiframework &>/dev/null 2>&1; then
+    echo "homebrew"
+  else
+    echo "tarball"
+  fi
+}
+
+_fetch_latest_release_url() {
+  local api_url="https://api.github.com/repos/evergonlabs/aiframework/releases/latest"
+  if command -v curl &>/dev/null; then
+    curl -fsSL --connect-timeout 5 --max-time 10 "$api_url" 2>/dev/null
+  elif command -v wget &>/dev/null; then
+    wget -qO- --timeout=10 "$api_url" 2>/dev/null
+  fi
+}
+
+_upgrade_via_git() {
+  log_info "Pulling latest aiframework..."
+  if (cd "$ROOT_DIR" && git pull --ff-only origin main 2>/dev/null); then
+    return 0
+  else
+    log_warn "Git pull failed — try: cd $ROOT_DIR && git pull"
+    return 1
+  fi
+}
+
+_upgrade_via_tarball() {
+  log_info "Checking for latest release..."
+
+  local release_json
+  release_json=$(_fetch_latest_release_url)
+  if [[ -z "$release_json" ]]; then
+    log_warn "Could not reach GitHub API"
+    return 1
+  fi
+
+  local remote_tag
+  remote_tag=$(echo "$release_json" | jq -r '.tag_name // empty' 2>/dev/null)
+  local remote_ver="${remote_tag#v}"
+
+  if [[ -z "$remote_ver" ]]; then
+    log_warn "Could not determine latest version"
+    return 1
+  fi
+
+  local old_ver
+  old_ver="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+  if [[ "$old_ver" == "$remote_ver" ]]; then
+    log_ok "Already at latest version (v${remote_ver})"
+    return 0
+  fi
+
+  # Find the tarball asset
+  local tarball_url
+  tarball_url=$(echo "$release_json" | jq -r '.assets[]? | select(.name | test("aiframework-.*\\.tar\\.gz$")) | .browser_download_url' 2>/dev/null | head -1)
+
+  if [[ -z "$tarball_url" ]]; then
+    # Fallback to source tarball
+    tarball_url=$(echo "$release_json" | jq -r '.tarball_url // empty' 2>/dev/null)
+  fi
+
+  if [[ -z "$tarball_url" ]]; then
+    log_warn "No downloadable release found"
+    return 1
+  fi
+
+  log_info "Downloading v${remote_ver}..."
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  local tmp_tarball="$tmp_dir/aiframework.tar.gz"
+
+  if command -v curl &>/dev/null; then
+    curl -fsSL -o "$tmp_tarball" "$tarball_url"
+  elif command -v wget &>/dev/null; then
+    wget -qO "$tmp_tarball" "$tarball_url"
+  fi
+
+  if [[ ! -f "$tmp_tarball" ]]; then
+    log_warn "Download failed"
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  # Verify the checksum if available
+  local checksums_url
+  checksums_url=$(echo "$release_json" | jq -r '.assets[]? | select(.name == "checksums-sha256.txt") | .browser_download_url' 2>/dev/null)
+  if [[ -n "$checksums_url" ]]; then
+    log_info "Verifying checksum..."
+    local expected_sha
+    if command -v curl &>/dev/null; then
+      expected_sha=$(curl -fsSL "$checksums_url" 2>/dev/null | grep "aiframework-" | awk '{print $1}')
+    fi
+    if [[ -n "$expected_sha" ]]; then
+      local actual_sha
+      if command -v sha256sum &>/dev/null; then
+        actual_sha=$(sha256sum "$tmp_tarball" | awk '{print $1}')
+      elif command -v shasum &>/dev/null; then
+        actual_sha=$(shasum -a 256 "$tmp_tarball" | awk '{print $1}')
+      fi
+      if [[ -n "$actual_sha" && "$actual_sha" != "$expected_sha" ]]; then
+        log_warn "Checksum mismatch — aborting update"
+        rm -rf "$tmp_dir"
+        return 1
+      fi
+      log_ok "Checksum verified"
+    fi
+  fi
+
+  # Extract over existing install
+  log_info "Installing v${remote_ver}..."
+  tar xzf "$tmp_tarball" -C "$tmp_dir"
+
+  # Find the extracted directory (could be aiframework/ or aiframework-VERSION/)
+  local extracted_dir
+  extracted_dir=$(find "$tmp_dir" -maxdepth 1 -type d -name 'aiframework*' | head -1)
+  if [[ -z "$extracted_dir" || ! -d "$extracted_dir" ]]; then
+    log_warn "Could not find extracted directory"
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  # Copy files over (preserve the install location)
+  cp -rf "$extracted_dir/bin/"* "$ROOT_DIR/bin/" 2>/dev/null || true
+  cp -rf "$extracted_dir/lib/"* "$ROOT_DIR/lib/" 2>/dev/null || true
+  cp -rf "$extracted_dir/templates/"* "$ROOT_DIR/templates/" 2>/dev/null || true
+  cp -f "$extracted_dir/VERSION" "$ROOT_DIR/VERSION" 2>/dev/null || true
+  cp -f "$extracted_dir/Makefile" "$ROOT_DIR/Makefile" 2>/dev/null || true
+
+  rm -rf "$tmp_dir"
+  return 0
+}
+
+_upgrade_via_homebrew() {
+  log_info "Updating via Homebrew..."
+  if brew upgrade aiframework 2>/dev/null; then
+    return 0
+  else
+    local brew_ver
+    brew_ver=$(brew info aiframework 2>/dev/null | head -1 | awk '{print $3}')
+    if [[ -n "$brew_ver" ]]; then
+      log_ok "Already at latest Homebrew version ($brew_ver)"
+      return 0
+    fi
+    log_warn "Homebrew upgrade failed — try: brew upgrade aiframework"
+    return 1
+  fi
+}
+
 cmd_upgrade() {
   banner
   log_phase "UPGRADE"
-  local old_version new_version
+  local old_version new_version install_method
   old_version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+  install_method=$(_detect_install_method)
 
-  # Step 1: Pull latest code (aiframework is symlinked from a git clone)
-  log_info "Pulling latest aiframework..."
-  if (cd "$ROOT_DIR" && git pull --ff-only origin main 2>/dev/null); then
-    new_version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
-    if [[ "$old_version" == "$new_version" ]]; then
-      log_ok "Already at latest version (v${new_version})"
-    else
-      log_ok "Updated: v${old_version} → v${new_version}"
-    fi
-  else
-    log_warn "Git pull failed — try: cd $ROOT_DIR && git pull"
-    log_phase_done
-    return 1
+  log_info "Install method: ${BOLD}${install_method}${NC}"
+
+  # Step 1: Update aiframework based on install method
+  case "$install_method" in
+    git)      _upgrade_via_git || { log_phase_done; return 1; } ;;
+    homebrew) _upgrade_via_homebrew || { log_phase_done; return 1; } ;;
+    tarball)  _upgrade_via_tarball || { log_phase_done; return 1; } ;;
+  esac
+
+  new_version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+  if [[ "$old_version" != "$new_version" ]]; then
+    log_ok "Updated: v${old_version} → v${new_version}"
+  elif [[ "$install_method" != "homebrew" ]]; then
+    log_ok "Already at latest version (v${new_version})"
   fi
 
   # Step 2: Update sheal if npm available
@@ -853,6 +1007,7 @@ cmd_upgrade() {
   _aif_telemetry "upgrade" \
     "from=$old_version" \
     "to=$new_version" \
+    "method=$install_method" \
     "repos_refreshed=$repos_refreshed" \
     "repos_skipped=$repos_skipped"
 }
@@ -1087,7 +1242,7 @@ case "$COMMAND" in
   verify)    cmd_verify ;;
   report)    cmd_report ;;
   refresh)   cmd_refresh ;;
-  upgrade)   cmd_upgrade ;;
+  upgrade|update|self-update)  cmd_upgrade ;;
   index)     cmd_index ;;
   stats)     cmd_stats ;;
   run)       cmd_run ;;

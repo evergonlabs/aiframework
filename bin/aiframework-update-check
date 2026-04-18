@@ -156,20 +156,47 @@ check_drift() {
 # ── Main ──
 
 main() {
+  local apply=false snooze=false json_output=false
+
+  # Parse flags
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --apply)  apply=true; shift ;;
+      --snooze) snooze=true; shift ;;
+      --json)   json_output=true; shift ;;
+      *)        shift ;;
+    esac
+  done
+
   # Respect disable flag
   is_check_disabled && exit 0
 
   local local_ver
   local_ver=$(local_version)
 
-  # 1. Check cache first (fast path)
+  # Handle --snooze
+  if $snooze; then
+    local remote_ver
+    remote_ver=$(fetch_remote_version)
+    if [[ -n "$remote_ver" ]]; then
+      write_snooze "$remote_ver"
+      echo "Snoozed update notification for v${remote_ver}"
+    fi
+    exit 0
+  fi
+
+  # 1. Check cache first (fast path) — skip cache for --apply
   local cached
-  if cached=$(check_cache); then
+  if ! $apply && cached=$(check_cache); then
     if [[ "$cached" == UPGRADE_AVAILABLE* ]]; then
       local remote_ver="${cached##* }"
       is_snoozed "$remote_ver" && exit 0
     fi
-    echo "$cached"
+    if $json_output; then
+      _output_json "$cached" "$local_ver"
+    else
+      echo "$cached"
+    fi
     exit 0
   fi
 
@@ -186,14 +213,55 @@ main() {
   # 3. Compare versions
   if version_lt "$local_ver" "$remote_ver"; then
     write_cache "UPGRADE_AVAILABLE $local_ver $remote_ver"
-    if ! is_snoozed "$remote_ver"; then
+
+    if $apply; then
+      echo "UPGRADE_AVAILABLE $local_ver $remote_ver"
+      echo "Applying update..."
+      # Find the aiframework binary and run upgrade
+      local aif_bin
+      aif_bin="$(dirname "${BASH_SOURCE[0]}")/aiframework"
+      if [[ -x "$aif_bin" ]]; then
+        exec "$aif_bin" upgrade
+      else
+        echo "Run: aiframework upgrade"
+        exit 1
+      fi
+    fi
+
+    if $json_output; then
+      _output_json "UPGRADE_AVAILABLE $local_ver $remote_ver" "$local_ver"
+    elif ! is_snoozed "$remote_ver"; then
       echo "UPGRADE_AVAILABLE $local_ver $remote_ver"
     fi
   else
     write_cache "UP_TO_DATE $local_ver $remote_ver"
-    # Still check drift even if version is current
-    check_drift "${TARGET_DIR:-.}" || echo "UP_TO_DATE"
+    if $json_output; then
+      _output_json "UP_TO_DATE" "$local_ver"
+    else
+      # Still check drift even if version is current
+      check_drift "${TARGET_DIR:-.}" || echo "UP_TO_DATE"
+    fi
   fi
+}
+
+_output_json() {
+  local status="$1" local_ver="$2"
+  case "$status" in
+    UPGRADE_AVAILABLE*)
+      local remote_ver="${status##* }"
+      printf '{"status":"upgrade_available","local":"%s","remote":"%s"}\n' "$local_ver" "$remote_ver"
+      ;;
+    UP_TO_DATE)
+      printf '{"status":"up_to_date","local":"%s"}\n' "$local_ver"
+      ;;
+    DRIFT_DETECTED*)
+      local files="${status#DRIFT_DETECTED }"
+      printf '{"status":"drift_detected","local":"%s","files":"%s"}\n' "$local_ver" "$files"
+      ;;
+    *)
+      printf '{"status":"unknown","local":"%s"}\n' "$local_ver"
+      ;;
+  esac
 }
 
 main "$@"

@@ -6,6 +6,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **One-line installer** — `curl -fsSL .../install.sh | sh` with auto-detection for macOS, Linux, WSL, and Windows (Git Bash/MSYS2). Handles dependency checks, PATH setup, and idempotent re-installs
+- **GitHub Releases** — CI builds release tarballs on version tags with SHA256 checksums. Homebrew formula template included for `brew tap evergonlabs/tap && brew install aiframework`
+- **Self-update command** — `aiframework update` (or `self-update`) auto-detects install method (git/homebrew/tarball) and updates accordingly. Tarball updates verify checksums before applying
+- **Cross-platform support** — installer and CLI now detect and handle macOS, Linux, WSL, and Windows (Git Bash/MSYS2) with platform-specific paths, dependency hints, and symlink/copy fallback
 - **CLAUDE.md quality metrics** — `run` telemetry now includes 9 quality/effectiveness signals: claude_md_lines, invariant_count, gotcha_count, command_count, key_locations, domains_with_invariants, custom_sections, learnings_count, tier
 - **Cross-project learning events** — `/aif-learn` emits `learning_captured` telemetry (category + lang, never the learning text); `/aif-evolve` emits `evolve_completed` with counts
 - **Auto-evolve suggestion** — pre-push hook and `aiframework refresh` suggest `/aif-evolve` when 5+ learnings have accumulated since last run
