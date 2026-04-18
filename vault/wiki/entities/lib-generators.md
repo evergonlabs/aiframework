@@ -30,18 +30,18 @@ confidence: medium
 | File | Symbols | PageRank |
 |------|---------|----------|
 | [[lib-generators-agents-md-sh|agents_md.sh]] | 1 | — |
-| [[lib-generators-ci-sh|ci.sh]] | 1 | 0.0019 |
+| [[lib-generators-ci-sh|ci.sh]] | 1 | — |
 | [[lib-generators-claude-md-sh|claude_md.sh]] | 6 | — |
 | [[lib-generators-cursor-rules-sh|cursor_rules.sh]] | 1 | — |
-| [[lib-generators-docs-sh|docs.sh]] | 1 | 0.0019 |
+| [[lib-generators-docs-sh|docs.sh]] | 1 | — |
 | [[lib-generators-hooks-sh|hooks.sh]] | 1 | — |
 | [[lib-generators-preserve-sh|preserve.sh]] | 13 | 0.0021 |
-| [[lib-generators-report-sh|report.sh]] | 1 | 0.0019 |
+| [[lib-generators-report-sh|report.sh]] | 1 | — |
 | [[lib-generators-sheal-sh|sheal.sh]] | 1 | 0.0025 |
 | [[lib-generators-skills-sh|skills.sh]] | 2 | 0.0021 |
 | [[lib-generators-tracking-sh|tracking.sh]] | 1 | — |
 | [[lib-generators-vault-sh|vault.sh]] | 50 | 0.0019 |
-| [[lib-generators-vault-ingest-sh|vault_ingest.sh]] | 1 | — |
+| [[lib-generators-vault-ingest-sh|vault_ingest.sh]] | 1 | 0.0019 |
 | [[lib-generators-wiki-graph-py|wiki_graph.py]] | 14 | — |
 
 ## Dependencies
