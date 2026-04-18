@@ -108,9 +108,10 @@ brew tap evergonlabs/tap && brew install aiframework
 # Manual (any platform)
 git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
 
-# From release tarball
-curl -LO https://github.com/evergonlabs/aiframework/releases/latest/download/aiframework-1.3.0.tar.gz
-tar xzf aiframework-1.3.0.tar.gz && cd aiframework && make install
+# From release tarball (replace VERSION with latest from Releases page)
+VERSION=$(curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/VERSION | tr -d '[:space:]')
+curl -LO "https://github.com/evergonlabs/aiframework/releases/download/v${VERSION}/aiframework-${VERSION}.tar.gz"
+tar xzf "aiframework-${VERSION}.tar.gz" && cd aiframework && make install
 ```
 
 **Verify it works:**

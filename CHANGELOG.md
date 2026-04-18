@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-04-18
 ### Added
 - **One-line installer** — `curl -fsSL .../install.sh | sh` with auto-detection for macOS, Linux, WSL, and Windows (Git Bash/MSYS2). Handles dependency checks, PATH setup, and idempotent re-installs
 - **GitHub Releases** — CI builds release tarballs on version tags with SHA256 checksums. Homebrew formula template included for `brew tap evergonlabs/tap && brew install aiframework`

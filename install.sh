@@ -68,6 +68,13 @@ detect_platform() {
 
 set_default_paths() {
   BRANCH="${BRANCH:-main}"
+  # Validate BRANCH to prevent git flag injection
+  case "$BRANCH" in
+    -*) die "Invalid BRANCH value: $BRANCH (cannot start with -)" ;;
+  esac
+  if ! printf '%s' "$BRANCH" | grep -qE '^[a-zA-Z0-9._/-]+$'; then
+    die "Invalid BRANCH value: $BRANCH (only alphanumeric, dots, slashes, dashes allowed)"
+  fi
   GITHUB_REPO="https://github.com/evergonlabs/aiframework.git"
 
   # Set AIFRAMEWORK_DIR
@@ -208,22 +215,23 @@ install_aiframework() {
   # Clone or update
   if [ -d "$AIFRAMEWORK_DIR/.git" ]; then
     info "Existing installation found -- updating..."
-    cd "$AIFRAMEWORK_DIR"
-    if git remote get-url origin >/dev/null 2>&1; then
-      git fetch origin "$BRANCH" --quiet
-      git checkout "$BRANCH" --quiet 2>/dev/null || true
-      git reset --hard "origin/$BRANCH" --quiet
-      ok "Updated to latest"
-    else
-      git remote add origin "$GITHUB_REPO" 2>/dev/null || git remote set-url origin "$GITHUB_REPO"
-      git fetch origin "$BRANCH" --quiet
-      git checkout "$BRANCH" --quiet 2>/dev/null || true
-      git reset --hard "origin/$BRANCH" --quiet
-      ok "Updated to latest (added remote)"
-    fi
+    (
+      cd "$AIFRAMEWORK_DIR" || die "Cannot cd to $AIFRAMEWORK_DIR"
+      if git remote get-url origin >/dev/null 2>&1; then
+        git fetch --quiet origin "$BRANCH"
+        git checkout --quiet "$BRANCH" 2>/dev/null || true
+        git reset --hard --quiet "origin/$BRANCH"
+      else
+        git remote add origin "$GITHUB_REPO" 2>/dev/null || git remote set-url origin "$GITHUB_REPO"
+        git fetch --quiet origin "$BRANCH"
+        git checkout --quiet "$BRANCH" 2>/dev/null || true
+        git reset --hard --quiet "origin/$BRANCH"
+      fi
+    )
+    ok "Updated to latest"
   else
     info "Cloning aiframework..."
-    git clone --depth 1 --branch "$BRANCH" "$GITHUB_REPO" "$AIFRAMEWORK_DIR" --quiet
+    git clone --quiet --depth 1 --branch "$BRANCH" "$GITHUB_REPO" "$AIFRAMEWORK_DIR"
     ok "Cloned to $AIFRAMEWORK_DIR"
   fi
 

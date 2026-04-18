@@ -627,13 +627,19 @@ LEARNMD
           # Sanitize app name — allowlist alphanumeric, dash, underscore, dot only
           app=$(printf '%s' "$app" | tr -dc 'a-zA-Z0-9_.-')
           [[ -z "$app" ]] && continue
-          # Check if this app has a tsconfig
-          if [[ -f "$TARGET_DIR/apps/${app}/tsconfig.json" || -f "$TARGET_DIR/packages/${app}/tsconfig.json" ]]; then
+          # Check if this app has a tsconfig (apps/ or packages/)
+          local app_dir=""
+          if [[ -f "$TARGET_DIR/apps/${app}/tsconfig.json" ]]; then
+            app_dir="apps/${app}"
+          elif [[ -f "$TARGET_DIR/packages/${app}/tsconfig.json" ]]; then
+            app_dir="packages/${app}"
+          fi
+          if [[ -n "$app_dir" ]]; then
             [[ "$mono_first" == false ]] && mono_hooks+=","
             mono_hooks+="
       {
         \"matcher\": \"Edit|Write\",
-        \"hooks\": [{ \"type\": \"command\", \"command\": \"cd apps/${app} && npx tsc --noEmit 2>&1 | head -10 || true\", \"timeout\": 30000 }]
+        \"hooks\": [{ \"type\": \"command\", \"command\": \"cd ${app_dir} && npx tsc --noEmit 2>&1 | head -10 || true\", \"timeout\": 30000 }]
       }"
             mono_first=false
           fi
@@ -762,7 +768,7 @@ SETTINGS
       else
         _jq_expr='
           .hooks.SessionStart = [{"matcher": "", "hooks": [{"type": "command", "command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi", "timeout": 15000}]}]
-          | .hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "echo [aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.", "timeout": 5000}]}]
+          | .hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "echo \"[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.\"", "timeout": 5000}]}]
         '
       fi
 

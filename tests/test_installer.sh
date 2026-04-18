@@ -142,8 +142,8 @@ else
   fail "_detect_install_method missing"
 fi
 
-# Test that command aliases work
-if grep -q 'upgrade|update|self-update' "$ROOT_DIR/bin/aiframework"; then
+# Test that command aliases work (literal string in case dispatch)
+if grep -qF 'upgrade|update|self-update' "$ROOT_DIR/bin/aiframework"; then
   pass "update/self-update aliases registered"
 else
   fail "update/self-update aliases missing"
