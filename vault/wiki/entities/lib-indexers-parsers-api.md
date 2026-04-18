@@ -1,9 +1,9 @@
 ---
-title: "API Reference: lib/indexers/parsers"
+title: "API Reference: lib/indexers/parsers (legacy)"
 type: entity
 created: 2026-04-17
 updated: 2026-04-17
-status: current
+status: archived
 tags:
   - type/entity
   - domain/bash
@@ -14,18 +14,19 @@ confidence: medium
 
 # API Reference: lib/indexers/parsers
 
-> Function and class reference for `lib/indexers/parsers` (19 symbols).
+> Function and class reference for `lib/indexers/parsers` (20 symbols).
 
 ## Symbols
 
 | Name | Kind | File | Description |
 |------|------|------|-------------|
-| `_extract_doc_comment` | function | `lib/indexers/parsers/go.py` | Extract the /// doc-comment block immediately before *pos*. |
+| `_extract_doc_comment` | function | `lib/indexers/parsers/go.py` | Extract the // comment block immediately before *pos*. |
 | `_extract_docstring` | function | `lib/indexers/parsers/bash.py` | Collect the # comment block immediately before a function definition. |
 | `_extract_jsdoc` | function | `lib/indexers/parsers/typescript.py` | Extract the JSDoc comment (/** ... */) immediately before *pos*. |
 | `_extract_rdoc_comment` | function | `lib/indexers/parsers/ruby.py` | Extract the # comment block immediately before *pos*. |
 | `_find_parent_class` | function | `lib/indexers/parsers/python.py` | Find the class that contains an indented method definition. |
 | `_first_doc_line` | function | `lib/indexers/parsers/python.py` | Extract the first line of a docstring following a def/class. |
+| `_normalize_bash_import` | function | `lib/indexers/parsers/bash.py` | Normalize a bash source/dot import path to a relative file path. |
 | `parse` | function | `lib/indexers/parsers/bash.py` | Parse a bash/shell script and return (symbols, imports, exports). |
 | `parse_bash` | function | `lib/indexers/parsers/bash.py` | Legacy interface: returns dict with symbols/imports/exports. |
 | `parse_go` | function | `lib/indexers/parsers/go.py` | Legacy interface: returns dict with symbols/imports/exports. |

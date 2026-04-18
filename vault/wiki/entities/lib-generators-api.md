@@ -1,9 +1,9 @@
 ---
-title: "API Reference: lib/generators"
+title: "API Reference: lib/generators (legacy)"
 type: entity
 created: 2026-04-17
 updated: 2026-04-17
-status: current
+status: archived
 tags:
   - type/entity
   - domain/bash
@@ -76,7 +76,7 @@ confidence: medium
 | `lint_hr014_no_deletion` | function | `lib/generators/vault.sh` | HR-014: No file deletion (check staged deletions) |
 | `load_approved_tags` | function | `lib/generators/vault.sh` | ── Tag Validation ── |
 | `log_fail` | function | `lib/generators/vault.sh` | — |
-| `log_info` | function | `lib/generators/vault.sh` | --- Logging stubs for generator modules --- |
+| `log_info` | function | `lib/generators/vault.sh` | — |
 | `log_pass` | function | `lib/generators/vault.sh` | ── Logging ── |
 | `log_warn` | function | `lib/generators/vault.sh` | — |
 | `merge_claude_md_user_content` | function | `lib/generators/preserve.sh` | After CLAUDE.md is generated, append preserved user content |

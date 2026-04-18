@@ -1,11 +1,12 @@
 ---
 title: "Module: ."
 type: entity
-created: 2026-04-17
-updated: 2026-04-17
+created: "2026-04-18"
+updated: "2026-04-18"
 status: current
 tags:
   - type/entity
+  - scope/module
   - domain/bash
   - source-type/code-index
 confidence: medium
@@ -13,37 +14,35 @@ confidence: medium
 
 # Module: .
 
-> general
-
-## Overview
+> general — 4 files, 0 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `.` |
-| Language | bash |
+| Role | general |
 | Files | 4 |
+| Symbols | 0 |
+| Fan-in | 0 |
+| Fan-out | 0 |
 
-## Files
+## Files (4)
 
-- `discover.sh`
-- `generate.sh`
-- `run.sh`
-- `verify.sh`
+| File | Symbols | PageRank |
+|------|---------|----------|
+| [[discover-sh|discover.sh]] | 0 | — |
+| [[generate-sh|generate.sh]] | 0 | — |
+| [[run-sh|run.sh]] | 0 | — |
+| [[verify-sh|verify.sh]] | 0 | — |
 
-## Key Symbols
+## Dependencies
 
-*No symbols extracted.*
+*No outbound module dependencies.*
 
-## Dependencies (outbound)
+## Dependents
 
-*No outbound dependencies detected.*
+*No inbound module dependents.*
 
-## Dependents (inbound)
-
-*No inbound dependents detected.*
 
 ## Related
 
 - [[architecture]]
-- [[tech-stack]]
-- [[project-overview]]

@@ -1,9 +1,9 @@
 ---
-title: "API Reference: vault/.vault/scripts"
+title: "API Reference: vault/.vault/scripts (legacy)"
 type: entity
 created: 2026-04-17
 updated: 2026-04-17
-status: current
+status: archived
 tags:
   - type/entity
   - domain/bash
@@ -60,7 +60,7 @@ confidence: medium
 | `lint_hr015_append_only_logs` | function | `vault/.vault/scripts/lib-lint.sh` | HR-015: Append-only logs (log.md line count must not decrease) |
 | `load_approved_tags` | function | `vault/.vault/scripts/lib-utils.sh` | ── Tag Validation ── |
 | `log_fail` | function | `vault/.vault/scripts/lib-utils.sh` | — |
-| `log_info` | function | `vault/.vault/scripts/lib-utils.sh` | --- Logging stubs for generator modules --- |
+| `log_info` | function | `vault/.vault/scripts/lib-utils.sh` | — |
 | `log_pass` | function | `vault/.vault/scripts/lib-utils.sh` | ── Logging ── |
 | `log_warn` | function | `vault/.vault/scripts/lib-utils.sh` | — |
 | `rel_path` | function | `vault/.vault/scripts/lib-utils.sh` | Get relative path from vault root. |

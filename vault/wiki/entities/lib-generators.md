@@ -1,11 +1,12 @@
 ---
 title: "Module: lib/generators"
 type: entity
-created: 2026-04-17
-updated: 2026-04-17
+created: "2026-04-18"
+updated: "2026-04-18"
 status: current
 tags:
   - type/entity
+  - scope/module
   - domain/bash
   - source-type/code-index
 confidence: medium
@@ -13,54 +14,44 @@ confidence: medium
 
 # Module: lib/generators
 
-> generation
-
-## Overview
+> generation — 12 files, 78 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators` |
-| Language | bash |
+| Role | generation |
 | Files | 12 |
+| Symbols | 78 |
+| Fan-in | 22 |
+| Fan-out | 0 |
 
-## Files
+## Files (12)
 
-- `agents_md.sh`
-- `ci.sh`
-- `claude_md.sh`
-- `cursor_rules.sh`
-- `docs.sh`
-- `hooks.sh`
-- `preserve.sh`
-- `report.sh`
-- `skills.sh`
-- `tracking.sh`
-- `vault.sh`
-- `vault_ingest.sh`
+| File | Symbols | PageRank |
+|------|---------|----------|
+| [[lib-generators-agents-md-sh|agents_md.sh]] | 1 | — |
+| [[lib-generators-ci-sh|ci.sh]] | 1 | — |
+| [[lib-generators-claude-md-sh|claude_md.sh]] | 6 | — |
+| [[lib-generators-cursor-rules-sh|cursor_rules.sh]] | 1 | — |
+| [[lib-generators-docs-sh|docs.sh]] | 1 | — |
+| [[lib-generators-hooks-sh|hooks.sh]] | 1 | 0.0022 |
+| [[lib-generators-preserve-sh|preserve.sh]] | 13 | 0.0024 |
+| [[lib-generators-report-sh|report.sh]] | 1 | — |
+| [[lib-generators-skills-sh|skills.sh]] | 2 | 0.0024 |
+| [[lib-generators-tracking-sh|tracking.sh]] | 1 | — |
+| [[lib-generators-vault-sh|vault.sh]] | 49 | 0.0022 |
+| [[lib-generators-vault-ingest-sh|vault_ingest.sh]] | 1 | 0.0022 |
 
-## Key Symbols
+## Dependencies
 
-- `_backup_file`
-- `_extract_claude_md_vars`
-- `_file_exists`
-- `_generate_extended_rules`
-- `_generate_reference_docs`
-- `_generate_workflow_rules`
-- `_init_preserve`
-- `_sanitize_manifest_val`
-- `cmd_content_audit`
-- `cmd_doctor`
+*No outbound module dependencies.*
 
-## Dependencies (outbound)
+## Dependents (2 modules)
 
-*No outbound dependencies detected.*
+- [[bin|bin]] (12 edges)
+- [[tests|tests]] (10 edges)
 
-## Dependents (inbound)
-
-*No inbound dependents detected.*
 
 ## Related
 
 - [[architecture]]
-- [[tech-stack]]
-- [[project-overview]]

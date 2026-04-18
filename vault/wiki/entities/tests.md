@@ -1,11 +1,12 @@
 ---
 title: "Module: tests"
 type: entity
-created: 2026-04-17
-updated: 2026-04-17
+created: "2026-04-18"
+updated: "2026-04-18"
 status: current
 tags:
   - type/entity
+  - scope/module
   - domain/bash
   - source-type/code-index
 confidence: medium
@@ -13,46 +14,37 @@ confidence: medium
 
 # Module: tests
 
-> testing
-
-## Overview
+> testing — 4 files, 75 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `tests` |
-| Language | bash |
+| Role | testing |
 | Files | 4 |
+| Symbols | 75 |
+| Fan-in | 0 |
+| Fan-out | 21 |
 
-## Files
+## Files (4)
 
-- `test_e2e.sh`
-- `test_indexer.py`
-- `test_mcp.py`
-- `test_validators.sh`
+| File | Symbols | PageRank |
+|------|---------|----------|
+| [[tests-test-e2e-sh|test_e2e.sh]] | 3 | — |
+| [[tests-test-indexer-py|test_indexer.py]] | 0 | — |
+| [[tests-test-mcp-py|test_mcp.py]] | 0 | — |
+| [[tests-test-validators-sh|test_validators.sh]] | 30 | — |
 
-## Key Symbols
+## Dependencies (3 modules)
 
-- `TestEdgeCases`
-- `TestGraph`
-- `TestIndexRepo`
-- `TestMcpServer`
-- `TestNewParsers`
-- `TestParsers`
-- `_dispatch`
-- `_parse`
-- `fail`
-- `log_info`
+- [[lib-generators|lib/generators]] (10 edges)
+- [[lib-scanners|lib/scanners]] (3 edges)
+- [[lib-validators|lib/validators]] (8 edges)
 
-## Dependencies (outbound)
+## Dependents
 
-*No outbound dependencies detected.*
+*No inbound module dependents.*
 
-## Dependents (inbound)
-
-*No inbound dependents detected.*
 
 ## Related
 
 - [[architecture]]
-- [[tech-stack]]
-- [[project-overview]]

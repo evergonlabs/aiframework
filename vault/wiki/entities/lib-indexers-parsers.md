@@ -1,61 +1,51 @@
 ---
 title: "Module: lib/indexers/parsers"
 type: entity
-created: 2026-04-17
-updated: 2026-04-17
+created: "2026-04-18"
+updated: "2026-04-18"
 status: current
 tags:
   - type/entity
-  - domain/bash
+  - scope/module
+  - domain/python
   - source-type/code-index
 confidence: medium
 ---
 
 # Module: lib/indexers/parsers
 
-> general
-
-## Overview
+> general — 7 files, 20 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/indexers/parsers` |
-| Language | bash |
+| Role | general |
 | Files | 7 |
+| Symbols | 20 |
+| Fan-in | 0 |
+| Fan-out | 0 |
 
-## Files
+## Files (7)
 
-- `__init__.py`
-- `bash.py`
-- `go.py`
-- `python.py`
-- `ruby.py`
-- `rust.py`
-- `typescript.py`
+| File | Symbols | PageRank |
+|------|---------|----------|
+| [[lib-indexers-parsers-init-py|__init__.py]] | 0 | — |
+| [[lib-indexers-parsers-bash-py|bash.py]] | 0 | — |
+| [[lib-indexers-parsers-go-py|go.py]] | 0 | — |
+| [[lib-indexers-parsers-python-py|python.py]] | 0 | — |
+| [[lib-indexers-parsers-ruby-py|ruby.py]] | 0 | — |
+| [[lib-indexers-parsers-rust-py|rust.py]] | 0 | — |
+| [[lib-indexers-parsers-typescript-py|typescript.py]] | 0 | — |
 
-## Key Symbols
+## Dependencies
 
-- `_extract_doc_comment`
-- `_extract_docstring`
-- `_extract_jsdoc`
-- `_extract_rdoc_comment`
-- `_find_parent_class`
-- `_first_doc_line`
-- `parse`
-- `parse_bash`
-- `parse_go`
-- `parse_python`
+*No outbound module dependencies.*
 
-## Dependencies (outbound)
+## Dependents
 
-*No outbound dependencies detected.*
+*No inbound module dependents.*
 
-## Dependents (inbound)
-
-*No inbound dependents detected.*
 
 ## Related
 
 - [[architecture]]
-- [[tech-stack]]
-- [[project-overview]]

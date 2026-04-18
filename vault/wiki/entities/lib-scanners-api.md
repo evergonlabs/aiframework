@@ -1,9 +1,9 @@
 ---
-title: "API Reference: lib/scanners"
+title: "API Reference: lib/scanners (legacy)"
 type: entity
 created: 2026-04-17
 updated: 2026-04-17
-status: current
+status: archived
 tags:
   - type/entity
   - domain/bash

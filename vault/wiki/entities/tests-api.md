@@ -1,9 +1,9 @@
 ---
-title: "API Reference: tests"
+title: "API Reference: tests (legacy)"
 type: entity
 created: 2026-04-17
 updated: 2026-04-17
-status: current
+status: archived
 tags:
   - type/entity
   - domain/bash
@@ -29,7 +29,7 @@ confidence: medium
 | `_dispatch` | method | `tests/test_mcp.py` | — |
 | `_parse` | method | `tests/test_indexer.py` | — |
 | `fail` | function | `tests/test_e2e.sh` | — |
-| `log_info` | function | `tests/test_validators.sh` | --- Logging stubs for generator modules --- |
+| `log_info` | function | `tests/test_validators.sh` | — |
 | `log_ok` | function | `tests/test_validators.sh` | — |
 | `log_warn` | function | `tests/test_validators.sh` | — |
 | `pass` | function | `tests/test_e2e.sh` | — |

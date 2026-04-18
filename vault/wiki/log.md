@@ -50,3 +50,88 @@ confidence: high
 | 2026-04-17T08:44:49Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
 | Timestamp | Operation | Actor | Target | Result | Notes |
 
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/bin.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-generators.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-validators.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/tests.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts.md | success | Auto-generated from code index |
+| 2026-04-17T08:51:43Z | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/bin-api.md | success | API reference from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-generators-api.md | success | API reference from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-api.md | success | API reference from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers-api.md | success | API reference from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
+| 2026-04-17T08:51:43Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/bin.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-generators.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-validators.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/tests.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts.md | success | Auto-generated from code index |
+| 2026-04-17T08:55:56Z | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/bin-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-generators-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
+| 2026-04-17T08:55:56Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/bin.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-generators.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-validators.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/tests.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts.md | success | Auto-generated from code index |
+| 2026-04-17T09:09:48Z | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/bin-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-generators-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
+| 2026-04-17T09:09:48Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/bin.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-generators.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-validators.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/tests.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts.md | success | Auto-generated from code index |
+| 2026-04-17T09:22:02Z | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/bin-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-generators-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
+| 2026-04-17T09:22:02Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/root-module.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/bin.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-generators.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-validators.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/tests.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts.md | success | Auto-generated from code index |
+| 2026-04-17T09:50:53Z | create-concept | aiframework/code-index | wiki/concepts/architecture.md | success | Architecture graph from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/bin-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-generators-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-indexers-parsers-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/lib-scanners-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/tests-api.md | success | API reference from code index |
+| 2026-04-17T09:50:53Z | create-entity | aiframework/code-index | wiki/entities/vault-.vault-scripts-api.md | success | API reference from code index |

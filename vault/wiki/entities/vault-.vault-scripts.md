@@ -1,9 +1,9 @@
 ---
-title: "Module: vault/.vault/scripts"
+title: "Module: vault/.vault/scripts (legacy)"
 type: entity
 created: 2026-04-17
-updated: 2026-04-17
-status: current
+updated: 2026-04-18
+status: archived
 tags:
   - type/entity
   - domain/bash

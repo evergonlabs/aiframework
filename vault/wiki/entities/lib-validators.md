@@ -1,11 +1,12 @@
 ---
 title: "Module: lib/validators"
 type: entity
-created: 2026-04-17
-updated: 2026-04-17
+created: "2026-04-18"
+updated: "2026-04-18"
 status: current
 tags:
   - type/entity
+  - scope/module
   - domain/bash
   - source-type/code-index
 confidence: medium
@@ -13,43 +14,37 @@ confidence: medium
 
 # Module: lib/validators
 
-> verification
-
-## Overview
+> verification — 5 files, 6 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/validators` |
-| Language | bash |
+| Role | verification |
 | Files | 5 |
+| Symbols | 6 |
+| Fan-in | 18 |
+| Fan-out | 0 |
 
-## Files
+## Files (5)
 
-- `consistency.sh`
-- `files.sh`
-- `freshness.sh`
-- `quality_gate.sh`
-- `security.sh`
+| File | Symbols | PageRank |
+|------|---------|----------|
+| [[lib-validators-consistency-sh|consistency.sh]] | 1 | 0.0024 |
+| [[lib-validators-files-sh|files.sh]] | 2 | 0.0024 |
+| [[lib-validators-freshness-sh|freshness.sh]] | 1 | 0.0024 |
+| [[lib-validators-quality-gate-sh|quality_gate.sh]] | 1 | 0.0024 |
+| [[lib-validators-security-sh|security.sh]] | 1 | 0.0024 |
 
-## Key Symbols
+## Dependencies
 
-- `report_row`
-- `validate_consistency`
-- `validate_files`
-- `validate_freshness`
-- `validate_quality_gate`
-- `validate_security`
+*No outbound module dependencies.*
 
-## Dependencies (outbound)
+## Dependents (2 modules)
 
-*No outbound dependencies detected.*
+- [[bin|bin]] (10 edges)
+- [[tests|tests]] (8 edges)
 
-## Dependents (inbound)
-
-*No inbound dependents detected.*
 
 ## Related
 
 - [[architecture]]
-- [[tech-stack]]
-- [[project-overview]]

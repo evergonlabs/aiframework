@@ -1,9 +1,9 @@
 ---
-title: "API Reference: lib/indexers"
+title: "API Reference: lib/indexers (legacy)"
 type: entity
 created: 2026-04-17
 updated: 2026-04-17
-status: current
+status: archived
 tags:
   - type/entity
   - domain/bash
@@ -14,13 +14,14 @@ confidence: medium
 
 # API Reference: lib/indexers
 
-> Function and class reference for `lib/indexers` (40 symbols).
+> Function and class reference for `lib/indexers` (42 symbols).
 
 ## Symbols
 
 | Name | Kind | File | Description |
 |------|------|------|-------------|
-| `_extract_doc_comment` | function | `lib/indexers/parsers/go.py` | Extract the /// doc-comment block immediately before *pos*. |
+| `_detect_shebang_language` | function | `lib/indexers/parse.py` | Read the first line of a file and detect language from shebang. |
+| `_extract_doc_comment` | function | `lib/indexers/parsers/go.py` | Extract the // comment block immediately before *pos*. |
 | `_extract_docstring` | function | `lib/indexers/parsers/bash.py` | Collect the # comment block immediately before a function definition. |
 | `_extract_jsdoc` | function | `lib/indexers/parsers/typescript.py` | Extract the JSDoc comment (/** ... */) immediately before *pos*. |
 | `_extract_rdoc_comment` | function | `lib/indexers/parsers/ruby.py` | Extract the # comment block immediately before *pos*. |
@@ -39,6 +40,7 @@ confidence: medium
 | `_lang_swift` | function | `lib/indexers/parse.py` | — |
 | `_lang_typescript` | function | `lib/indexers/parse.py` | — |
 | `_load_parsers_from_package` | function | `lib/indexers/registry.py` | Load all parser modules from a package. |
+| `_normalize_bash_import` | function | `lib/indexers/parsers/bash.py` | Normalize a bash source/dot import path to a relative file path. |
 | `_parse_file` | function | `lib/indexers/parse.py` | Parse a single file and return its file-entry dict plus symbols list. |
 | `_resolve_import_to_file` | function | `lib/indexers/graph.py` | Best-effort resolve an import string to a known relative file path. |
 | `_role_for_directory` | function | `lib/indexers/graph.py` | Assign a heuristic role based on the directory name. |

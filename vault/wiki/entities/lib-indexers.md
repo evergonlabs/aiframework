@@ -1,64 +1,54 @@
 ---
 title: "Module: lib/indexers"
 type: entity
-created: 2026-04-17
-updated: 2026-04-17
+created: "2026-04-18"
+updated: "2026-04-18"
 status: current
 tags:
   - type/entity
-  - domain/bash
+  - scope/module
+  - domain/python
   - source-type/code-index
 confidence: medium
 ---
 
 # Module: lib/indexers
 
-> general
-
-## Overview
+> general — 10 files, 22 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/indexers` |
-| Language | bash |
+| Role | general |
 | Files | 10 |
+| Symbols | 22 |
+| Fan-in | 0 |
+| Fan-out | 0 |
 
-## Files
+## Files (10)
 
-- `__init__.py`
-- `graph.py`
-- `lang_bash.py`
-- `lang_go.py`
-- `lang_python.py`
-- `lang_ruby.py`
-- `lang_rust.py`
-- `lang_typescript.py`
-- `parse.py`
-- `registry.py`
+| File | Symbols | PageRank |
+|------|---------|----------|
+| [[lib-indexers-init-py|__init__.py]] | 0 | 0.0027 |
+| [[lib-indexers-graph-py|graph.py]] | 0 | 0.0027 |
+| [[lib-indexers-lang-bash-py|lang_bash.py]] | 0 | — |
+| [[lib-indexers-lang-go-py|lang_go.py]] | 0 | — |
+| [[lib-indexers-lang-python-py|lang_python.py]] | 0 | — |
+| [[lib-indexers-lang-ruby-py|lang_ruby.py]] | 0 | — |
+| [[lib-indexers-lang-rust-py|lang_rust.py]] | 0 | — |
+| [[lib-indexers-lang-typescript-py|lang_typescript.py]] | 0 | — |
+| [[lib-indexers-parse-py|parse.py]] | 0 | — |
+| [[lib-indexers-registry-py|registry.py]] | 0 | 0.0027 |
 
-## Key Symbols
+## Dependencies
 
-- `_extract_doc_comment`
-- `_extract_docstring`
-- `_extract_jsdoc`
-- `_extract_rdoc_comment`
-- `_find_parent_class`
-- `_first_doc_line`
-- `_lang_bash`
-- `_lang_csharp`
-- `_lang_elixir`
-- `_lang_go`
+*No outbound module dependencies.*
 
-## Dependencies (outbound)
+## Dependents
 
-- [[lib-indexers]] (`lib/indexers`)
+*No inbound module dependents.*
 
-## Dependents (inbound)
-
-- [[lib-indexers]] (`lib/indexers`)
 
 ## Related
 
 - [[architecture]]
-- [[tech-stack]]
-- [[project-overview]]
