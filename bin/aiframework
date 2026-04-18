@@ -77,6 +77,47 @@ case "$(uname -s 2>/dev/null)" in
 esac
 export _AIF_PLATFORM
 
+# ── Anonymous telemetry (opt-out via ~/.aiframework/config: telemetry: false) ──
+# Sends a single lightweight ping: command, OS, version, anonymous machine hash.
+# No code, no paths, no personal data. Used to understand adoption and prioritize.
+_AIF_TELEMETRY_ENDPOINT="https://telemetry.evergonlabs.com/v1/event"
+
+_aif_telemetry_enabled() {
+  local config="${HOME}/.aiframework/config"
+  # Disabled if config says so
+  [[ -f "$config" ]] && grep -q 'telemetry: false' "$config" 2>/dev/null && return 1
+  return 0
+}
+
+_aif_telemetry() {
+  _aif_telemetry_enabled || return 0
+  local event="$1"
+  local extra="${2:-}"
+  local version
+  version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+  # Anonymous machine ID — hash of hostname + username, not reversible
+  local machine_id
+  machine_id=$(echo "${HOSTNAME:-unknown}:${USER:-unknown}" | shasum -a 256 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+
+  local payload
+  payload=$(jq -n \
+    --arg event "$event" \
+    --arg version "$version" \
+    --arg platform "$_AIF_PLATFORM" \
+    --arg machine "$machine_id" \
+    --arg extra "$extra" \
+    --arg bash_version "${BASH_VERSION:-unknown}" \
+    '{event: $event, version: $version, platform: $platform, machine: $machine, extra: $extra, bash: $bash_version, ts: now | todate}' 2>/dev/null) || return 0
+
+  # Fire-and-forget, never block the user, suppress all output
+  if command -v curl &>/dev/null; then
+    curl -fsSL --connect-timeout 2 --max-time 3 \
+      -X POST -H "Content-Type: application/json" \
+      -d "$payload" \
+      "$_AIF_TELEMETRY_ENDPOINT" &>/dev/null &
+  fi
+}
+
 # Dependency check — validate required tools are available
 check_dependencies() {
   local missing=0
@@ -221,6 +262,7 @@ Commands:
   refresh     Lightweight update: re-discover + regenerate only if drift detected
   index       Build code index for the target repo (standalone)
   run         Full pipeline: discover → generate → verify → report
+  upgrade     Pull latest + re-run on all bootstrapped repos (surgical, incremental)
   stats       Show cross-repo knowledge store statistics
 
 Options:
@@ -619,6 +661,76 @@ cmd_index() {
   log_ok "Code index written to ${BOLD}$OUTPUT_DIR/code-index.json${NC}"
 }
 
+cmd_upgrade() {
+  banner
+  log_phase "UPGRADE"
+  local old_version new_version
+  old_version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+
+  # Step 1: Pull latest code (aiframework is symlinked from a git clone)
+  log_info "Pulling latest aiframework..."
+  if (cd "$ROOT_DIR" && git pull --ff-only origin main 2>/dev/null); then
+    new_version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+    if [[ "$old_version" == "$new_version" ]]; then
+      log_ok "Already at latest version (v${new_version})"
+    else
+      log_ok "Updated: v${old_version} → v${new_version}"
+    fi
+  else
+    log_warn "Git pull failed — try: cd $ROOT_DIR && git pull"
+    log_phase_done
+    return 1
+  fi
+
+  # Step 2: Update sheal if npm available
+  if command -v npm &>/dev/null; then
+    log_info "Updating sheal..."
+    npm install -g @liwala/sheal@latest 2>/dev/null && log_ok "sheal updated" || log_warn "sheal update failed (non-fatal)"
+  fi
+
+  # Step 3: Re-run on all known bootstrapped repos (surgical, incremental)
+  local knowledge_dir="${HOME}/.aiframework/knowledge"
+  local repos_refreshed=0
+  local repos_skipped=0
+
+  if [[ -d "$knowledge_dir" ]]; then
+    log_info "Refreshing bootstrapped repos..."
+    local profile
+    for profile in "$knowledge_dir"/*.json; do
+      [[ -f "$profile" ]] || continue
+      local repo_path
+      repo_path=$(jq -r '.repo_path // empty' "$profile" 2>/dev/null)
+      [[ -z "$repo_path" || ! -d "$repo_path" ]] && { repos_skipped=$((repos_skipped + 1)); continue; }
+
+      # Only refresh if the repo has .aiframework/ (was bootstrapped)
+      if [[ -d "$repo_path/.aiframework" ]]; then
+        log_info "  Refreshing ${BOLD}$(basename "$repo_path")${NC}..."
+        if (cd "$repo_path" && "$ROOT_DIR/bin/aiframework" refresh --target . --non-interactive 2>/dev/null); then
+          repos_refreshed=$((repos_refreshed + 1))
+        else
+          log_warn "  Failed to refresh $(basename "$repo_path")"
+        fi
+      else
+        repos_skipped=$((repos_skipped + 1))
+      fi
+    done
+  fi
+
+  # Step 4: Refresh current repo if it's bootstrapped
+  if [[ -d "$TARGET_DIR/.aiframework" && "$TARGET_DIR" != "$ROOT_DIR" ]]; then
+    log_info "Refreshing current repo..."
+    cmd_refresh
+    repos_refreshed=$((repos_refreshed + 1))
+  fi
+
+  log_phase_done
+  echo ""
+  log_ok "Upgrade complete: v${new_version}, ${repos_refreshed} repo(s) refreshed, ${repos_skipped} skipped"
+
+  # Emit telemetry event
+  _aif_telemetry "upgrade" "from=$old_version to=$new_version repos=$repos_refreshed"
+}
+
 cmd_stats() {
   banner
   log_phase "STATS"
@@ -754,6 +866,9 @@ cmd_run() {
   _aif_summary "$_proj" "$_stack" "$_files_gen" "$_checks_passed" "$_checks_failed" ".aiframework/report.md"
   echo -e "  ${DIM}Total time: ${_run_elapsed}s${NC}"
   echo ""
+
+  # Telemetry — track what stacks people bootstrap
+  _aif_telemetry "run" "lang=$_lang framework=${_fw:-none} files=$_files_gen checks=$_checks_passed"
 }
 
 # Main
@@ -768,6 +883,7 @@ case "$COMMAND" in
   verify)    cmd_verify ;;
   report)    cmd_report ;;
   refresh)   cmd_refresh ;;
+  upgrade)   cmd_upgrade ;;
   index)     cmd_index ;;
   stats)     cmd_stats ;;
   run)       cmd_run ;;

@@ -20,13 +20,17 @@ knowledge_record_profile() {
   local manifest="$1"
   local dir
   dir=$(knowledge_init)
-  local lang fw arch files domains ts
+  local lang fw arch files domains ts repo_path repo_name
   lang=$(echo "$manifest" | jq -r '.stack.language')
   fw=$(echo "$manifest" | jq -r '.stack.framework // "none"')
   arch=$(echo "$manifest" | jq -r '.archetype.type // "unknown"')
   files=$(echo "$manifest" | jq -r '.structure.total_files // 0')
   domains=$(echo "$manifest" | jq -c '[.domain.detected_domains[]?.name]')
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  repo_path="${TARGET_DIR:-$(pwd)}"
+  # Resolve to absolute path
+  repo_path="$(cd "$repo_path" 2>/dev/null && pwd || echo "$repo_path")"
+  repo_name=$(echo "$manifest" | jq -r '.identity.name // "unknown"')
 
   # Build JSON safely via jq --arg (INV-1 compliant)
   jq -n -c \
@@ -36,8 +40,24 @@ knowledge_record_profile() {
     --arg arch "$arch" \
     --argjson files "$files" \
     --argjson domains "$domains" \
-    '{timestamp:$ts, language:$lang, framework:$fw, archetype:$arch, total_files:$files, domains:$domains}' \
+    --arg repo_path "$repo_path" \
+    --arg repo_name "$repo_name" \
+    '{timestamp:$ts, language:$lang, framework:$fw, archetype:$arch, total_files:$files, domains:$domains, repo_path:$repo_path, repo_name:$repo_name}' \
     >> "$dir/repo_profiles.jsonl" 2>/dev/null || true
+
+  # Write per-repo profile (used by `aiframework upgrade` to find bootstrapped repos)
+  local slug
+  slug=$(echo "$repo_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g; s/^-//; s/-$//')
+  jq -n \
+    --arg ts "$ts" \
+    --arg lang "$lang" \
+    --arg fw "$fw" \
+    --arg arch "$arch" \
+    --argjson files "$files" \
+    --arg repo_path "$repo_path" \
+    --arg repo_name "$repo_name" \
+    '{timestamp:$ts, language:$lang, framework:$fw, archetype:$arch, total_files:$files, repo_path:$repo_path, repo_name:$repo_name}' \
+    > "$dir/${slug}.json" 2>/dev/null || true
 }
 
 # Record what enhance found that scanners missed

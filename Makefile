@@ -30,6 +30,8 @@ test:
 	@python3 tests/test_indexer.py
 	@echo "Running MCP tests..."
 	@python3 tests/test_mcp.py
+	@echo "Running wiki graph tests..."
+	@python3 tests/test_wiki_graph.py
 	@echo "Running validator tests..."
 	@bash tests/test_validators.sh
 	@echo "Running sheal integration tests..."

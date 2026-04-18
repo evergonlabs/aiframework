@@ -542,12 +542,20 @@ def _render_index(
                 "status": status,
             }
 
-    # Merge generated pages into existing
-    for slug, _content in all_pages.items():
+    # Merge generated pages into existing — extract type from frontmatter
+    for slug, content in all_pages.items():
         rel_path = _page_rel_path(slug, all_pages, vault_root)
+        page_type = "entity"
+        if content.startswith("---"):
+            fm_end = content.find("---", 3)
+            if fm_end > 0:
+                for line in content[3:fm_end].split("\n"):
+                    if line.startswith("type:"):
+                        page_type = line.split(":", 1)[1].strip().strip('"')
+                        break
         existing_pages[slug] = {
             "path": rel_path,
-            "type": "entity",
+            "type": page_type,
             "status": "current",
         }
 
@@ -631,13 +639,33 @@ def generate_wiki_graph(
     if today is None:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    with open(code_index_path, "r") as f:
-        code_index = json.load(f)
+    try:
+        with open(code_index_path, "r") as f:
+            code_index = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"Error: malformed JSON in {code_index_path}: {e}", file=sys.stderr)
+        sys.exit(1)
+    except OSError as e:
+        print(f"Error: cannot read {code_index_path}: {e}", file=sys.stderr)
+        sys.exit(1)
 
     lookups = _build_lookups(code_index)
     old_hashes = _load_hashes(vault_root)
     new_hashes: dict[str, str] = {}
     all_pages: dict[str, str] = {}  # slug -> content
+
+    # Check for slug collisions
+    seen_slugs: dict[str, str] = {}  # slug -> first filepath that claimed it
+    for filepath in lookups["files"]:
+        slug = file_to_slug(filepath)
+        if slug in seen_slugs:
+            print(
+                f"Warning: slug collision — {filepath} and {seen_slugs[slug]} "
+                f"both produce slug '{slug}'",
+                file=sys.stderr,
+            )
+        else:
+            seen_slugs[slug] = filepath
 
     stats = {
         "pages_written": 0,
@@ -692,7 +720,8 @@ def generate_wiki_graph(
     # --- 5. Archive stale pages (pages in old hashes but not in new) ---
     for old_slug in sorted(old_hashes.keys()):
         if old_slug not in new_hashes:
-            old_rel = f"wiki/entities/{old_slug}.md"
+            # Try both entities/ and concepts/ paths
+            old_rel = _page_rel_path(old_slug, {}, vault_root)
             old_path = os.path.join(vault_root, old_rel)
             if os.path.exists(old_path):
                 # Mark as archived in frontmatter (HR-014: no deletion)

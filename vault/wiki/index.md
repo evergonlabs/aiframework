@@ -19,12 +19,12 @@ confidence: high
 | CONTRIBUTING | wiki/sources/CONTRIBUTING.md | source | 2026-04-18 | current |
 | README | wiki/sources/README.md | source | 2026-04-18 | current |
 | ai | wiki/concepts/ai.md | concept | 2026-04-18 | current |
-| architecture | wiki/concepts/architecture.md | entity | 2026-04-18 | current |
+| architecture | wiki/concepts/architecture.md | concept | 2026-04-18 | current |
 | bin | wiki/entities/bin.md | entity | 2026-04-18 | current |
 | bin-aiframework | wiki/entities/bin-aiframework.md | entity | 2026-04-18 | current |
 | bin-aiframework-mcp | wiki/entities/bin-aiframework-mcp.md | entity | 2026-04-18 | current |
 | bin-aiframework-update-check | wiki/entities/bin-aiframework-update-check.md | entity | 2026-04-18 | current |
-| bin-api | wiki/entities/bin-api.md | entity | 2026-04-18 | current |
+| bin-api | wiki/entities/bin-api.md | entity | 2026-04-18 | archived |
 | discover-sh | wiki/entities/discover-sh.md | entity | 2026-04-18 | current |
 | docs-README | wiki/sources/docs-README.md | source | 2026-04-18 | current |
 | generate-sh | wiki/entities/generate-sh.md | entity | 2026-04-18 | current |
@@ -37,7 +37,7 @@ confidence: high
 | lib-freshness-track-sh | wiki/entities/lib-freshness-track-sh.md | entity | 2026-04-18 | current |
 | lib-generators | wiki/entities/lib-generators.md | entity | 2026-04-18 | current |
 | lib-generators-agents-md-sh | wiki/entities/lib-generators-agents-md-sh.md | entity | 2026-04-18 | current |
-| lib-generators-api | wiki/entities/lib-generators-api.md | entity | 2026-04-18 | current |
+| lib-generators-api | wiki/entities/lib-generators-api.md | entity | 2026-04-18 | archived |
 | lib-generators-ci-sh | wiki/entities/lib-generators-ci-sh.md | entity | 2026-04-18 | current |
 | lib-generators-claude-md-sh | wiki/entities/lib-generators-claude-md-sh.md | entity | 2026-04-18 | current |
 | lib-generators-cursor-rules-sh | wiki/entities/lib-generators-cursor-rules-sh.md | entity | 2026-04-18 | current |
@@ -50,7 +50,7 @@ confidence: high
 | lib-generators-vault-ingest-sh | wiki/entities/lib-generators-vault-ingest-sh.md | entity | 2026-04-18 | current |
 | lib-generators-vault-sh | wiki/entities/lib-generators-vault-sh.md | entity | 2026-04-18 | current |
 | lib-indexers | wiki/entities/lib-indexers.md | entity | 2026-04-18 | current |
-| lib-indexers-api | wiki/entities/lib-indexers-api.md | entity | 2026-04-18 | current |
+| lib-indexers-api | wiki/entities/lib-indexers-api.md | entity | 2026-04-18 | archived |
 | lib-indexers-contrib | wiki/entities/lib-indexers-contrib.md | entity | 2026-04-18 | current |
 | lib-indexers-contrib-init-py | wiki/entities/lib-indexers-contrib-init-py.md | entity | 2026-04-18 | current |
 | lib-indexers-graph-py | wiki/entities/lib-indexers-graph-py.md | entity | 2026-04-18 | current |
@@ -63,7 +63,7 @@ confidence: high
 | lib-indexers-lang-typescript-py | wiki/entities/lib-indexers-lang-typescript-py.md | entity | 2026-04-18 | current |
 | lib-indexers-parse-py | wiki/entities/lib-indexers-parse-py.md | entity | 2026-04-18 | current |
 | lib-indexers-parsers | wiki/entities/lib-indexers-parsers.md | entity | 2026-04-18 | current |
-| lib-indexers-parsers-api | wiki/entities/lib-indexers-parsers-api.md | entity | 2026-04-18 | current |
+| lib-indexers-parsers-api | wiki/entities/lib-indexers-parsers-api.md | entity | 2026-04-18 | archived |
 | lib-indexers-parsers-bash-py | wiki/entities/lib-indexers-parsers-bash-py.md | entity | 2026-04-18 | current |
 | lib-indexers-parsers-go-py | wiki/entities/lib-indexers-parsers-go-py.md | entity | 2026-04-18 | current |
 | lib-indexers-parsers-init-py | wiki/entities/lib-indexers-parsers-init-py.md | entity | 2026-04-18 | current |
@@ -78,7 +78,7 @@ confidence: high
 | lib-mcp-init-py | wiki/entities/lib-mcp-init-py.md | entity | 2026-04-18 | current |
 | lib-mcp-server-py | wiki/entities/lib-mcp-server-py.md | entity | 2026-04-18 | current |
 | lib-scanners | wiki/entities/lib-scanners.md | entity | 2026-04-18 | current |
-| lib-scanners-api | wiki/entities/lib-scanners-api.md | entity | 2026-04-18 | current |
+| lib-scanners-api | wiki/entities/lib-scanners-api.md | entity | 2026-04-18 | archived |
 | lib-scanners-archetype-sh | wiki/entities/lib-scanners-archetype-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-ci-sh | wiki/entities/lib-scanners-ci-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-code-index-sh | wiki/entities/lib-scanners-code-index-sh.md | entity | 2026-04-18 | current |
@@ -103,13 +103,13 @@ confidence: high
 | run-sh | wiki/entities/run-sh.md | entity | 2026-04-18 | current |
 | tech-stack | wiki/concepts/tech-stack.md | concept | 2026-04-18 | current |
 | tests | wiki/entities/tests.md | entity | 2026-04-18 | current |
-| tests-api | wiki/entities/tests-api.md | entity | 2026-04-18 | current |
+| tests-api | wiki/entities/tests-api.md | entity | 2026-04-18 | archived |
 | tests-test-e2e-sh | wiki/entities/tests-test-e2e-sh.md | entity | 2026-04-18 | current |
 | tests-test-indexer-py | wiki/entities/tests-test-indexer-py.md | entity | 2026-04-18 | current |
 | tests-test-mcp-py | wiki/entities/tests-test-mcp-py.md | entity | 2026-04-18 | current |
 | tests-test-validators-sh | wiki/entities/tests-test-validators-sh.md | entity | 2026-04-18 | current |
-| vault-.vault-scripts | wiki/entities/vault-.vault-scripts.md | entity | 2026-04-18 | current |
-| vault-.vault-scripts-api | wiki/entities/vault-.vault-scripts-api.md | entity | 2026-04-18 | current |
+| vault-.vault-scripts | wiki/entities/vault-.vault-scripts.md | entity | 2026-04-18 | archived |
+| vault-.vault-scripts-api | wiki/entities/vault-.vault-scripts-api.md | entity | 2026-04-18 | archived |
 | vault-vault-hooks | wiki/entities/vault-vault-hooks.md | entity | 2026-04-18 | current |
 | vault-vault-hooks-pre-commit-sh | wiki/entities/vault-vault-hooks-pre-commit-sh.md | entity | 2026-04-18 | current |
 | vault-vault-scripts | wiki/entities/vault-vault-scripts.md | entity | 2026-04-18 | current |

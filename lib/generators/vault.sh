@@ -3277,11 +3277,9 @@ populate_vault_from_index() {
   today=$(date +%Y-%m-%d)
 
   # --- Try Python wiki graph generator (dense, file-level, bidirectional links) ---
-  local wiki_graph_py
-  # Find wiki_graph.py relative to this script (works both installed and development)
-  local _this_dir
-  _this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  wiki_graph_py="$_this_dir/wiki_graph.py"
+  # Use LIB_DIR (exported by bin/aiframework) — BASH_SOURCE[0] resolves to the
+  # caller (bin/aiframework), not this file, when vault.sh is sourced.
+  local wiki_graph_py="${LIB_DIR:-}/generators/wiki_graph.py"
 
   if [[ -f "$wiki_graph_py" ]] && command -v python3 &>/dev/null; then
     local output
@@ -3295,14 +3293,20 @@ populate_vault_from_index() {
     else
       log_warn "wiki_graph.py failed, falling back to legacy: $output"
     fi
+  else
+    if [[ ! -f "$wiki_graph_py" ]]; then
+      log_warn "wiki_graph.py not found at $wiki_graph_py — using legacy vault population"
+    elif ! command -v python3 &>/dev/null; then
+      log_warn "python3 not available — using legacy vault population"
+    fi
   fi
 
-  # --- Legacy fallback (module-level only, for systems without Python 3.10+) ---
+  # --- Legacy fallback (module-level only, for systems without python3) ---
   _populate_vault_from_index_legacy "$target_dir" "$vault_root"
 }
 
 # Legacy vault population — module-level pages only.
-# Used as fallback when Python 3.10+ is not available.
+# Used as fallback when python3 is unavailable or wiki_graph.py cannot be found.
 _populate_vault_from_index_legacy() {
   local target_dir="$1"
   local vault_root="$2"
