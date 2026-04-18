@@ -668,11 +668,13 @@ LEARNMD
     # This is the autonomous loop — no manual commands needed
     local _start_cmd _stop_cmd
 
-    # SessionStart: drift check + sheal health (if available)
+    # SessionStart: update check + drift check + sheal health (if available)
+    # The update check runs first so Claude Code sees upgrade notifications immediately
+    local _update_cmd="if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi"
     if [[ "$_sheal_installed" == "true" ]]; then
-      _start_cmd="sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true"
+      _start_cmd="${_update_cmd}; sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true"
     else
-      _start_cmd="if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi"
+      _start_cmd="${_update_cmd}; if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi"
     fi
 
     # Stop: auto-retro + learning bridge + weekly evolve reminder
@@ -757,12 +759,12 @@ SETTINGS
         _jq_expr='
           .permissions.allow += ["Skill(sheal-check)", "Skill(sheal-retro)", "Skill(sheal-drift)", "Skill(sheal-ask)"]
           | .permissions.allow |= unique
-          | .hooks.SessionStart = [{"command": "sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]
+          | .hooks.SessionStart = [{"command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]
           | .hooks.Stop = [{"command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi", "timeout": 30000}]
         '
       else
         _jq_expr='
-          .hooks.SessionStart = [{"command": "if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi", "timeout": 15000}]
+          .hooks.SessionStart = [{"command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi", "timeout": 15000}]
           | .hooks.Stop = [{"command": "echo \"[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.\" 2>/dev/null || true", "timeout": 5000}]
         '
       fi

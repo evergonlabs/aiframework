@@ -359,6 +359,18 @@ if command -v aiframework >/dev/null 2>&1; then
 fi
 REFRESH_GATE
 
+cat >> "$TARGET_DIR/.githooks/pre-push" << 'UPDATE_CHECK'
+
+# Check for aiframework updates
+if command -v aiframework-update-check >/dev/null 2>&1; then
+  _upd=$(aiframework-update-check 2>/dev/null || true)
+  if [[ "$_upd" == UPGRADE_AVAILABLE* ]]; then
+    echo "  [aiframework] New version available: ${_upd#UPGRADE_AVAILABLE }"
+    echo "  Run: aiframework update"
+  fi
+fi
+UPDATE_CHECK
+
 cat >> "$TARGET_DIR/.githooks/pre-push" << 'PREPUSH_TAIL'
 echo ""
 echo "  All gates passed — push allowed"

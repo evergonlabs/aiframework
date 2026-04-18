@@ -14,7 +14,7 @@ At the start of each session:
 4. Check `git log --oneline -10` — understand recent work
 5. Check `git status` — understand current state
 6. If a STATUS.md file exists — read it for multi-phase task progress
-7. Run `aiframework-update-check` — notify developer of updates or drift
+7. **Auto: `aiframework-update-check` runs via SessionStart hook** — if output says `UPGRADE_AVAILABLE`, tell the user: "A new version of aiframework is available. Run `aiframework update` to upgrade."
 8. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 ## End-of-Session Checklist
