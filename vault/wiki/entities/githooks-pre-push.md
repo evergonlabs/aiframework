@@ -14,20 +14,22 @@ confidence: medium
 
 # pre-push
 
-> `.githooks/pre-push` — bash, 115 lines
+> `.githooks/pre-push` — bash, 145 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `.githooks/pre-push` |
 | Language | bash |
-| Lines | 115 |
-| Size | 5153 bytes |
-| Symbols | 0 |
+| Lines | 145 |
+| Size | 6944 bytes |
+| Symbols | 1 |
 | PageRank | — |
 
-## Symbols
+## Symbols (1)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_aif_hook_telemetry` | function | 4 | private | Lightweight telemetry for hook events — fire-and-forget, nev... |
 
 ## Imports
 

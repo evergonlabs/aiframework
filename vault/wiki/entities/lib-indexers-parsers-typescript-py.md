@@ -22,12 +22,16 @@ confidence: medium
 | Language | python |
 | Lines | 141 |
 | Size | 4585 bytes |
-| Symbols | 0 |
+| Symbols | 3 |
 | PageRank | — |
 
-## Symbols
+## Symbols (3)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_extract_jsdoc` | function | 24 | private | Extract the JSDoc comment (/** ... */) immediately before *p... |
+| `parse` | function | 36 | public | Parse TypeScript/JavaScript source and return (symbols, impo... |
+| `parse_typescript` | function | 138 | public | Legacy interface: returns dict with symbols/imports/exports. |
 
 ## Imports
 

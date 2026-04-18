@@ -14,14 +14,14 @@ confidence: medium
 
 # agents_md.sh
 
-> `lib/generators/agents_md.sh` — bash, 166 lines
+> `lib/generators/agents_md.sh` — bash, 213 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators/agents_md.sh` |
 | Language | bash |
-| Lines | 166 |
-| Size | 6675 bytes |
+| Lines | 213 |
+| Size | 8449 bytes |
 | Symbols | 1 |
 | PageRank | — |
 

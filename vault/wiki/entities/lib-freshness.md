@@ -29,7 +29,7 @@ confidence: medium
 
 | File | Symbols | PageRank |
 |------|---------|----------|
-| [[lib-freshness-track-sh|track.sh]] | 2 | 0.0022 |
+| [[lib-freshness-track-sh|track.sh]] | 2 | — |
 
 ## Dependencies
 

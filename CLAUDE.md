@@ -35,27 +35,31 @@ make test
 
 - **AI/LLM Integration**: bin/aiframework-update-check
 - **AI/LLM Integration**: bin/aiframework-mcp
-- **AI/LLM Integration**: bin/aiframework
+- **AI/LLM Integration**: bin/aiframework-telemetry
 - **Scripts**: `bin/`
 - **Scripts**: `tools/`
 - **CI**: `.github/`
 - **Data**: `lib/data/` — detection registries and config
 
 **Most important files** (by dependency rank):
-- `lib/indexers/graph.py`
+- `lib/scanners/sheal.sh`
+- `lib/generators/sheal.sh`
 - `lib/indexers/registry.py`
-- `lib/validators/files.sh`
+- `lib/bridge/sheal_learnings.sh`
+- `lib/indexers/graph.py`
+- `lib/validators/consistency.sh`
 - `lib/validators/quality_gate.sh`
 - `lib/scanners/skill_suggest.sh`
-- `lib/validators/security.sh`
-- `lib/generators/preserve.sh`
-- `lib/generators/skills.sh`
 - `lib/validators/freshness.sh`
-- `lib/validators/consistency.sh`
+- `lib/validators/files.sh`
 
 ## Environment Variables
 
-*None discovered. Add variables here when .env.example is created.*
+| Variable | Required | Description |
+|----------|----------|-------------|
+| SHA256 | No | - |
+| TARBALL_URL | No | - |
+| VERSION | No | - |
 
 ## Gotchas
 
@@ -70,12 +74,12 @@ make test
 ## Common Mistakes
 
 - Not running the full test suite before marking done
-- Editing lib/data/ registry JSON instead of the corresponding scanner/generator code
+- Editing the wrong config file (staging vs production)
 - Forgetting to update documentation after changes
 
 ## Key State
 
-- Source files: 63
+- Source files: 80
 - Tests: [run `make test` to count]
 
 ## Makefile
@@ -86,6 +90,7 @@ make uninstall
 make lint
 make test
 make check
+make dist
 ```
 
 ## Automated Enforcement
@@ -104,10 +109,6 @@ make check
 - `/aiframework-learn` — Capture gotchas to persistent storage
 - `/aif-evolve` — Weekly: synthesize learnings into better rules
 - `/aif-pulse` — Monthly: discover new Claude Code features
-- `/sheal-check` — Health check (tests, deps, env) *(requires sheal)*
-- `/sheal-retro` — Session retrospective + learning extraction *(requires sheal)*
-- `/sheal-drift` — Detect unapplied learnings, promote to rules *(requires sheal)*
-- `/sheal-ask` — Query session history *(requires sheal)*
 
 ## Vault
 
@@ -141,4 +142,4 @@ This file auto-evolves. Rules of thumb:
 
 ---
 
-*Generated: 2026-04-18 by aiframework v1.2.0. Run `aiframework refresh` to update. Lean mode (complex).*
+*Generated: 2026-04-18 by aiframework v1.3.0. Run `aiframework refresh` to update. Lean mode (complex).*

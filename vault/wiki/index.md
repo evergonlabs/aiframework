@@ -12,7 +12,7 @@ confidence: high
 
 # Vault Index
 
-> Master registry of all vault pages. 102 pages indexed.
+> Master registry of all vault pages. 114 pages indexed.
 
 | Slug | Path | Type | Updated | Status |
 |------|------|------|---------|--------|
@@ -23,6 +23,7 @@ confidence: high
 | bin | wiki/entities/bin.md | entity | 2026-04-18 | current |
 | bin-aiframework | wiki/entities/bin-aiframework.md | entity | 2026-04-18 | current |
 | bin-aiframework-mcp | wiki/entities/bin-aiframework-mcp.md | entity | 2026-04-18 | current |
+| bin-aiframework-telemetry | wiki/entities/bin-aiframework-telemetry.md | entity | 2026-04-18 | current |
 | bin-aiframework-update-check | wiki/entities/bin-aiframework-update-check.md | entity | 2026-04-18 | current |
 | bin-api | wiki/entities/bin-api.md | entity | 2026-04-18 | archived |
 | discover-sh | wiki/entities/discover-sh.md | entity | 2026-04-18 | current |
@@ -31,7 +32,12 @@ confidence: high
 | githooks | wiki/entities/githooks.md | entity | 2026-04-18 | current |
 | githooks-pre-commit | wiki/entities/githooks-pre-commit.md | entity | 2026-04-18 | current |
 | githooks-pre-push | wiki/entities/githooks-pre-push.md | entity | 2026-04-18 | current |
+| github-homebrew | wiki/entities/github-homebrew.md | entity | 2026-04-18 | current |
+| github-homebrew-aiframework-rb | wiki/entities/github-homebrew-aiframework-rb.md | entity | 2026-04-18 | current |
+| install-sh | wiki/entities/install-sh.md | entity | 2026-04-18 | current |
 | lib | wiki/entities/lib.md | entity | 2026-04-18 | current |
+| lib-bridge | wiki/entities/lib-bridge.md | entity | 2026-04-18 | current |
+| lib-bridge-sheal-learnings-sh | wiki/entities/lib-bridge-sheal-learnings-sh.md | entity | 2026-04-18 | current |
 | lib-config-sh | wiki/entities/lib-config-sh.md | entity | 2026-04-18 | current |
 | lib-freshness | wiki/entities/lib-freshness.md | entity | 2026-04-18 | current |
 | lib-freshness-track-sh | wiki/entities/lib-freshness-track-sh.md | entity | 2026-04-18 | current |
@@ -45,10 +51,12 @@ confidence: high
 | lib-generators-hooks-sh | wiki/entities/lib-generators-hooks-sh.md | entity | 2026-04-18 | current |
 | lib-generators-preserve-sh | wiki/entities/lib-generators-preserve-sh.md | entity | 2026-04-18 | current |
 | lib-generators-report-sh | wiki/entities/lib-generators-report-sh.md | entity | 2026-04-18 | current |
+| lib-generators-sheal-sh | wiki/entities/lib-generators-sheal-sh.md | entity | 2026-04-18 | current |
 | lib-generators-skills-sh | wiki/entities/lib-generators-skills-sh.md | entity | 2026-04-18 | current |
 | lib-generators-tracking-sh | wiki/entities/lib-generators-tracking-sh.md | entity | 2026-04-18 | current |
 | lib-generators-vault-ingest-sh | wiki/entities/lib-generators-vault-ingest-sh.md | entity | 2026-04-18 | current |
 | lib-generators-vault-sh | wiki/entities/lib-generators-vault-sh.md | entity | 2026-04-18 | current |
+| lib-generators-wiki-graph-py | wiki/entities/lib-generators-wiki-graph-py.md | entity | 2026-04-18 | current |
 | lib-indexers | wiki/entities/lib-indexers.md | entity | 2026-04-18 | current |
 | lib-indexers-api | wiki/entities/lib-indexers-api.md | entity | 2026-04-18 | archived |
 | lib-indexers-contrib | wiki/entities/lib-indexers-contrib.md | entity | 2026-04-18 | current |
@@ -87,6 +95,7 @@ confidence: high
 | lib-scanners-env-sh | wiki/entities/lib-scanners-env-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-identity-sh | wiki/entities/lib-scanners-identity-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-quality-sh | wiki/entities/lib-scanners-quality-sh.md | entity | 2026-04-18 | current |
+| lib-scanners-sheal-sh | wiki/entities/lib-scanners-sheal-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-skill-suggest-sh | wiki/entities/lib-scanners-skill-suggest-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-stack-sh | wiki/entities/lib-scanners-stack-sh.md | entity | 2026-04-18 | current |
 | lib-scanners-structure-sh | wiki/entities/lib-scanners-structure-sh.md | entity | 2026-04-18 | current |
@@ -106,8 +115,11 @@ confidence: high
 | tests-api | wiki/entities/tests-api.md | entity | 2026-04-18 | archived |
 | tests-test-e2e-sh | wiki/entities/tests-test-e2e-sh.md | entity | 2026-04-18 | current |
 | tests-test-indexer-py | wiki/entities/tests-test-indexer-py.md | entity | 2026-04-18 | current |
+| tests-test-installer-sh | wiki/entities/tests-test-installer-sh.md | entity | 2026-04-18 | current |
 | tests-test-mcp-py | wiki/entities/tests-test-mcp-py.md | entity | 2026-04-18 | current |
+| tests-test-sheal-sh | wiki/entities/tests-test-sheal-sh.md | entity | 2026-04-18 | current |
 | tests-test-validators-sh | wiki/entities/tests-test-validators-sh.md | entity | 2026-04-18 | current |
+| tests-test-wiki-graph-py | wiki/entities/tests-test-wiki-graph-py.md | entity | 2026-04-18 | current |
 | vault-.vault-scripts | wiki/entities/vault-.vault-scripts.md | entity | 2026-04-18 | archived |
 | vault-.vault-scripts-api | wiki/entities/vault-.vault-scripts-api.md | entity | 2026-04-18 | archived |
 | vault-vault-hooks | wiki/entities/vault-vault-hooks.md | entity | 2026-04-18 | current |

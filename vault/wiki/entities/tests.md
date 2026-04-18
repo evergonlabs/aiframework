@@ -14,30 +14,34 @@ confidence: medium
 
 # Module: tests
 
-> testing — 4 files, 75 symbols
+> testing — 7 files, 93 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `tests` |
 | Role | testing |
-| Files | 4 |
-| Symbols | 75 |
+| Files | 7 |
+| Symbols | 93 |
 | Fan-in | 0 |
-| Fan-out | 21 |
+| Fan-out | 34 |
 
-## Files (4)
+## Files (7)
 
 | File | Symbols | PageRank |
 |------|---------|----------|
 | [[tests-test-e2e-sh|test_e2e.sh]] | 3 | — |
-| [[tests-test-indexer-py|test_indexer.py]] | 0 | — |
-| [[tests-test-mcp-py|test_mcp.py]] | 0 | — |
-| [[tests-test-validators-sh|test_validators.sh]] | 30 | — |
+| [[tests-test-indexer-py|test_indexer.py]] | 27 | — |
+| [[tests-test-installer-sh|test_installer.sh]] | 2 | — |
+| [[tests-test-mcp-py|test_mcp.py]] | 15 | — |
+| [[tests-test-sheal-sh|test_sheal.sh]] | 9 | — |
+| [[tests-test-validators-sh|test_validators.sh]] | 31 | — |
+| [[tests-test-wiki-graph-py|test_wiki_graph.py]] | 6 | — |
 
-## Dependencies (3 modules)
+## Dependencies (4 modules)
 
-- [[lib-generators|lib/generators]] (10 edges)
-- [[lib-scanners|lib/scanners]] (3 edges)
+- [[lib-bridge|lib/bridge]] (8 edges)
+- [[lib-generators|lib/generators]] (11 edges)
+- [[lib-scanners|lib/scanners]] (7 edges)
 - [[lib-validators|lib/validators]] (8 edges)
 
 ## Dependents

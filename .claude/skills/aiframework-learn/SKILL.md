@@ -16,12 +16,6 @@ allowed-tools:
 ## Usage
 `/aiframework-learn "description of what was learned"`
 
-## Step 0: Telemetry (silent, non-blocking)
-
-```bash
-aiframework-telemetry skill_invoked skill=aiframework-learn 2>/dev/null || true
-```
-
 ## Step 1: Classify
 Determine category: bug, gotcha, pattern, or decision
 

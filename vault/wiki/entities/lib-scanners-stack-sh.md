@@ -21,7 +21,7 @@ confidence: medium
 | Path | `lib/scanners/stack.sh` |
 | Language | bash |
 | Lines | 391 |
-| Size | 16153 bytes |
+| Size | 16147 bytes |
 | Symbols | 1 |
 | PageRank | — |
 

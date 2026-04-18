@@ -22,12 +22,16 @@ confidence: medium
 | Language | python |
 | Lines | 106 |
 | Size | 3441 bytes |
-| Symbols | 0 |
+| Symbols | 3 |
 | PageRank | — |
 
-## Symbols
+## Symbols (3)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_extract_doc_comment` | function | 25 | private | Extract the // comment block immediately before *pos*. |
+| `parse` | function | 40 | public | Parse Go source and return (symbols, imports, exports). |
+| `parse_go` | function | 103 | public | Legacy interface: returns dict with symbols/imports/exports. |
 
 ## Imports
 

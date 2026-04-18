@@ -22,12 +22,17 @@ confidence: medium
 | Language | python |
 | Lines | 134 |
 | Size | 4480 bytes |
-| Symbols | 0 |
+| Symbols | 4 |
 | PageRank | — |
 
-## Symbols
+## Symbols (4)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_first_doc_line` | function | 33 | private | Extract the first line of a docstring following a def/class. |
+| `_find_parent_class` | function | 41 | private | Find the class that contains an indented method definition. |
+| `parse` | function | 50 | public | Parse a Python file and return (symbols, imports, exports). |
+| `parse_python` | function | 131 | public | Legacy interface: returns dict with symbols/imports/exports. |
 
 ## Imports
 

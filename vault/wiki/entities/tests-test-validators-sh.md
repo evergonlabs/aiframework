@@ -14,18 +14,18 @@ confidence: medium
 
 # test_validators.sh
 
-> `tests/test_validators.sh` — bash, 612 lines
+> `tests/test_validators.sh` — bash, 648 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `tests/test_validators.sh` |
 | Language | bash |
-| Lines | 612 |
-| Size | 18566 bytes |
-| Symbols | 30 |
+| Lines | 648 |
+| Size | 19852 bytes |
+| Symbols | 31 |
 | PageRank | — |
 
-## Symbols (30)
+## Symbols (31)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
@@ -55,7 +55,7 @@ confidence: medium
 | `test_sanitize_strips_backticks` | function | 438 | public | ============================================================... |
 | `test_sanitize_strips_dollar_parens` | function | 457 | public | ============================================================... |
 
-> Showing 25 of 30 symbols.
+> Showing 25 of 31 symbols.
 
 ## Imports (8)
 

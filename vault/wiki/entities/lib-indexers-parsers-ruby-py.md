@@ -22,12 +22,16 @@ confidence: medium
 | Language | python |
 | Lines | 111 |
 | Size | 3428 bytes |
-| Symbols | 0 |
+| Symbols | 3 |
 | PageRank | — |
 
-## Symbols
+## Symbols (3)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_extract_rdoc_comment` | function | 25 | private | Extract the # comment block immediately before *pos*. |
+| `parse` | function | 40 | public | Parse Ruby source and return (symbols, imports, exports). |
+| `parse_ruby` | function | 108 | public | Legacy interface: returns dict with symbols/imports/exports. |
 
 ## Imports
 

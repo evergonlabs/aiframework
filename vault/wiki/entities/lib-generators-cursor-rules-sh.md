@@ -14,14 +14,14 @@ confidence: medium
 
 # cursor_rules.sh
 
-> `lib/generators/cursor_rules.sh` — bash, 94 lines
+> `lib/generators/cursor_rules.sh` — bash, 98 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators/cursor_rules.sh` |
 | Language | bash |
-| Lines | 94 |
-| Size | 3311 bytes |
+| Lines | 98 |
+| Size | 3549 bytes |
 | Symbols | 1 |
 | PageRank | — |
 

@@ -15,8 +15,7 @@ At the start of each session:
 5. Check `git status` — understand current state
 6. If a STATUS.md file exists — read it for multi-phase task progress
 7. Run `aiframework-update-check` — notify developer of updates or drift
-8. If sheal is installed → `sheal check` runs automatically via SessionStart hook
-9. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+8. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
 
 ## End-of-Session Checklist
 
@@ -32,7 +31,6 @@ Before ending ANY session where code was changed, Claude MUST complete:
 - [ ] **STATUS.md**: Did I update STATUS.md with current progress for multi-phase tasks?
 - [ ] **Push**: Ready to push? Confirm with user before pushing.
 - [ ] **Vault**: Did I update vault/memory/status.md with session progress?
-- [ ] **Retro**: `sheal retro` runs automatically via Stop hook (if sheal installed)
 - [ ] **Decisions**: Any significant decisions? → Log in vault/memory/decisions/
 
 ---
@@ -115,3 +113,11 @@ Stored in `tools/learnings/aiframework-learnings.jsonl`. Use `/learn` to add new
 To query: `grep "keyword" tools/learnings/aiframework-learnings.jsonl`
 To add: `/aiframework-learn "description"` or append a JSON line manually.
 
+---
+
+## gstack Browser Integration
+
+Use `$B` commands for browser interactions (~20x faster than Playwright MCP):
+- `$B goto <url>` — navigate | `$B snapshot` — page structure | `$B click @e1` — click
+- `$B fill @e1 "text"` — fill input | `$B screenshot` — capture | `$B diff` — compare
+- `$B console` — logs | `$B network` — requests | `$B chain "cmd1" "cmd2"` — chain

@@ -30,7 +30,7 @@ confidence: medium
 | File | Symbols | PageRank |
 |------|---------|----------|
 | [[lib-mcp-init-py|__init__.py]] | 0 | — |
-| [[lib-mcp-server-py|server.py]] | 0 | — |
+| [[lib-mcp-server-py|server.py]] | 21 | — |
 
 ## Dependencies
 

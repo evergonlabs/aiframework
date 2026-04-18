@@ -14,20 +14,31 @@ confidence: medium
 
 # parse.py
 
-> `lib/indexers/parse.py` — python, 1077 lines
+> `lib/indexers/parse.py` — python, 744 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/indexers/parse.py` |
 | Language | python |
-| Lines | 1077 |
-| Size | 33821 bytes |
-| Symbols | 0 |
+| Lines | 744 |
+| Size | 23000 bytes |
+| Symbols | 10 |
 | PageRank | — |
 
-## Symbols
+## Symbols (10)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_lang_java` | function | 70 | private | — |
+| `_lang_csharp` | function | 150 | private | — |
+| `_lang_php` | function | 220 | private | — |
+| `_lang_kotlin` | function | 282 | private | — |
+| `_lang_swift` | function | 347 | private | — |
+| `_lang_elixir` | function | 402 | private | — |
+| `_parse_file` | function | 474 | private | Parse a single file and return its file-entry dict plus symb... |
+| `_detect_shebang_language` | function | 577 | private | Read the first line of a file and detect language from sheba... |
+| `index_repo` | function | 612 | public | Index a repository and optionally write the result to a JSON... |
+| `main` | function | 713 | public | — |
 
 ## Imports (3)
 

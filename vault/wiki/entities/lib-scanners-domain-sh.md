@@ -21,9 +21,9 @@ confidence: medium
 | Path | `lib/scanners/domain.sh` |
 | Language | bash |
 | Lines | 572 |
-| Size | 31191 bytes |
+| Size | 31193 bytes |
 | Symbols | 1 |
-| PageRank | 0.0022 |
+| PageRank | 0.0019 |
 
 ## Symbols (1)
 

@@ -21,9 +21,9 @@ confidence: medium
 | Path | `lib/validators/files.sh` |
 | Language | bash |
 | Lines | 288 |
-| Size | 8715 bytes |
+| Size | 8737 bytes |
 | Symbols | 2 |
-| PageRank | 0.0024 |
+| PageRank | 0.0021 |
 
 ## Symbols (2)
 

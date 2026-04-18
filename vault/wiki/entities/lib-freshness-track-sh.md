@@ -14,23 +14,23 @@ confidence: medium
 
 # track.sh
 
-> `lib/freshness/track.sh` — bash, 56 lines
+> `lib/freshness/track.sh` — bash, 78 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/freshness/track.sh` |
 | Language | bash |
-| Lines | 56 |
-| Size | 2149 bytes |
+| Lines | 78 |
+| Size | 3159 bytes |
 | Symbols | 2 |
-| PageRank | 0.0022 |
+| PageRank | — |
 
 ## Symbols (2)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
 | `freshness_save_hashes` | function | 5 | public | Save hashes of key files after a successful discover |
-| `freshness_check_drift` | function | 31 | public | Check if key files changed since last scan |
+| `freshness_check_drift` | function | 40 | public | Check if key files changed since last scan |
 
 ## Imports
 

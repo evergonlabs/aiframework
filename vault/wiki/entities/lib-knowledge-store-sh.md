@@ -14,25 +14,25 @@ confidence: medium
 
 # store.sh
 
-> `lib/knowledge/store.sh` — bash, 69 lines
+> `lib/knowledge/store.sh` — bash, 105 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/knowledge/store.sh` |
 | Language | bash |
-| Lines | 69 |
-| Size | 2480 bytes |
+| Lines | 105 |
+| Size | 3836 bytes |
 | Symbols | 4 |
-| PageRank | — |
+| PageRank | 0.0019 |
 
 ## Symbols (4)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
-| `knowledge_init` | function | 7 | public | Initialize knowledge store at ~/.aiframework/knowledge/ |
-| `knowledge_record_profile` | function | 18 | public | Record a repo profile after discover |
-| `knowledge_record_miss` | function | 34 | public | Record what enhance found that scanners missed |
-| `knowledge_stats` | function | 46 | public | Show stats across all analyzed repos |
+| `knowledge_init` | function | 8 | public | Initialize knowledge store at ~/.aiframework/knowledge/ |
+| `knowledge_record_profile` | function | 19 | public | Record a repo profile after discover |
+| `knowledge_record_miss` | function | 64 | public | Record what enhance found that scanners missed |
+| `knowledge_stats` | function | 82 | public | Show stats across all analyzed repos |
 
 ## Imports
 

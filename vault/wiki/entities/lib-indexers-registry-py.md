@@ -22,12 +22,15 @@ confidence: medium
 | Language | python |
 | Lines | 93 |
 | Size | 3097 bytes |
-| Symbols | 0 |
-| PageRank | 0.0027 |
+| Symbols | 2 |
+| PageRank | 0.0024 |
 
-## Symbols
+## Symbols (2)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_load_parsers_from_package` | function | 29 | private | Load all parser modules from a package. |
+| `discover_parsers` | function | 70 | public | Discover all available parsers from built-in and contrib pac... |
 
 ## Imports
 

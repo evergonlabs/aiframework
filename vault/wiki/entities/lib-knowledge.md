@@ -29,7 +29,7 @@ confidence: medium
 
 | File | Symbols | PageRank |
 |------|---------|----------|
-| [[lib-knowledge-store-sh|store.sh]] | 4 | — |
+| [[lib-knowledge-store-sh|store.sh]] | 4 | 0.0019 |
 
 ## Dependencies
 

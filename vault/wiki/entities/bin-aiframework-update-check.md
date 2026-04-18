@@ -14,18 +14,18 @@ confidence: medium
 
 # aiframework-update-check
 
-> `bin/aiframework-update-check` — bash, 199 lines
+> `bin/aiframework-update-check` — bash, 267 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `bin/aiframework-update-check` |
 | Language | bash |
-| Lines | 199 |
-| Size | 5180 bytes |
-| Symbols | 12 |
+| Lines | 267 |
+| Size | 7008 bytes |
+| Symbols | 13 |
 | PageRank | — |
 
-## Symbols (12)
+## Symbols (13)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
@@ -41,6 +41,7 @@ confidence: medium
 | `fetch_remote_version` | function | 130 | public | — |
 | `check_drift` | function | 141 | public | — |
 | `main` | function | 158 | public | — |
+| `_output_json` | function | 247 | private | — |
 
 ## Imports
 

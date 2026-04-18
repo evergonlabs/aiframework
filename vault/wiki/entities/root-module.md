@@ -14,23 +14,24 @@ confidence: medium
 
 # Module: .
 
-> general — 4 files, 0 symbols
+> general — 5 files, 13 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `.` |
 | Role | general |
-| Files | 4 |
-| Symbols | 0 |
+| Files | 5 |
+| Symbols | 13 |
 | Fan-in | 0 |
 | Fan-out | 0 |
 
-## Files (4)
+## Files (5)
 
 | File | Symbols | PageRank |
 |------|---------|----------|
 | [[discover-sh|discover.sh]] | 0 | — |
 | [[generate-sh|generate.sh]] | 0 | — |
+| [[install-sh|install.sh]] | 13 | — |
 | [[run-sh|run.sh]] | 0 | — |
 | [[verify-sh|verify.sh]] | 0 | — |
 

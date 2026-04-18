@@ -22,12 +22,17 @@ confidence: medium
 | Language | python |
 | Lines | 150 |
 | Size | 4709 bytes |
-| Symbols | 0 |
+| Symbols | 4 |
 | PageRank | — |
 
-## Symbols
+## Symbols (4)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_extract_docstring` | function | 24 | private | Collect the # comment block immediately before a function de... |
+| `_normalize_bash_import` | function | 39 | private | Normalize a bash source/dot import path to a relative file p... |
+| `parse` | function | 89 | public | Parse a bash/shell script and return (symbols, imports, expo... |
+| `parse_bash` | function | 147 | public | Legacy interface: returns dict with symbols/imports/exports. |
 
 ## Imports
 

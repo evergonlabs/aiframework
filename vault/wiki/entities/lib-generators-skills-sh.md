@@ -14,23 +14,23 @@ confidence: medium
 
 # skills.sh
 
-> `lib/generators/skills.sh` — bash, 728 lines
+> `lib/generators/skills.sh` — bash, 825 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators/skills.sh` |
 | Language | bash |
-| Lines | 728 |
-| Size | 24916 bytes |
+| Lines | 825 |
+| Size | 30663 bytes |
 | Symbols | 2 |
-| PageRank | 0.0024 |
+| PageRank | 0.0021 |
 
 ## Symbols (2)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
 | `_sanitize_manifest_val` | function | 9 | private | Sanitize manifest values for safe use in heredocs and echo s... |
-| `generate_skills` | function | 26 | public | — |
+| `generate_skills` | function | 17 | public | — |
 
 ## Imports
 

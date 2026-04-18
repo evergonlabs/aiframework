@@ -14,14 +14,14 @@ confidence: medium
 
 # test_e2e.sh
 
-> `tests/test_e2e.sh` — bash, 199 lines
+> `tests/test_e2e.sh` — bash, 204 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `tests/test_e2e.sh` |
 | Language | bash |
-| Lines | 199 |
-| Size | 10457 bytes |
+| Lines | 204 |
+| Size | 10703 bytes |
 | Symbols | 3 |
 | PageRank | — |
 

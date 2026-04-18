@@ -14,47 +14,51 @@ confidence: medium
 
 # aiframework
 
-> `bin/aiframework` — bash, 692 lines
+> `bin/aiframework` — bash, 1250 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `bin/aiframework` |
 | Language | bash |
-| Lines | 692 |
-| Size | 21916 bytes |
-| Symbols | 24 |
+| Lines | 1250 |
+| Size | 43239 bytes |
+| Symbols | 37 |
 | PageRank | — |
 
-## Symbols (24)
+## Symbols (37)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
-| `_aiframework_cleanup` | function | 26 | private | Cleanup trap — remove temp files on exit |
-| `check_dependencies` | function | 34 | public | Dependency check — validate required tools are available |
-| `_aif_timer_start` | function | 73 | private | — |
-| `_aif_timer_elapsed` | function | 74 | private | — |
-| `log_info` | function | 87 | public | — |
-| `log_ok` | function | 88 | public | — |
-| `log_warn` | function | 89 | public | — |
-| `log_error` | function | 90 | public | — |
-| `log_step` | function | 92 | public | — |
-| `log_phase` | function | 108 | public | — |
-| `log_phase_done` | function | 124 | public | — |
-| `banner` | function | 131 | public | — |
-| `_aif_summary` | function | 144 | private | Completion summary box |
-| `usage` | function | 165 | public | — |
-| `parse_args` | function | 211 | public | — |
-| `cmd_discover` | function | 273 | public | — |
-| `cmd_generate` | function | 369 | public | — |
-| `cmd_verify` | function | 477 | public | — |
-| `cmd_index` | function | 527 | public | — |
-| `cmd_stats` | function | 539 | public | — |
-| `cmd_report` | function | 547 | public | — |
-| `cmd_refresh` | function | 574 | public | — |
-| `_write_refresh_notice` | function | 607 | private | — |
-| `cmd_run` | function | 624 | public | — |
+| `_aiframework_cleanup` | function | 37 | private | Cleanup trap — remove temp files on exit |
+| `_aif_timeout` | function | 46 | private | Cross-platform timeout wrapper
+Priority: GNU timeout → gtime... |
+| `_aif_telemetry_enabled` | function | 101 | private | — |
+| `_aif_telemetry_base` | function | 108 | private | Build the base payload that's common to all events |
+| `_aif_telemetry` | function | 148 | private | Send a telemetry event — fire-and-forget, never blocks |
+| `_aif_telemetry_error` | function | 180 | private | Record an error for inclusion in the next telemetry event |
+| `check_dependencies` | function | 193 | public | Dependency check — validate required tools are available |
+| `_aif_timer_start` | function | 236 | private | — |
+| `_aif_timer_elapsed` | function | 237 | private | — |
+| `log_info` | function | 250 | public | — |
+| `log_ok` | function | 251 | public | — |
+| `log_warn` | function | 252 | public | — |
+| `log_error` | function | 253 | public | — |
+| `log_step` | function | 255 | public | — |
+| `log_phase` | function | 271 | public | — |
+| `log_phase_done` | function | 287 | public | — |
+| `banner` | function | 294 | public | — |
+| `_aif_summary` | function | 307 | private | Completion summary box |
+| `usage` | function | 328 | public | — |
+| `parse_args` | function | 375 | public | — |
+| `cmd_discover` | function | 439 | public | — |
+| `_run_scanner` | function | 469 | private | — |
+| `cmd_generate` | function | 574 | public | — |
+| `cmd_verify` | function | 700 | public | — |
+| `cmd_index` | function | 775 | public | — |
 
-## Imports (31)
+> Showing 25 of 37 symbols.
+
+## Imports (33)
 
 - [[lib-freshness-track-sh|track.sh]] (`lib/freshness/track.sh`)
 - [[lib-generators-agents-md-sh|agents_md.sh]] (`lib/generators/agents_md.sh`)
@@ -65,6 +69,7 @@ confidence: medium
 - [[lib-generators-hooks-sh|hooks.sh]] (`lib/generators/hooks.sh`)
 - [[lib-generators-preserve-sh|preserve.sh]] (`lib/generators/preserve.sh`)
 - [[lib-generators-report-sh|report.sh]] (`lib/generators/report.sh`)
+- [[lib-generators-sheal-sh|sheal.sh]] (`lib/generators/sheal.sh`)
 - [[lib-generators-skills-sh|skills.sh]] (`lib/generators/skills.sh`)
 - [[lib-generators-tracking-sh|tracking.sh]] (`lib/generators/tracking.sh`)
 - [[lib-generators-vault-sh|vault.sh]] (`lib/generators/vault.sh`)
@@ -78,6 +83,7 @@ confidence: medium
 - [[lib-scanners-env-sh|env.sh]] (`lib/scanners/env.sh`)
 - [[lib-scanners-identity-sh|identity.sh]] (`lib/scanners/identity.sh`)
 - [[lib-scanners-quality-sh|quality.sh]] (`lib/scanners/quality.sh`)
+- [[lib-scanners-sheal-sh|sheal.sh]] (`lib/scanners/sheal.sh`)
 - [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] (`lib/scanners/skill_suggest.sh`)
 - [[lib-scanners-stack-sh|stack.sh]] (`lib/scanners/stack.sh`)
 - [[lib-scanners-structure-sh|structure.sh]] (`lib/scanners/structure.sh`)

@@ -14,22 +14,23 @@ confidence: medium
 
 # quality_gate.sh
 
-> `lib/validators/quality_gate.sh` — bash, 164 lines
+> `lib/validators/quality_gate.sh` — bash, 184 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/validators/quality_gate.sh` |
 | Language | bash |
-| Lines | 164 |
-| Size | 5921 bytes |
-| Symbols | 1 |
-| PageRank | 0.0024 |
+| Lines | 184 |
+| Size | 6582 bytes |
+| Symbols | 2 |
+| PageRank | 0.0021 |
 
-## Symbols (1)
+## Symbols (2)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
-| `validate_quality_gate` | function | 5 | public | — |
+| `_aif_timeout` | function | 7 | private | — |
+| `validate_quality_gate` | function | 23 | public | — |
 
 ## Imports
 

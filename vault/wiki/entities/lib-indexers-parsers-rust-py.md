@@ -22,12 +22,16 @@ confidence: medium
 | Language | python |
 | Lines | 100 |
 | Size | 3211 bytes |
-| Symbols | 0 |
+| Symbols | 3 |
 | PageRank | — |
 
-## Symbols
+## Symbols (3)
 
-*No symbols extracted (config/script file).*
+| Name | Kind | Line | Visibility | Description |
+|------|------|------|------------|-------------|
+| `_extract_doc_comment` | function | 25 | private | Extract the /// doc-comment block immediately before *pos*. |
+| `parse` | function | 40 | public | Parse Rust source and return (symbols, imports, exports). |
+| `parse_rust` | function | 97 | public | Legacy interface: returns dict with symbols/imports/exports. |
 
 ## Imports
 

@@ -14,18 +14,18 @@ confidence: medium
 
 # vault.sh
 
-> `lib/generators/vault.sh` — bash, 3675 lines
+> `lib/generators/vault.sh` — bash, 3433 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators/vault.sh` |
 | Language | bash |
-| Lines | 3675 |
-| Size | 120990 bytes |
-| Symbols | 49 |
-| PageRank | 0.0022 |
+| Lines | 3433 |
+| Size | 109918 bytes |
+| Symbols | 50 |
+| PageRank | 0.0019 |
 
-## Symbols (49)
+## Symbols (50)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
@@ -63,7 +63,7 @@ Check if a file path appears in the in... |
 | `lint_hr003_approved_tags` | function | 1462 | public | HR-003: Tags from approved taxonomy only |
 | `lint_hr004_wiki_length` | function | 1496 | public | HR-004: Wiki page length limit (200 warn / 400 block) |
 
-> Showing 25 of 49 symbols.
+> Showing 25 of 50 symbols.
 
 ## Imports
 

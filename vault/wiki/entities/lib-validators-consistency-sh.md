@@ -21,9 +21,9 @@ confidence: medium
 | Path | `lib/validators/consistency.sh` |
 | Language | bash |
 | Lines | 384 |
-| Size | 16636 bytes |
+| Size | 16641 bytes |
 | Symbols | 1 |
-| PageRank | 0.0024 |
+| PageRank | 0.0021 |
 
 ## Symbols (1)
 

@@ -14,14 +14,14 @@ confidence: medium
 
 # Module: .githooks
 
-> general — 2 files, 0 symbols
+> general — 2 files, 1 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `.githooks` |
 | Role | general |
 | Files | 2 |
-| Symbols | 0 |
+| Symbols | 1 |
 | Fan-in | 0 |
 | Fan-out | 0 |
 
@@ -30,7 +30,7 @@ confidence: medium
 | File | Symbols | PageRank |
 |------|---------|----------|
 | [[githooks-pre-commit|pre-commit]] | 0 | — |
-| [[githooks-pre-push|pre-push]] | 0 | — |
+| [[githooks-pre-push|pre-push]] | 1 | — |
 
 ## Dependencies
 

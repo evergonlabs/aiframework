@@ -30,12 +30,12 @@ confidence: medium
 | File | Symbols | PageRank |
 |------|---------|----------|
 | [[lib-indexers-parsers-init-py|__init__.py]] | 0 | — |
-| [[lib-indexers-parsers-bash-py|bash.py]] | 0 | — |
-| [[lib-indexers-parsers-go-py|go.py]] | 0 | — |
-| [[lib-indexers-parsers-python-py|python.py]] | 0 | — |
-| [[lib-indexers-parsers-ruby-py|ruby.py]] | 0 | — |
-| [[lib-indexers-parsers-rust-py|rust.py]] | 0 | — |
-| [[lib-indexers-parsers-typescript-py|typescript.py]] | 0 | — |
+| [[lib-indexers-parsers-bash-py|bash.py]] | 4 | — |
+| [[lib-indexers-parsers-go-py|go.py]] | 3 | — |
+| [[lib-indexers-parsers-python-py|python.py]] | 4 | — |
+| [[lib-indexers-parsers-ruby-py|ruby.py]] | 3 | — |
+| [[lib-indexers-parsers-rust-py|rust.py]] | 3 | — |
+| [[lib-indexers-parsers-typescript-py|typescript.py]] | 3 | — |
 
 ## Dependencies
 

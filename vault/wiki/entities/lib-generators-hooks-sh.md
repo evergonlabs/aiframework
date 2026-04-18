@@ -14,16 +14,16 @@ confidence: medium
 
 # hooks.sh
 
-> `lib/generators/hooks.sh` — bash, 367 lines
+> `lib/generators/hooks.sh` — bash, 376 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators/hooks.sh` |
 | Language | bash |
-| Lines | 367 |
-| Size | 12317 bytes |
+| Lines | 376 |
+| Size | 12779 bytes |
 | Symbols | 1 |
-| PageRank | 0.0022 |
+| PageRank | — |
 
 ## Symbols (1)
 

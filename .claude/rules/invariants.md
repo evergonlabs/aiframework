@@ -31,7 +31,7 @@ Never commit API keys, passwords, tokens, or credentials.
 ## Review Specialists
 
 ### AI/LLM Integration
-Trigger paths: bin/aiframework-update-check, bin/aiframework-mcp, bin/aiframework
+Trigger paths: bin/aiframework-update-check, bin/aiframework-mcp, bin/aiframework-telemetry
 
 - [ ] LLM outputs are sanitized before use
 - [ ] Prompt injection defenses in place

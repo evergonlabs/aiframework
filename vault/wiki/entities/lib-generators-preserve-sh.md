@@ -21,9 +21,9 @@ confidence: medium
 | Path | `lib/generators/preserve.sh` |
 | Language | bash |
 | Lines | 273 |
-| Size | 8628 bytes |
+| Size | 8636 bytes |
 | Symbols | 13 |
-| PageRank | 0.0024 |
+| PageRank | 0.0021 |
 
 ## Symbols (13)
 

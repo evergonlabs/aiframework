@@ -14,31 +14,32 @@ confidence: medium
 
 # Module: bin
 
-> entrypoint — 3 files, 36 symbols
+> entrypoint — 4 files, 50 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `bin` |
 | Role | entrypoint |
-| Files | 3 |
-| Symbols | 36 |
+| Files | 4 |
+| Symbols | 50 |
 | Fan-in | 0 |
-| Fan-out | 37 |
+| Fan-out | 39 |
 
-## Files (3)
+## Files (4)
 
 | File | Symbols | PageRank |
 |------|---------|----------|
-| [[bin-aiframework|aiframework]] | 24 | — |
+| [[bin-aiframework|aiframework]] | 37 | — |
 | [[bin-aiframework-mcp|aiframework-mcp]] | 0 | — |
-| [[bin-aiframework-update-check|aiframework-update-check]] | 12 | — |
+| [[bin-aiframework-telemetry|aiframework-telemetry]] | 0 | — |
+| [[bin-aiframework-update-check|aiframework-update-check]] | 13 | — |
 
 ## Dependencies (5 modules)
 
 - [[lib-freshness|lib/freshness]] (1 edges)
-- [[lib-generators|lib/generators]] (12 edges)
+- [[lib-generators|lib/generators]] (13 edges)
 - [[lib-knowledge|lib/knowledge]] (1 edges)
-- [[lib-scanners|lib/scanners]] (13 edges)
+- [[lib-scanners|lib/scanners]] (14 edges)
 - [[lib-validators|lib/validators]] (10 edges)
 
 ## Dependents
