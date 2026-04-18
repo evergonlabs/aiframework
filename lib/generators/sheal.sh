@@ -70,9 +70,11 @@ generate_sheal() {
       _init_err=$(mktemp "${_AIF_TMPDIR:-/tmp}/sheal-init.XXXXXX" 2>/dev/null || mktemp)
       if _aif_timeout 30 sheal init --project "$TARGET_DIR" 2>"$_init_err"; then
         log_ok "Initialized sheal in project"
+        _aif_telemetry "sheal_init" "outcome=success" 2>/dev/null || true
       else
         log_warn "sheal init failed — run 'sheal init --project . --verbose' to debug (non-fatal)"
         [[ -s "$_init_err" ]] && log_warn "  $(head -3 "$_init_err")"
+        _aif_telemetry "sheal_init" "outcome=failed" 2>/dev/null || true
       fi
       rm -f "$_init_err"
     fi
@@ -84,9 +86,11 @@ generate_sheal() {
     _rules_err=$(mktemp "${_AIF_TMPDIR:-/tmp}/sheal-rules.XXXXXX" 2>/dev/null || mktemp)
     if _aif_timeout 15 sheal rules --project "$TARGET_DIR" 2>"$_rules_err"; then
       log_ok "Injected sheal rules"
+      _aif_telemetry "sheal_rules" "outcome=success" 2>/dev/null || true
     else
       log_warn "sheal rules failed — run 'sheal rules --project . --verbose' to debug (non-fatal)"
       [[ -s "$_rules_err" ]] && log_warn "  $(head -3 "$_rules_err")"
+      _aif_telemetry "sheal_rules" "outcome=failed" 2>/dev/null || true
     fi
     rm -f "$_rules_err"
   fi

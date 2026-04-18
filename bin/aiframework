@@ -411,6 +411,7 @@ parse_args() {
   # Resolve paths
   TARGET_DIR="$(cd "$TARGET_DIR" 2>/dev/null && pwd)" || {
     log_error "Target directory does not exist: $TARGET_DIR"
+    _aif_telemetry "error" "phase=init" "type=invalid_target"
     exit 1
   }
 
@@ -575,6 +576,7 @@ cmd_generate() {
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
     log_info "Run 'aiframework discover' first"
+    _aif_telemetry "error" "phase=manifest" "type=not_found"
     exit 1
   fi
 
@@ -868,6 +870,7 @@ cmd_report() {
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     log_error "Manifest not found at $MANIFEST_PATH"
     log_info "Run 'aiframework discover' first"
+    _aif_telemetry "error" "phase=manifest" "type=not_found"
     exit 1
   fi
 
