@@ -23,7 +23,7 @@
 
 [![version](https://img.shields.io/badge/v1.2.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/39_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/44_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
@@ -31,7 +31,7 @@
 
 <br>
 
-[Quick Start](#quick-start) · [The Ecosystem](#the-ecosystem) · [What You Get](#what-you-get) · [Skills](#skills) · [Languages](#20-languages--57-frameworks) · [Architecture](#architecture)
+[Quick Start](#quick-start) · [The Ecosystem](#the-ecosystem) · [What You Get](#what-you-get) · [Skills](#skills) · [Languages](#20-languages--57-frameworks) · [Architecture](#architecture) · [Upgrading](#upgrading)
 
 > **[View the interactive ecosystem diagram &rarr;](docs/ecosystem.html)**
 
@@ -175,7 +175,7 @@ AGENTS.md                → cross-tool config
   ├── pre-commit         → lint on every commit
   └── pre-push           → full quality gate + auto-refresh
 .github/workflows/ci.yml → CI for your language
-vault/                   → knowledge base (31 files)
+vault/                   → knowledge graph (per-file wiki)
 docs/                    → documentation scaffold
 CHANGELOG.md + VERSION   → release tracking
 ```
@@ -500,6 +500,75 @@ $B diff                                             # compare with previous snap
 
 <br>
 
+## Vault Knowledge Graph
+
+Every source file in your repo gets its own wiki page. Every import becomes a bidirectional link. The result is a navigable knowledge graph that Claude Code can traverse to understand any part of the codebase without reading every file.
+
+```
+  $ aiframework run --target .
+
+  vault/wiki/
+  ├── index.md                          ← master registry (all pages)
+  ├── concepts/
+  │   └── architecture.md               ← module graph + top files by PageRank
+  └── entities/
+      ├── src-api-auth-controller-ts.md  ← symbols, imports, imported-by
+      ├── src-api-auth-service-ts.md     ← [[src-api-auth-controller-ts]] link
+      ├── src-db-migrations-ts.md        ← who calls this, what it calls
+      ├── src-lib-utils-ts.md            ← PageRank: 0.0089 (high fan-in)
+      └── ...                            ← one page per source file
+```
+
+**What each page contains:**
+
+| Section | What it shows |
+|:--------|:-------------|
+| Symbols | Every function, class, type with line number, kind, visibility |
+| Imports | Files this file depends on, as `[[wikilinks]]` |
+| Imported By | Files that depend on this file, as `[[wikilinks]]` |
+| Module | Parent module link |
+| PageRank | Architectural importance score |
+
+**Numbers for a typical project:** 200 files produces ~220 pages, ~800 wikilinks, avg 50 lines per page. All pages stay under 200 lines. Incremental updates via content hashing &mdash; only changed pages are rewritten.
+
+The wiki auto-updates on every `git push` via the pre-push hook. Change a file, push, and its wiki page (plus all pages that reference it) update automatically.
+
+<br>
+
+---
+
+<br>
+
+## Upgrading
+
+aiframework is installed as a symlink from a git clone. Upgrading is one command:
+
+```bash
+aiframework upgrade
+```
+
+**What it does:**
+
+1. Pulls latest code (`git pull --ff-only` on the aiframework repo)
+2. Updates sheal to latest via npm
+3. Finds every repo you've bootstrapped (tracked in `~/.aiframework/knowledge/`)
+4. Runs `aiframework refresh` on each &mdash; surgical, incremental, only regenerates what changed
+
+New features (like the knowledge graph) are applied to all your existing projects automatically. No need to re-run `aiframework run` from scratch.
+
+**First time upgrading** (if you installed before `upgrade` existed):
+
+```bash
+cd ~/aiframework && git pull    # get the upgrade command
+aiframework upgrade             # from now on, this is all you need
+```
+
+<br>
+
+---
+
+<br>
+
 ## CLI Reference
 
 ```
@@ -510,6 +579,7 @@ $ aiframework <command> [options]
   generate       read manifest → generate all files
   verify         validate generated files (5 validators)
   refresh        re-discover + generate only if drift detected
+  upgrade        pull latest + refresh all bootstrapped repos
   report         human-readable report
   index          build code index only
   stats          cross-repo learning patterns
@@ -538,9 +608,30 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 
 | Module | Purpose | File |
 |:-------|:--------|:-----|
-| Sheal scanner | Detect sheal installation & state | `lib/scanners/sheal.sh` |
+| Wiki graph | Dense per-file knowledge graph with bidirectional links | `lib/generators/wiki_graph.py` |
+| Sheal scanner | Detect sheal installation and state | `lib/scanners/sheal.sh` |
 | Sheal generator | Generate `.self-heal.json`, init, inject rules | `lib/generators/sheal.sh` |
 | Learning bridge | Bidirectional JSONL ↔ markdown sync | `lib/bridge/sheal_learnings.sh` |
+
+<br>
+
+---
+
+<br>
+
+## Telemetry
+
+aiframework collects anonymous usage data to understand adoption and prioritize features.
+
+**What is sent:** command name, version, OS, bash version, anonymous machine hash (SHA-256 of hostname + username).
+
+**What is never sent:** source code, file paths, project names, personal data.
+
+**Opt out:**
+
+```bash
+mkdir -p ~/.aiframework && echo "telemetry: false" >> ~/.aiframework/config
+```
 
 <br>
 
@@ -555,11 +646,12 @@ We believe in transparency. The core pipeline has been extensively self-tested w
 | Area | Status | What needs validation |
 |:-----|:-------|:---------------------|
 | Core pipeline | Production-ready | Tested on synthetic fixtures; needs real-world repo validation |
+| Knowledge graph | Production-ready | Verified with completeness checker; needs large repo validation |
 | sheal CLI flags | Unverified | Integration coded against assumed flags; needs live binary testing |
 | Windows (Git Bash/WSL) | Untested | Platform detection added; needs community validation |
 | Automation hooks | Verified in output | `SessionStart`/`Stop`/`PostToolUse` generated correctly; needs Claude Code runtime validation |
 
-If you test on your project and it works (or doesn't), [open an issue](https://github.com/evergonlabs/aiframework/issues) — it helps everyone.
+If you test on your project and it works (or doesn't), [open an issue](https://github.com/evergonlabs/aiframework/issues) &mdash; it helps everyone.
 
 <br>
 
@@ -569,7 +661,7 @@ If you test on your project and it works (or doesn't), [open an issue](https://g
 
 <br>
 
-**[Evergon Labs](https://github.com/evergonlabs)** · [MIT License](LICENSE)
+**[Evergon Labs](https://github.com/evergonlabs)** &middot; [MIT License](LICENSE)
 
 *Your repo already knows everything.<br>Now Claude does too.*
 
