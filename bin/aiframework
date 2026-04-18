@@ -375,6 +375,7 @@ NO_INDEX=false
 parse_args() {
   if [[ $# -eq 0 ]]; then
     usage
+    _aif_telemetry "error" "phase=parse" "type=no_args"
     exit 1
   fi
 
@@ -404,7 +405,7 @@ parse_args() {
       --no-index)  NO_INDEX=true; shift ;;
       --tier)      AIF_CLI_TIER="$2"; shift 2 ;;
       --help|-h)   usage; exit 0 ;;
-      *)           log_error "Unknown option: $1"; usage; exit 1 ;;
+      *)           log_error "Unknown option: $1"; _aif_telemetry "error" "phase=parse" "type=unknown_option"; usage; exit 1 ;;
     esac
   done
 
@@ -1042,5 +1043,5 @@ case "$COMMAND" in
   index)     cmd_index ;;
   stats)     cmd_stats ;;
   run)       cmd_run ;;
-  *)         log_error "Unknown command: $COMMAND"; usage; exit 1 ;;
+  *)         log_error "Unknown command: $COMMAND"; _aif_telemetry "error" "phase=dispatch" "type=unknown_command"; usage; exit 1 ;;
 esac
