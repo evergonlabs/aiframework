@@ -22,3 +22,6 @@ Thumbs.db
 
 # Claude memory (local only)
 .claude/memory/
+
+# Internal ops docs (not for public repo)
+TELEMETRY-SETUP.md
