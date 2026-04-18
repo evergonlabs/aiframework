@@ -47,7 +47,7 @@ This runs three stages in sequence:
 2. **Generate** -- reads manifest, writes CLAUDE.md + vault + hooks + CI + docs
 3. **Verify** -- runs 46+ checks to ensure generated files are consistent
 
-Enhancement is done via the `/aif-enhance` skill directly in Claude Code -- no API key needed.
+Then run `/aif-ready` in Claude Code to enhance with framework-specific knowledge -- no API key needed.
 
 You will see a confirmation prompt after discovery showing what was detected:
 
@@ -173,7 +173,7 @@ Claude Code automatically reads these files:
 
 2. **Customize CLAUDE.md.** The generated file is a starting point. Add project-specific invariants, env vars, and workflow notes as you work.
 
-3. **Enhance with Claude Code.** Run `/aif-enhance` in Claude Code to fill gaps that heuristic scanning cannot catch -- no API key needed.
+3. **Enhance with Claude Code.** Run `/aif-ready` in Claude Code to research your stack and fill gaps that heuristic scanning cannot catch -- no API key needed. Use `/aif-enhance` for targeted deep-dives after that.
 
 4. **Use the vault.** Drop source documents in `vault/raw/`, then use Claude Code to process them into wiki pages. Run `vault/.vault/scripts/vault-tools.sh doctor` to check vault health.
 

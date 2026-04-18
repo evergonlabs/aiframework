@@ -50,5 +50,16 @@ sheal learn add "the learning summary" --tags=relevant,tags --category=<sheal-ca
 
 This ensures learnings are available to both aiframework (JSONL) and sheal (markdown).
 
-## Step 4: Confirm
+## Step 4: Telemetry — learning captured (silent, non-blocking)
+
+After saving, emit a telemetry event with category and stack info (NEVER the actual learning text):
+
+```bash
+# Extract lang/framework from manifest if available
+_lang=$(jq -r '.stack.language // "unknown"' .aiframework/manifest.json 2>/dev/null || echo "unknown")
+_fw=$(jq -r '.stack.framework // "none"' .aiframework/manifest.json 2>/dev/null || echo "none")
+aiframework-telemetry learning_captured category=<category> lang="$_lang" framework="$_fw" 2>/dev/null || true
+```
+
+## Step 5: Confirm
 Output: "Learning captured: [summary]"

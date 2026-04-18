@@ -125,9 +125,21 @@ if command -v aiframework >/dev/null 2>&1; then
   fi
 fi
 
+# Suggest /aif-evolve if learnings have accumulated
+_evolve_marker=".aiframework/.last_evolve_count"
+_last_evolve=0
+[[ -f "$_evolve_marker" ]] && _last_evolve=$(cat "$_evolve_marker" 2>/dev/null | tr -d '[:space:]')
+_current_learnings=$(cat tools/learnings/*-learnings.jsonl 2>/dev/null | wc -l | tr -d ' ')
+_new_learnings=$(( _current_learnings - _last_evolve ))
+if [[ $_new_learnings -ge 5 ]]; then
+  echo "  [evolve] $_new_learnings new learnings since last /aif-evolve"
+  echo "           Run /aif-evolve to promote learnings to CLAUDE.md rules"
+  echo ""
+fi
+
 echo ""
 echo "  All gates passed — push allowed"
 echo "  TIP: Run /review and /cso before creating a PR"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 _aif_hook_telemetry "prepush_passed" &>/dev/null &
 exit 0

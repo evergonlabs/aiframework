@@ -12,7 +12,7 @@ discover → generate → verify
 
 ### Stage 1: Discover
 
-Twelve bash scanners read the target repository and produce `manifest.json` -- a structured JSON document containing every fact about the project. A Python-based code indexer runs in parallel to produce `code-index.json` with file listings, symbol tables, import edges, and module groupings.
+Thirteen bash scanners read the target repository and produce `manifest.json` -- a structured JSON document containing every fact about the project. A Python-based code indexer runs in parallel to produce `code-index.json` with file listings, symbol tables, import edges, and module groupings.
 
 **Key constraint:** Discovery is deterministic. Given the same repo state, it produces the same manifest. No network calls, no randomness, no AI. Every value in the manifest is traced to a specific file in the repo.
 

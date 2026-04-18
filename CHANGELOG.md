@@ -5,7 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **CLAUDE.md quality metrics** — `run` telemetry now includes 9 quality/effectiveness signals: claude_md_lines, invariant_count, gotcha_count, command_count, key_locations, domains_with_invariants, custom_sections, learnings_count, tier
+- **Cross-project learning events** — `/aif-learn` emits `learning_captured` telemetry (category + lang, never the learning text); `/aif-evolve` emits `evolve_completed` with counts
+- **Auto-evolve suggestion** — pre-push hook and `aiframework refresh` suggest `/aif-evolve` when 5+ learnings have accumulated since last run
+- **Evolve marker** — `/aif-evolve` writes `.aiframework/.last_evolve_count` to track learning volume between runs
+
 ### Fixed
+- **README badge** — test count updated to 126 (actual count across 5 test files)
 - **Bridge dedup accuracy** — grep now uses escaped summary matching on-disk format; titles with `"` no longer create duplicates
 - **Bridge round-trip** — title parser unescapes `\"` back to `"` on sheal→JSONL conversion
 - **Bridge body preservation** — newlines preserved (was collapsing to spaces)
@@ -15,7 +22,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **_AIF_TMPDIR lifecycle** — now created via `mktemp -d` and exported; cleanup trap is functional
 - **Error messages** — sheal generator warns now include recovery hints and manifest field references
 - **Settings.json upgrade** — existing users get `log_warn` when sheal detected but hooks missing
-- **README badge** — test count updated to 39 (actual)
 - **Multi-round self-audit** — all CRITICAL, HIGH, MEDIUM, LOW findings resolved
 
 ## [1.2.0] — 2026-04-17

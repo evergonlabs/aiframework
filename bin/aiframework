@@ -901,10 +901,26 @@ cmd_refresh() {
   local drift_result
   drift_result=$(freshness_check_drift "$TARGET_DIR")
 
+  # Check if learnings have accumulated since last /aif-evolve
+  _aif_suggest_evolve() {
+    local marker="$TARGET_DIR/.aiframework/.last_evolve_count"
+    local last_count=0
+    [[ -f "$marker" ]] && last_count=$(cat "$marker" 2>/dev/null | tr -d '[:space:]')
+    local current_count
+    current_count=$(cat "$TARGET_DIR/tools/learnings/"*-learnings.jsonl 2>/dev/null | wc -l | tr -d ' ')
+    local new_learnings=$(( current_count - last_count ))
+    if [[ $new_learnings -ge 5 ]]; then
+      echo ""
+      log_info "${YELLOW}${new_learnings} new learnings${NC} since last /aif-evolve"
+      log_info "Run ${BOLD}/aif-evolve${NC} to promote learnings to CLAUDE.md rules"
+    fi
+  }
+
   if [[ "$drift_result" == "clean" ]]; then
     log_phase_done
     echo ""
     log_ok "No drift detected — files are up to date"
+    _aif_suggest_evolve
     _aif_telemetry "refresh" "drift=none"
     return 0
   elif [[ "$drift_result" == "no-baseline" ]]; then
@@ -928,6 +944,7 @@ cmd_refresh() {
     echo ""
     cmd_generate
     _write_refresh_notice "$drifted_files"
+    _aif_suggest_evolve
     return 0
   fi
 }
@@ -1011,6 +1028,28 @@ cmd_run() {
   _total_files=$(echo "$MANIFEST" | jq -r '.structure.total_files // 0' 2>/dev/null || echo "0")
   _total_symbols=$(jq -r '._meta.total_symbols // 0' "$OUTPUT_DIR/code-index.json" 2>/dev/null || echo "0")
   _vault_pages=$(find "$TARGET_DIR/vault/wiki" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+
+  # Quality metrics — measure CLAUDE.md effectiveness (integers only, zero privacy risk)
+  local _claude_md="$TARGET_DIR/CLAUDE.md"
+  local _claude_md_lines=0 _invariant_count=0 _gotcha_count=0 _command_count=0
+  local _key_locations=0 _domains_with_invariants=0 _custom_sections=0
+  local _learnings_count=0 _tier="unknown"
+  if [[ -f "$_claude_md" ]]; then
+    _claude_md_lines=$(wc -l < "$_claude_md" | tr -d ' ')
+    _invariant_count=$(grep -c '^\- \*\*INV-' "$_claude_md" 2>/dev/null || echo "0")
+    _gotcha_count=$(grep -c '^\- ' "$_claude_md" 2>/dev/null | head -1 || echo "0")
+    _command_count=$(grep -cE '^\s*(make |npm |yarn |pnpm |cargo |go |python)' "$_claude_md" 2>/dev/null || echo "0")
+    _key_locations=$(grep -c '^\- \*\*' "$_claude_md" 2>/dev/null || echo "0")
+    # Count domains that got their own invariant rules
+    _domains_with_invariants=$(find "$TARGET_DIR/.claude/rules" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+    # Custom sections: lines starting with ## that aren't in our template
+    _custom_sections=$(grep -cE '^## ' "$_claude_md" 2>/dev/null || echo "0")
+  fi
+  # Learnings volume across all JSONL files
+  _learnings_count=$(cat "$TARGET_DIR/tools/learnings/"*-learnings.jsonl 2>/dev/null | wc -l | tr -d ' ')
+  # Tier from resolved config
+  _tier="${AIF_RESOLVED_TIER:-unknown}"
+
   _aif_telemetry "run" \
     "lang=$_lang" \
     "framework=${_fw:-none}" \
@@ -1024,7 +1063,16 @@ cmd_run() {
     "files_generated=$_files_gen" \
     "duration=${_run_elapsed}s" \
     "first_run=$_is_first_run" \
-    "non_interactive=$NON_INTERACTIVE"
+    "non_interactive=$NON_INTERACTIVE" \
+    "claude_md_lines=$_claude_md_lines" \
+    "invariant_count=$_invariant_count" \
+    "gotcha_count=$_gotcha_count" \
+    "command_count=$_command_count" \
+    "key_locations=$_key_locations" \
+    "domains_with_invariants=$_domains_with_invariants" \
+    "custom_sections=$_custom_sections" \
+    "learnings_count=$_learnings_count" \
+    "tier=$_tier"
 }
 
 # Main

@@ -23,7 +23,7 @@
 
 [![version](https://img.shields.io/badge/v1.2.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/44_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/126_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
@@ -634,6 +634,8 @@ aiframework collects anonymous usage data to understand adoption and prioritize 
 | Integration status | `sheal=true`, `gstack=true`, `node=true` | Know which integrations matter |
 | Error phase and message | `verify: failed=2 passed=8` | Fix the most common failures |
 | Vault stats | `vault_pages=87`, `total_symbols=335` | Understand scale and usage |
+| CLAUDE.md quality | `claude_md_lines=142`, `invariant_count=3` | Measure and improve generated output |
+| Learning volume | `learnings_count=12`, `category=gotcha` | Identify which stacks need better templates |
 | Duration | `12s` | Detect performance regressions |
 
 **What is never collected:** source code, file contents, file paths, project names, git history, commit messages, personal data, IP addresses, usernames.

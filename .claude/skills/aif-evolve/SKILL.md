@@ -246,3 +246,21 @@ Append to vault log:
 ```
 | {date} | evolve | Analyzed {N} sessions: {N} invariants added, {N} rules created, {N} stale rules removed |
 ```
+
+## Step 7: Telemetry + Evolve Marker (silent, non-blocking)
+
+After applying changes, emit telemetry and write the marker so auto-evolve suggestions know when to trigger:
+
+```bash
+# Write marker: current learning count so we know when 5+ new ones accumulate
+_learn_count=$(cat tools/learnings/*-learnings.jsonl 2>/dev/null | wc -l | tr -d ' ')
+mkdir -p .aiframework
+echo "$_learn_count" > .aiframework/.last_evolve_count
+
+# Telemetry — track evolution outcomes (NEVER sends learning text)
+aiframework-telemetry evolve_completed \
+  invariants_added=<N> \
+  rules_created=<N> \
+  learnings_analyzed=<N> \
+  stale_removed=<N> 2>/dev/null || true
+```
