@@ -21,7 +21,7 @@ confidence: medium
 | Path | `.githooks/pre-push` |
 | Language | bash |
 | Lines | 145 |
-| Size | 6944 bytes |
+| Size | 6890 bytes |
 | Symbols | 1 |
 | PageRank | — |
 

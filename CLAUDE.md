@@ -42,16 +42,16 @@ make test
 - **Data**: `lib/data/` — detection registries and config
 
 **Most important files** (by dependency rank):
-- `lib/generators/sheal.sh`
 - `lib/scanners/sheal.sh`
+- `lib/generators/sheal.sh`
 - `lib/indexers/graph.py`
 - `lib/bridge/sheal_learnings.sh`
 - `lib/indexers/registry.py`
-- `lib/validators/consistency.sh`
-- `lib/generators/skills.sh`
-- `lib/validators/files.sh`
-- `lib/validators/freshness.sh`
+- `lib/scanners/skill_suggest.sh`
 - `lib/validators/quality_gate.sh`
+- `lib/validators/security.sh`
+- `lib/validators/consistency.sh`
+- `lib/validators/freshness.sh`
 
 ## Environment Variables
 
@@ -109,6 +109,22 @@ make dist
 - `/aiframework-learn` — Capture gotchas to persistent storage
 - `/aif-evolve` — Weekly: synthesize learnings into better rules
 - `/aif-pulse` — Monthly: discover new Claude Code features
+- `/sheal-check` — Health check (tests, deps, env)
+- `/sheal-retro` — Session retrospective + learning extraction
+- `/sheal-drift` — Detect unapplied learnings, promote to rules
+- `/sheal-ask` — Query session history
+
+## Self-Healing Workflow
+
+Run `sheal check` at session start (automatic via hook). Run `sheal retro` at session end.
+
+| Command | When | What |
+|---------|------|------|
+| `sheal check` | Session start | Health check (auto via hook) |
+| `sheal retro` | Session end | Extract learnings from session |
+| `sheal drift` | Weekly | Detect when learnings aren't applied |
+| `sheal learn list` | Anytime | View active learnings |
+| `sheal ask "question"` | Anytime | Search session history |
 
 ## Vault
 
@@ -143,3 +159,17 @@ This file auto-evolves. Rules of thumb:
 ---
 
 *Generated: 2026-04-18 by aiframework v1.3.0. Run `aiframework refresh` to update. Lean mode (complex).*
+
+<!-- BEGIN SHEAL INTEGRATION -->
+## Self-Healing Workflow
+
+Run `sheal check` at the start of every session to catch environment issues early.
+Run `sheal retro` at the end of sessions to extract learnings (requires Entire.io).
+
+### Session Learnings
+
+Learnings are managed as ADR-style files. Run `sheal learn list` to view them.
+- Add: `sheal learn add "insight" --tags=foo,bar`
+- Sync from global: `sheal learn sync`
+- See `.sheal/learnings/` for project-specific learnings
+<!-- END SHEAL INTEGRATION -->

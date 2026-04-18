@@ -21,7 +21,7 @@ confidence: medium
 | Path | `lib/generators/claude_md.sh` |
 | Language | bash |
 | Lines | 1462 |
-| Size | 60316 bytes |
+| Size | 60449 bytes |
 | Symbols | 6 |
 | PageRank | — |
 

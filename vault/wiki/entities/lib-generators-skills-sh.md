@@ -14,14 +14,14 @@ confidence: medium
 
 # skills.sh
 
-> `lib/generators/skills.sh` — bash, 825 lines
+> `lib/generators/skills.sh` — bash, 827 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `lib/generators/skills.sh` |
 | Language | bash |
-| Lines | 825 |
-| Size | 30663 bytes |
+| Lines | 827 |
+| Size | 31154 bytes |
 | Symbols | 2 |
 | PageRank | 0.0021 |
 
