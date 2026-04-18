@@ -13,21 +13,111 @@ Before you begin, make sure you have the following installed:
 | `git` | 2.0+ | `git --version` | Repo analysis (branch, remote, log parsing) |
 | `python3` | 3.10+ | `python3 --version` | Code indexer (symbol extraction, dependency graphing) |
 
+> **Why Python 3.10+?** The code indexer uses `match/case` syntax introduced in Python 3.10. All versions 3.10 through 3.13+ are supported.
+
 **Optional but recommended:**
 
 | Tool | Purpose | Install |
 |------|---------|---------|
 | `shellcheck` | Lints generated shell hooks and CI scripts | `brew install shellcheck` / `apt install shellcheck` |
+| `node` / `npm` | Runtime session intelligence (sheal) | `brew install node` / `apt install nodejs` |
+
+### Installing dependencies by platform
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+# All at once via Homebrew
+brew install bash jq python@3.12 shellcheck
+
+# Verify
+bash --version && jq --version && python3 --version && git --version
+```
+
+macOS ships with bash 3.2 and git. The installer checks these automatically.
+
+</details>
+
+<details>
+<summary><b>Linux (Ubuntu/Debian)</b></summary>
+
+```bash
+sudo apt update && sudo apt install -y bash jq python3 git shellcheck
+
+# Verify
+bash --version && jq --version && python3 --version && git --version
+```
+
+</details>
+
+<details>
+<summary><b>Linux (Fedora/RHEL)</b></summary>
+
+```bash
+sudo dnf install -y bash jq python3 git ShellCheck
+```
+
+</details>
+
+<details>
+<summary><b>Windows (Git Bash / MSYS2)</b></summary>
+
+1. Install [Git for Windows](https://git-scm.com/download/win) (includes bash and git)
+2. Install [Python 3.12+](https://python.org/downloads/) (check "Add to PATH" during install)
+3. Install jq: `choco install jq` or `scoop install jq` or [download manually](https://jqlang.github.io/jq/download/)
+
+```bash
+# Verify (in Git Bash)
+bash --version && jq --version && python --version && git --version
+```
+
+> **Note:** On Windows, `python` (not `python3`) is detected automatically by the installer.
+
+</details>
+
+<details>
+<summary><b>WSL (Windows Subsystem for Linux)</b></summary>
+
+WSL is auto-detected and treated as Linux. Follow the Ubuntu/Debian instructions above.
+
+</details>
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/evergonlabs/aiframework.git
-cd aiframework
+**Recommended: one-line install** (works on macOS, Linux, WSL, Windows Git Bash):
 
-# Verify it works
-./bin/aiframework --help
+```bash
+curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
+```
+
+The installer will:
+1. Detect your platform (macOS / Linux / WSL / Windows)
+2. Check all dependencies and tell you exactly what's missing
+3. Clone aiframework to `~/.aiframework-src/`
+4. Create symlinks (or copies on Windows) in `~/.local/bin/`
+5. Add `~/.local/bin` to your PATH if needed
+6. Optionally install sheal via npm
+
+**Alternative install methods:**
+
+```bash
+# Homebrew (macOS/Linux)
+brew tap evergonlabs/tap && brew install aiframework
+
+# Manual (any platform)
+git clone https://github.com/evergonlabs/aiframework.git && cd aiframework && make install
+
+# From release tarball
+curl -LO https://github.com/evergonlabs/aiframework/releases/latest/download/aiframework-1.3.0.tar.gz
+tar xzf aiframework-1.3.0.tar.gz && cd aiframework && make install
+```
+
+**Verify it works:**
+
+```bash
+aiframework --version    # should print 1.3.0
+aiframework --help       # show all commands
 ```
 
 There is no build step. aiframework is a set of bash scripts that run directly.
@@ -179,34 +269,49 @@ Claude Code automatically reads these files:
 
 5. **Extend with custom scanners.** See the [Adding a Scanner](../guides/adding-a-scanner.md) guide.
 
+## Updating
+
+```bash
+aiframework update
+```
+
+This auto-detects how you installed (git clone, Homebrew, or tarball) and updates accordingly. It also refreshes all your bootstrapped projects.
+
+## Uninstalling
+
+```bash
+# If installed via curl|sh or manual
+curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --uninstall
+
+# If installed via Homebrew
+brew uninstall aiframework && brew untap evergonlabs/tap
+
+# If installed via make
+cd ~/aiframework && make uninstall
+```
+
 ## Troubleshooting
 
 ### `jq: command not found`
 
 aiframework requires `jq` for all JSON processing. Install it:
 
-```bash
-# macOS
-brew install jq
-
-# Ubuntu/Debian
-sudo apt-get install jq
-
-# Fedora
-sudo dnf install jq
-```
+| Platform | Command |
+|:---------|:--------|
+| macOS | `brew install jq` |
+| Ubuntu/Debian | `sudo apt install jq` |
+| Fedora/RHEL | `sudo dnf install jq` |
+| Windows | `choco install jq` or `scoop install jq` |
 
 ### `shellcheck: command not found`
 
-ShellCheck is optional but recommended. Without it, the generated pre-push hook will skip shell linting. Install it:
+ShellCheck is optional but recommended. Without it, the generated pre-push hook will skip shell linting.
 
-```bash
-# macOS
-brew install shellcheck
-
-# Ubuntu/Debian
-sudo apt-get install shellcheck
-```
+| Platform | Command |
+|:---------|:--------|
+| macOS | `brew install shellcheck` |
+| Ubuntu/Debian | `sudo apt install shellcheck` |
+| Fedora/RHEL | `sudo dnf install ShellCheck` |
 
 The tool gracefully degrades -- if ShellCheck is missing, hooks detect this and skip the lint step rather than failing.
 
@@ -215,18 +320,19 @@ The tool gracefully degrades -- if ShellCheck is missing, hooks detect this and 
 Python 3.10+ is required for the code indexer. If unavailable, use `--no-index` to skip indexing:
 
 ```bash
-./bin/aiframework run --target /path/to/project --no-index
+aiframework run --target /path/to/project --no-index
 ```
 
 To install Python:
 
-```bash
-# macOS
-brew install python@3.12
+| Platform | Command |
+|:---------|:--------|
+| macOS | `brew install python@3.12` |
+| Ubuntu/Debian | `sudo apt install python3` |
+| Fedora/RHEL | `sudo dnf install python3` |
+| Windows | Download from [python.org](https://python.org/downloads/) (check "Add to PATH") |
 
-# Ubuntu/Debian
-sudo apt-get install python3
-```
+> **Windows users:** The installer detects `python` (not `python3`) automatically. Both work.
 
 ### `Target directory does not exist`
 
@@ -234,10 +340,13 @@ Make sure you pass an absolute path or a path relative to your current working d
 
 ```bash
 # Absolute path (preferred)
-./bin/aiframework run --target /Users/me/projects/my-app
+aiframework run --target /Users/me/projects/my-app
 
 # Relative path
-./bin/aiframework run --target ../my-app
+aiframework run --target ../my-app
+
+# Windows (Git Bash)
+aiframework run --target /c/Users/me/projects/my-app
 ```
 
 ### Manifest is empty or missing fields
@@ -245,15 +354,19 @@ Make sure you pass an absolute path or a path relative to your current working d
 This usually means `jq` failed silently. Run with `--verbose` to see detailed scanner output:
 
 ```bash
-./bin/aiframework discover --target /path/to/project --verbose
+aiframework discover --target /path/to/project --verbose
 ```
 
 ### Verification fails after generation
 
-Run `./bin/aiframework verify --target /path/to/project` to see which checks failed. Common causes:
+Run `aiframework verify --target /path/to/project` to see which checks failed. Common causes:
 
 - A hook references a command that does not exist on your system.
 - CI workflow references a language/framework that the scanner detected incorrectly.
 - A generated file was manually edited and now drifts from the manifest.
 
 Re-running `discover` + `generate` will regenerate files from the current repo state.
+
+### Symlinks don't work on Windows
+
+Windows requires admin privileges to create symlinks. The installer detects this and copies files instead. The trade-off: after `aiframework update`, you need to re-run the installer to refresh the copies (unlike symlinks which auto-resolve).
