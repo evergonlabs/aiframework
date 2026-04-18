@@ -10,14 +10,26 @@
   "hooks": {
     "SessionStart": [
       {
-        "command": "if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi",
-        "timeout": 15000
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi",
+            "timeout": 15000
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "command": "echo \"[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.\" 2>/dev/null || true",
-        "timeout": 5000
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.'",
+            "timeout": 5000
+          }
+        ]
       }
     ]
   }

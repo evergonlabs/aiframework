@@ -549,6 +549,7 @@ LEARNMD
     typecheck_cmd=$(echo "$m" | jq -r '.commands.typecheck // empty')
 
     # Build PostToolUse hook for type checking on file edits
+    # Uses the new Claude Code hooks format: matcher + hooks array
     local hooks_block=""
     case "$_settings_lang" in
       typescript|javascript)
@@ -558,8 +559,7 @@ LEARNMD
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "npx tsc --noEmit 2>&1 | head -20 || true",
-        "timeout": 30000
+        "hooks": [{ "type": "command", "command": "npx tsc --noEmit 2>&1 | head -20 || true", "timeout": 30000 }]
       }
     ]
   }'
@@ -571,8 +571,7 @@ LEARNMD
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "cargo check 2>&1 | tail -5 || true",
-        "timeout": 30000
+        "hooks": [{ "type": "command", "command": "cargo check 2>&1 | tail -5 || true", "timeout": 30000 }]
       }
     ]
   }'
@@ -583,8 +582,7 @@ LEARNMD
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "go vet ./... 2>&1 | tail -5 || true",
-        "timeout": 15000
+        "hooks": [{ "type": "command", "command": "go vet ./... 2>&1 | tail -5 || true", "timeout": 15000 }]
       }
     ]
   }'
@@ -607,8 +605,7 @@ LEARNMD
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "python3 -m mypy --no-error-summary 2>&1 | tail -5 || true",
-        "timeout": 15000
+        "hooks": [{ "type": "command", "command": "python3 -m mypy --no-error-summary 2>&1 | tail -5 || true", "timeout": 15000 }]
       }
     ]
   }'
@@ -636,8 +633,7 @@ LEARNMD
             mono_hooks+="
       {
         \"matcher\": \"Edit|Write\",
-        \"command\": \"cd apps/${app} && npx tsc --noEmit 2>&1 | head -10 || true\",
-        \"timeout\": 30000
+        \"hooks\": [{ \"type\": \"command\", \"command\": \"cd apps/${app} && npx tsc --noEmit 2>&1 | head -10 || true\", \"timeout\": 30000 }]
       }"
             mono_first=false
           fi
@@ -685,17 +681,18 @@ LEARNMD
     fi
 
     # Build the hooks block — always present for all repos
+    # Uses the new Claude Code hooks format: matcher + hooks array
     local session_hooks_block=',
     "SessionStart": [
       {
-        "command": "'"$_start_cmd"'",
-        "timeout": 15000
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "'"$_start_cmd"'", "timeout": 15000 }]
       }
     ],
     "Stop": [
       {
-        "command": "'"$_stop_cmd"'",
-        "timeout": 30000
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "'"$_stop_cmd"'", "timeout": 30000 }]
       }
     ]'
 
@@ -709,14 +706,14 @@ LEARNMD
   "hooks": {
     "SessionStart": [
       {
-        "command": "'"$_start_cmd"'",
-        "timeout": 15000
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "'"$_start_cmd"'", "timeout": 15000 }]
       }
     ],
     "Stop": [
       {
-        "command": "'"$_stop_cmd"'",
-        "timeout": 30000
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "'"$_stop_cmd"'", "timeout": 30000 }]
       }
     ]
   }'
@@ -759,13 +756,13 @@ SETTINGS
         _jq_expr='
           .permissions.allow += ["Skill(sheal-check)", "Skill(sheal-retro)", "Skill(sheal-drift)", "Skill(sheal-ask)"]
           | .permissions.allow |= unique
-          | .hooks.SessionStart = [{"command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]
-          | .hooks.Stop = [{"command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi", "timeout": 30000}]
+          | .hooks.SessionStart = [{"matcher": "", "hooks": [{"type": "command", "command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; sheal check --format json --skip tests --project . 2>/dev/null | head -20 || true", "timeout": 15000}]}]
+          | .hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "if command -v sheal >/dev/null 2>&1 && [ -d .sheal ]; then sheal retro --project . 2>/dev/null | tail -5 || true; fi", "timeout": 30000}]}]
         '
       else
         _jq_expr='
-          .hooks.SessionStart = [{"command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi", "timeout": 15000}]
-          | .hooks.Stop = [{"command": "echo \"[aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.\" 2>/dev/null || true", "timeout": 5000}]
+          .hooks.SessionStart = [{"matcher": "", "hooks": [{"type": "command", "command": "if command -v aiframework-update-check >/dev/null 2>&1; then aiframework-update-check 2>/dev/null || true; fi; if command -v aiframework >/dev/null 2>&1; then aiframework verify --target . 2>/dev/null | tail -5 || true; fi", "timeout": 15000}]}]
+          | .hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "echo [aiframework] Session complete. Run /aif-learn if you discovered anything non-obvious.", "timeout": 5000}]}]
         '
       fi
 
