@@ -14,14 +14,14 @@ confidence: medium
 
 # aiframework.rb
 
-> `.github/homebrew/aiframework.rb` — ruby, 40 lines
+> `.github/homebrew/aiframework.rb` — ruby, 43 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `.github/homebrew/aiframework.rb` |
 | Language | ruby |
-| Lines | 40 |
-| Size | 1140 bytes |
+| Lines | 43 |
+| Size | 1296 bytes |
 | Symbols | 3 |
 | PageRank | — |
 
@@ -30,8 +30,8 @@ confidence: medium
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
 | `Aiframework` | class | 6 | public | Homebrew formula for aiframework |
-| `install` | method | 16 | public | — |
-| `caveats` | method | 23 | public | — |
+| `install` | method | 18 | public | — |
+| `caveats` | method | 26 | public | — |
 
 ## Imports
 

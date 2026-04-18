@@ -14,7 +14,7 @@ confidence: medium
 
 # Architecture — Module Graph
 
-> Auto-generated from code index. 80 files, 400 symbols, 76 edges.
+> Auto-generated from code index. 80 files, 401 symbols, 76 edges.
 
 ## Modules
 
@@ -43,21 +43,21 @@ confidence: medium
 
 | File | Path | Score |
 |------|------|-------|
-| [[lib-scanners-sheal-sh|sheal.sh]] | `lib/scanners/sheal.sh` | 0.0025 |
 | [[lib-generators-sheal-sh|sheal.sh]] | `lib/generators/sheal.sh` | 0.0025 |
-| [[lib-indexers-graph-py|graph.py]] | `lib/indexers/graph.py` | 0.0024 |
+| [[lib-scanners-sheal-sh|sheal.sh]] | `lib/scanners/sheal.sh` | 0.0025 |
 | [[lib-bridge-sheal-learnings-sh|sheal_learnings.sh]] | `lib/bridge/sheal_learnings.sh` | 0.0024 |
-| [[lib-indexers-registry-py|registry.py]] | `lib/indexers/registry.py` | 0.0024 |
 | [[lib-indexers-init-py|__init__.py]] | `lib/indexers/__init__.py` | 0.0024 |
-| [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] | `lib/scanners/skill_suggest.sh` | 0.0021 |
-| [[lib-validators-quality-gate-sh|quality_gate.sh]] | `lib/validators/quality_gate.sh` | 0.0021 |
+| [[lib-indexers-graph-py|graph.py]] | `lib/indexers/graph.py` | 0.0024 |
+| [[lib-indexers-registry-py|registry.py]] | `lib/indexers/registry.py` | 0.0024 |
 | [[lib-validators-security-sh|security.sh]] | `lib/validators/security.sh` | 0.0021 |
-| [[lib-validators-consistency-sh|consistency.sh]] | `lib/validators/consistency.sh` | 0.0021 |
 | [[lib-validators-freshness-sh|freshness.sh]] | `lib/validators/freshness.sh` | 0.0021 |
-| [[lib-generators-preserve-sh|preserve.sh]] | `lib/generators/preserve.sh` | 0.0021 |
 | [[lib-generators-skills-sh|skills.sh]] | `lib/generators/skills.sh` | 0.0021 |
+| [[lib-validators-quality-gate-sh|quality_gate.sh]] | `lib/validators/quality_gate.sh` | 0.0021 |
+| [[lib-generators-preserve-sh|preserve.sh]] | `lib/generators/preserve.sh` | 0.0021 |
+| [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] | `lib/scanners/skill_suggest.sh` | 0.0021 |
+| [[lib-validators-consistency-sh|consistency.sh]] | `lib/validators/consistency.sh` | 0.0021 |
 | [[lib-validators-files-sh|files.sh]] | `lib/validators/files.sh` | 0.0021 |
-| [[lib-generators-hooks-sh|hooks.sh]] | `lib/generators/hooks.sh` | 0.0019 |
+| [[lib-freshness-track-sh|track.sh]] | `lib/freshness/track.sh` | 0.0019 |
 
 ## Entry Points (fan-in = 0)
 

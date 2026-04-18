@@ -14,14 +14,14 @@ confidence: medium
 
 # aiframework
 
-> `bin/aiframework` — bash, 1250 lines
+> `bin/aiframework` — bash, 1267 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `bin/aiframework` |
 | Language | bash |
-| Lines | 1250 |
-| Size | 43239 bytes |
+| Lines | 1267 |
+| Size | 43846 bytes |
 | Symbols | 37 |
 | PageRank | — |
 

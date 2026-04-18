@@ -14,14 +14,14 @@ confidence: medium
 
 # Module: bin
 
-> entrypoint — 4 files, 50 symbols
+> entrypoint — 4 files, 51 symbols
 
 | Property | Value |
 |----------|-------|
 | Path | `bin` |
 | Role | entrypoint |
 | Files | 4 |
-| Symbols | 50 |
+| Symbols | 51 |
 | Fan-in | 0 |
 | Fan-out | 39 |
 
@@ -32,7 +32,7 @@ confidence: medium
 | [[bin-aiframework|aiframework]] | 37 | — |
 | [[bin-aiframework-mcp|aiframework-mcp]] | 0 | — |
 | [[bin-aiframework-telemetry|aiframework-telemetry]] | 0 | — |
-| [[bin-aiframework-update-check|aiframework-update-check]] | 13 | — |
+| [[bin-aiframework-update-check|aiframework-update-check]] | 14 | — |
 
 ## Dependencies (5 modules)
 

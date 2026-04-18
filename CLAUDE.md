@@ -42,16 +42,16 @@ make test
 - **Data**: `lib/data/` — detection registries and config
 
 **Most important files** (by dependency rank):
-- `lib/scanners/sheal.sh`
 - `lib/generators/sheal.sh`
-- `lib/indexers/graph.py`
+- `lib/scanners/sheal.sh`
 - `lib/bridge/sheal_learnings.sh`
+- `lib/indexers/graph.py`
 - `lib/indexers/registry.py`
-- `lib/scanners/skill_suggest.sh`
-- `lib/validators/quality_gate.sh`
 - `lib/validators/security.sh`
-- `lib/validators/consistency.sh`
 - `lib/validators/freshness.sh`
+- `lib/generators/skills.sh`
+- `lib/validators/quality_gate.sh`
+- `lib/generators/preserve.sh`
 
 ## Environment Variables
 

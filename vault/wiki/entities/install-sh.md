@@ -14,14 +14,14 @@ confidence: medium
 
 # install.sh
 
-> `install.sh` — bash, 394 lines
+> `install.sh` — bash, 434 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `install.sh` |
 | Language | bash |
-| Lines | 394 |
-| Size | 11781 bytes |
+| Lines | 434 |
+| Size | 13567 bytes |
 | Symbols | 13 |
 | PageRank | — |
 
@@ -36,12 +36,12 @@ confidence: medium
 | `die` | function | 31 | public | — |
 | `detect_platform` | function | 35 | public | — |
 | `set_default_paths` | function | 69 | public | — |
-| `check_command` | function | 113 | public | — |
-| `check_dependencies` | function | 117 | public | — |
-| `install_aiframework` | function | 201 | public | — |
-| `ensure_path` | function | 272 | public | — |
-| `uninstall_aiframework` | function | 319 | public | — |
-| `main` | function | 334 | public | — |
+| `check_command` | function | 120 | public | — |
+| `check_dependencies` | function | 124 | public | — |
+| `install_aiframework` | function | 208 | public | — |
+| `ensure_path` | function | 282 | public | — |
+| `uninstall_aiframework` | function | 337 | public | — |
+| `main` | function | 370 | public | — |
 
 ## Imports
 

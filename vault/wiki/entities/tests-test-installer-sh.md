@@ -14,14 +14,14 @@ confidence: medium
 
 # test_installer.sh
 
-> `tests/test_installer.sh` — bash, 161 lines
+> `tests/test_installer.sh` — bash, 173 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `tests/test_installer.sh` |
 | Language | bash |
-| Lines | 161 |
-| Size | 5651 bytes |
+| Lines | 173 |
+| Size | 6490 bytes |
 | Symbols | 2 |
 | PageRank | — |
 

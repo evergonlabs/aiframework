@@ -14,14 +14,14 @@ confidence: medium
 
 # test_sheal.sh
 
-> `tests/test_sheal.sh` — bash, 408 lines
+> `tests/test_sheal.sh` — bash, 448 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `tests/test_sheal.sh` |
 | Language | bash |
-| Lines | 408 |
-| Size | 17815 bytes |
+| Lines | 448 |
+| Size | 19060 bytes |
 | Symbols | 9 |
 | PageRank | — |
 
