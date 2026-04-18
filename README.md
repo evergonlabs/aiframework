@@ -23,7 +23,7 @@
 
 [![version](https://img.shields.io/badge/v1.3.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
-[![tests](https://img.shields.io/badge/126_passing-brightgreen?style=flat-square&label=tests)]()
+[![tests](https://img.shields.io/badge/146_passing-brightgreen?style=flat-square&label=tests)]()
 [![Bash](https://img.shields.io/badge/bash-1f425f?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
@@ -267,7 +267,7 @@ aiframework generates **15 project-specific skills**. The ecosystem extends to *
 
   ─── with sheal (runtime intelligence) ───
 
-  Session start → sheal check (auto)    ← health check via SessionStart hook
+  Session start → update check + health  ← SessionStart hook (auto)
   Session end   → /sheal-retro          ← extract learnings, bridge to JSONL
   Weekly        → /sheal-drift          ← detect unapplied learnings, promote to rules
 ```
@@ -463,12 +463,14 @@ Your CLAUDE.md gets smarter over time &mdash; most of it happens automatically.
 
 | What | How | When |
 |:-----|:----|:-----|
+| **Update check** | `SessionStart` hook runs `aiframework-update-check`; Claude Code tells you if a new version is available | Every session start |
 | **Auto-refresh** | Pre-push hook detects config drift, re-runs `aiframework refresh`, auto-commits | Every `git push` |
+| **Update reminder** | Pre-push hook checks for new aiframework versions and shows `Run: aiframework update` | Every `git push` |
 | **Learning capture** | `/aif-learn "description"` persists gotchas to JSONL | When you discover something |
 | **Rule evolution** | `/aif-evolve` reads all learnings, proposes CLAUDE.md improvements | Weekly |
 | **Ecosystem pulse** | `/aif-pulse` discovers new Claude Code features, suggests adoption | Monthly |
 
-The auto-refresh hook means you never have to think about keeping CLAUDE.md in sync &mdash; change a dependency, push, and it updates itself.
+You never have to manually check for updates or keep CLAUDE.md in sync &mdash; it all happens through hooks.
 
 ### Runtime intelligence with sheal
 
@@ -502,7 +504,7 @@ aiframework handles **setup-time** intelligence &mdash; it scans your repo once 
 | Phase | What | How |
 |:------|:-----|:----|
 | **Bootstrap** | aiframework scans repo, generates configs | `aiframework run` |
-| **Session start** | sheal health check runs automatically | SessionStart hook |
+| **Session start** | Update check + health check run automatically | SessionStart hook |
 | **During work** | Both tools capture learnings in their formats | `/aif-learn` dual-writes |
 | **Session end** | sheal extracts patterns from the session | `/sheal-retro` |
 | **Weekly** | Drift detection promotes learnings to rules | `/sheal-drift` |
@@ -685,7 +687,7 @@ aiframework collects anonymous usage data to understand adoption and prioritize 
 | Data | Example | Why |
 |:-----|:--------|:----|
 | Event type | `run`, `refresh`, `upgrade`, `verify_failed` | Know which commands are used |
-| Version, OS, bash, Python, jq | `1.2.0`, `macos`, `5.2`, `3.12`, `1.7` | Know what environments to support |
+| Version, OS, bash, Python, jq | `1.3.0`, `macos`, `5.2`, `3.12`, `1.7` | Know what environments to support |
 | Anonymous machine ID | SHA-256 hash (not reversible) | Count unique users, not sessions |
 | Pipeline outcome | `lang=python`, `framework=fastapi`, `archetype=api-service` | Know what stacks to prioritize |
 | Integration status | `sheal=true`, `gstack=true`, `node=true` | Know which integrations matter |
