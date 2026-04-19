@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# aiframework-telemetry — Lightweight telemetry emitter for skills and hooks
+# aiframework-telemetry — Lightweight telemetry emitter via PostHog
 #
 # Usage: aiframework-telemetry <event> [key=value ...]
 # Example: aiframework-telemetry skill_invoked skill=aif-review
@@ -19,6 +19,10 @@ _src="${BASH_SOURCE[0]}"
 while [[ -L "$_src" ]]; do _src="$(readlink "$_src")"; [[ "$_src" != /* ]] && _src="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$_src"; done
 _root="$(cd "$(dirname "$_src")/.." && pwd)"
 
+# PostHog config
+_POSTHOG_KEY="phc_BYZQuJ4BgzbyYmRqzDxQfzHPeG7dQucyYwg9MU4D8Hx4"
+_POSTHOG_HOST="https://eu.i.posthog.com"
+
 version="$(cat "$_root/VERSION" 2>/dev/null | tr -d '[:space:]' || echo '0.0.0')"
 machine=$(echo "${HOSTNAME:-x}:${USER:-x}" | shasum -a 256 2>/dev/null | cut -d' ' -f1 || echo "x")
 platform="unknown"
@@ -27,7 +31,7 @@ case "$(uname -s 2>/dev/null)" in Darwin*) platform="macos";; Linux*) platform="
 has_sheal="false"; command -v sheal &>/dev/null && has_sheal="true"
 has_gstack="false"; [[ -d "${HOME}/.claude/skills/gstack" ]] && has_gstack="true"
 
-# Build extra fields from key=value args
+# Build properties from key=value args
 extra=""
 for kv in "$@"; do
   key="${kv%%=*}"
@@ -35,11 +39,24 @@ for kv in "$@"; do
   extra="${extra:+$extra, }\"$key\": \"$val\""
 done
 
-payload="{\"event\":\"$event\",\"version\":\"$version\",\"machine\":\"$machine\",\"platform\":\"$platform\",\"sheal\":$has_sheal,\"gstack\":$has_gstack${extra:+, $extra}}"
+payload=$(cat <<EOF
+{
+  "api_key": "$_POSTHOG_KEY",
+  "event": "$event",
+  "distinct_id": "$machine",
+  "properties": {
+    "version": "$version",
+    "platform": "$platform",
+    "sheal": $has_sheal,
+    "gstack": $has_gstack${extra:+, $extra}
+  }
+}
+EOF
+)
 
 command -v curl &>/dev/null && curl -fsSL --connect-timeout 2 --max-time 3 \
   -X POST -H "Content-Type: application/json" \
   -d "$payload" \
-  "https://telemetry.evergonlabs.com/v1/event" &>/dev/null &
+  "${_POSTHOG_HOST}/capture/" &>/dev/null &
 
 exit 0

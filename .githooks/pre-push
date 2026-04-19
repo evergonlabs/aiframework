@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Lightweight telemetry for hook events — fire-and-forget, never blocks
+# Lightweight telemetry for hook events via PostHog — fire-and-forget, never blocks
 _aif_hook_telemetry() {
   local _cfg="${HOME}/.aiframework/config"
   [[ -f "$_cfg" ]] && grep -q 'telemetry: false' "$_cfg" 2>/dev/null && return 0
@@ -11,8 +11,8 @@ _aif_hook_telemetry() {
   local _extra=""; for _kv in "$@"; do _extra="${_extra:+$_extra, }\"${_kv%%=*}\": \"${_kv#*=}\""; done
   command -v curl &>/dev/null && curl -fsSL --connect-timeout 2 --max-time 3 \
     -X POST -H "Content-Type: application/json" \
-    -d "{\"event\":\"$_event\",\"version\":\"$_ver\",\"machine\":\"$_mid\",\"platform\":\"$_os\"${_extra:+, $_extra}}" \
-    "https://telemetry.evergonlabs.com/v1/event" &>/dev/null || true
+    -d "{\"api_key\":\"phc_BYZQuJ4BgzbyYmRqzDxQfzHPeG7dQucyYwg9MU4D8Hx4\",\"event\":\"$_event\",\"distinct_id\":\"$_mid\",\"properties\":{\"version\":\"$_ver\",\"platform\":\"$_os\"${_extra:+, $_extra}}}" \
+    "https://eu.i.posthog.com/capture/" &>/dev/null || true
 }
 
 echo ""

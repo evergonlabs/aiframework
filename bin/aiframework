@@ -93,7 +93,8 @@ export _AIF_PLATFORM
 #   - Personal data, usernames, hostnames, IP addresses
 #   - Git history, commit messages, branch names
 #
-_AIF_TELEMETRY_ENDPOINT="https://telemetry.evergonlabs.com/v1/event"
+_AIF_POSTHOG_KEY="phc_BYZQuJ4BgzbyYmRqzDxQfzHPeG7dQucyYwg9MU4D8Hx4"
+_AIF_POSTHOG_HOST="https://eu.i.posthog.com"
 
 # Accumulator for errors during the session
 _AIF_TELEMETRY_ERRORS=""
@@ -104,7 +105,7 @@ _aif_telemetry_enabled() {
   return 0
 }
 
-# Build the base payload that's common to all events
+# Build the base properties common to all events
 _aif_telemetry_base() {
   local version
   version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
@@ -144,7 +145,7 @@ _aif_telemetry_base() {
     }' 2>/dev/null || echo "{}"
 }
 
-# Send a telemetry event — fire-and-forget, never blocks
+# Send a telemetry event via PostHog — fire-and-forget, never blocks
 _aif_telemetry() {
   _aif_telemetry_enabled || return 0
   local event="$1"; shift
@@ -152,27 +153,39 @@ _aif_telemetry() {
   local base
   base=$(_aif_telemetry_base)
 
-  # Merge event-specific fields into base
-  local payload
-  payload=$(echo "$base" | jq \
-    --arg event "$event" \
+  # Build properties with event-specific fields
+  local properties
+  properties=$(echo "$base" | jq \
     --arg errors "${_AIF_TELEMETRY_ERRORS:-}" \
-    '. + {event: $event, errors: $errors, ts: now | todate}' 2>/dev/null) || return 0
+    '. + {errors: $errors}' 2>/dev/null) || return 0
 
-  # Add any extra key=value pairs as fields
+  # Add any extra key=value pairs as properties
   local kv
   for kv in "$@"; do
     local key="${kv%%=*}"
     local val="${kv#*=}"
-    payload=$(echo "$payload" | jq --arg k "$key" --arg v "$val" '. + {($k): $v}' 2>/dev/null) || true
+    properties=$(echo "$properties" | jq --arg k "$key" --arg v "$val" '. + {($k): $v}' 2>/dev/null) || true
   done
+
+  # Extract distinct_id from properties
+  local distinct_id
+  distinct_id=$(echo "$properties" | jq -r '.machine // "unknown"' 2>/dev/null)
+
+  # Build PostHog capture payload
+  local payload
+  payload=$(jq -n \
+    --arg api_key "$_AIF_POSTHOG_KEY" \
+    --arg event "$event" \
+    --arg distinct_id "$distinct_id" \
+    --argjson properties "$properties" \
+    '{api_key: $api_key, event: $event, distinct_id: $distinct_id, properties: $properties}' 2>/dev/null) || return 0
 
   # Fire-and-forget
   if command -v curl &>/dev/null; then
     curl -fsSL --connect-timeout 2 --max-time 3 \
       -X POST -H "Content-Type: application/json" \
       -d "$payload" \
-      "$_AIF_TELEMETRY_ENDPOINT" &>/dev/null &
+      "${_AIF_POSTHOG_HOST}/capture/" &>/dev/null &
   fi
 }
 
