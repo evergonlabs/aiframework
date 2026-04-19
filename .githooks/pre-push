@@ -4,15 +4,21 @@
 _aif_hook_telemetry() {
   local _cfg="${HOME}/.aiframework/config"
   [[ -f "$_cfg" ]] && grep -q 'telemetry: false' "$_cfg" 2>/dev/null && return 0
+  local _root; _root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  local _phk="${POSTHOG_API_KEY:-}"
+  local _phh="${POSTHOG_HOST:-https://eu.i.posthog.com}"
+  [[ -z "$_phk" && -f "$_root/.env" ]] && _phk=$(grep '^POSTHOG_API_KEY=' "$_root/.env" 2>/dev/null | cut -d= -f2-)
+  [[ -z "$_phk" && -f "$_root/.env" ]] && _phh=$(grep '^POSTHOG_HOST=' "$_root/.env" 2>/dev/null | cut -d= -f2-)
+  [[ -z "$_phk" ]] && return 0
   local _event="$1"; shift
-  local _ver; _ver=$(cat "$(git rev-parse --show-toplevel 2>/dev/null)/VERSION" 2>/dev/null || echo "0.0.0")
+  local _ver; _ver=$(cat "$_root/VERSION" 2>/dev/null || echo "0.0.0")
   local _mid; _mid=$(echo "${HOSTNAME:-x}:${USER:-x}" | shasum -a 256 2>/dev/null | cut -d' ' -f1 || echo "x")
   local _os="unknown"; case "$(uname -s 2>/dev/null)" in Darwin*) _os="macos";; Linux*) _os="linux";; MINGW*|MSYS*) _os="windows";; esac
   local _extra=""; for _kv in "$@"; do _extra="${_extra:+$_extra, }\"${_kv%%=*}\": \"${_kv#*=}\""; done
   command -v curl &>/dev/null && curl -fsSL --connect-timeout 2 --max-time 3 \
     -X POST -H "Content-Type: application/json" \
-    -d "{\"api_key\":\"phc_BYZQuJ4BgzbyYmRqzDxQfzHPeG7dQucyYwg9MU4D8Hx4\",\"event\":\"$_event\",\"distinct_id\":\"$_mid\",\"properties\":{\"version\":\"$_ver\",\"platform\":\"$_os\"${_extra:+, $_extra}}}" \
-    "https://eu.i.posthog.com/capture/" &>/dev/null || true
+    -d "{\"api_key\":\"$_phk\",\"event\":\"$_event\",\"distinct_id\":\"$_mid\",\"properties\":{\"version\":\"$_ver\",\"platform\":\"$_os\"${_extra:+, $_extra}}}" \
+    "${_phh}/capture/" &>/dev/null || true
 }
 
 echo ""

@@ -93,8 +93,14 @@ export _AIF_PLATFORM
 #   - Personal data, usernames, hostnames, IP addresses
 #   - Git history, commit messages, branch names
 #
-_AIF_POSTHOG_KEY="phc_BYZQuJ4BgzbyYmRqzDxQfzHPeG7dQucyYwg9MU4D8Hx4"
-_AIF_POSTHOG_HOST="https://eu.i.posthog.com"
+# PostHog telemetry — load from .env or environment
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  _AIF_POSTHOG_KEY="${POSTHOG_API_KEY:-$(grep '^POSTHOG_API_KEY=' "$ROOT_DIR/.env" 2>/dev/null | cut -d= -f2-)}"
+  _AIF_POSTHOG_HOST="${POSTHOG_HOST:-$(grep '^POSTHOG_HOST=' "$ROOT_DIR/.env" 2>/dev/null | cut -d= -f2-)}"
+else
+  _AIF_POSTHOG_KEY="${POSTHOG_API_KEY:-}"
+  _AIF_POSTHOG_HOST="${POSTHOG_HOST:-https://eu.i.posthog.com}"
+fi
 
 # Accumulator for errors during the session
 _AIF_TELEMETRY_ERRORS=""
@@ -148,6 +154,7 @@ _aif_telemetry_base() {
 # Send a telemetry event via PostHog — fire-and-forget, never blocks
 _aif_telemetry() {
   _aif_telemetry_enabled || return 0
+  [[ -z "${_AIF_POSTHOG_KEY:-}" ]] && return 0
   local event="$1"; shift
 
   local base

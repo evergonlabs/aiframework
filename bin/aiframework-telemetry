@@ -19,9 +19,16 @@ _src="${BASH_SOURCE[0]}"
 while [[ -L "$_src" ]]; do _src="$(readlink "$_src")"; [[ "$_src" != /* ]] && _src="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$_src"; done
 _root="$(cd "$(dirname "$_src")/.." && pwd)"
 
-# PostHog config
-_POSTHOG_KEY="phc_BYZQuJ4BgzbyYmRqzDxQfzHPeG7dQucyYwg9MU4D8Hx4"
-_POSTHOG_HOST="https://eu.i.posthog.com"
+# PostHog config — load from .env or environment
+if [[ -f "$_root/.env" ]]; then
+  _POSTHOG_KEY="${POSTHOG_API_KEY:-$(grep '^POSTHOG_API_KEY=' "$_root/.env" 2>/dev/null | cut -d= -f2-)}"
+  _POSTHOG_HOST="${POSTHOG_HOST:-$(grep '^POSTHOG_HOST=' "$_root/.env" 2>/dev/null | cut -d= -f2-)}"
+else
+  _POSTHOG_KEY="${POSTHOG_API_KEY:-}"
+  _POSTHOG_HOST="${POSTHOG_HOST:-https://eu.i.posthog.com}"
+fi
+# Skip telemetry if no API key configured
+[[ -z "$_POSTHOG_KEY" ]] && exit 0
 
 version="$(cat "$_root/VERSION" 2>/dev/null | tr -d '[:space:]' || echo '0.0.0')"
 machine=$(echo "${HOSTNAME:-x}:${USER:-x}" | shasum -a 256 2>/dev/null | cut -d' ' -f1 || echo "x")
