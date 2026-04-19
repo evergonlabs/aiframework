@@ -1,75 +1,57 @@
 <div align="center">
 
-<br>
-
-```
-
-   ░█████╗░██╗███████╗██████╗░░█████╗░███╗░░░███╗███████╗░██╗░░░░░░░██╗░█████╗░██████╗░██╗░░██╗
-   ██╔══██╗██║██╔════╝██╔══██╗██╔══██╗████╗░████║██╔════╝░██║░░██╗░░██║██╔══██╗██╔══██╗██║░██╔╝
-   ███████║██║█████╗░░██████╔╝███████║██╔████╔██║█████╗░░░╚██╗████╗██╔╝██║░░██║██████╔╝█████═╝░
-   ██╔══██║██║██╔══╝░░██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝░░░░████╔═████║░██║░░██║██╔══██╗██╔═██╗░
-   ██║░░██║██║██║░░░░░██║░░██║██║░░██║██║░╚═╝░██║███████╗░░╚██╔╝░╚██╔╝░╚█████╔╝██║░░██║██║░╚██╗
-   ╚═╝░░╚═╝╚═╝╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═╝╚══════╝░░╚═╝░░░╚═╝░░╚════╝░╚═╝░░╚═╝╚═╝░░╚═╝
-
-```
+# aiframework
 
 Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly.
 
-[![version](https://img.shields.io/badge/v1.3.1-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
+[![version](https://img.shields.io/badge/v1.4.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/evergonlabs/aiframework/ci.yml?style=flat-square&label=CI)](https://github.com/evergonlabs/aiframework/actions)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
 
 </div>
 
 ---
 
-## The Problem
+## What it does
 
-When you open [Claude Code](https://docs.anthropic.com/en/docs/claude-code) in a project, it doesn't know your stack, your test commands, your coding conventions, or how your files connect. You end up repeating context every session.
+aiframework scans your repo — language, framework, dependencies, file structure, domains — and generates a `CLAUDE.md` plus supporting configs that Claude Code reads automatically.
 
-**aiframework fixes this.** It scans your repo &mdash; language, framework, dependencies, file structure, domains &mdash; and generates a `CLAUDE.md` file plus supporting configs. Claude Code reads these automatically, so it knows your project from the first message.
-
-**Before:** Claude asks "what framework is this?" and guesses wrong commands.<br>
+**Before:** Claude asks "what framework is this?" and guesses wrong commands.
 **After:** Claude knows your lint/test/build commands, your architecture, your security rules, and can navigate your codebase through a knowledge graph of every file.
+
+```
+$ aiframework run --target .
+
+DISCOVER  ████████████████████ 13 scanners
+  python / fastapi / api-service
+  47 endpoints, 209 symbols, 4 domains detected
+
+GENERATE  ████████████████████ 23 files written
+  CLAUDE.md, .claude/rules/, .claude/skills/, vault/
+
+VERIFY    ████████████████████ all checks passed
+```
 
 ---
 
-## Quick Start
-
-Three commands. Takes about 60 seconds.
-
-**1. Install aiframework** (paste this into your terminal):
+## Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
 ```
 
-This downloads and installs aiframework. It will check that you have the [required tools](#requirements) and tell you if anything is missing.
-
-**2. Point it at your project:**
+The installer checks dependencies, detects your OS and package manager, and tells you exactly what's missing. Preview first with `--dry-run`:
 
 ```bash
-aiframework run --target ~/your-project
+curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --dry-run
 ```
 
-Replace `~/your-project` with the path to any git repo. aiframework scans it and generates config files that Claude Code will read.
-
-**3. Open Claude Code and run the setup skill:**
+Auto-install missing dependencies (jq, Python, git) on Linux/macOS:
 
 ```bash
-cd ~/your-project
-claude
+curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --auto-deps
 ```
-
-Once Claude Code opens, type this command (it's a "slash command" &mdash; Claude Code's way of running built-in actions):
-
-```
-/aif-ready
-```
-
-This researches your specific stack online, enhances the generated configs, and optimizes your settings. **You only need to do this once per project.**
-
-After that, just code. Claude knows your stack, commands, architecture, and conventions.
 
 <details>
 <summary>Other install methods</summary>
@@ -82,98 +64,88 @@ After that, just code. Claude knows your stack, commands, architecture, and conv
 
 </details>
 
-<details>
-<summary>Requirements</summary>
+### Requirements
 
-You need these installed before running the installer. Most developers already have them. If something's missing, the installer will tell you exactly what to install and how.
+| Tool | Version | Why |
+|:-----|:--------|:----|
+| `bash` | 3.2+ | Runs the CLI |
+| `git` | any | Clones repos, tracks changes |
+| `python3` | **3.10+** | Code indexer (uses match/case syntax) |
+| `jq` | any | Reads JSON manifests |
 
-| Tool | Why | Check with |
-|:-----|:----|:-----------|
-| `bash` | Runs the scripts | `bash --version` (need 3.2+) |
-| `git` | Clones and tracks your repo | `git --version` |
-| `jq` | Reads JSON config files | `jq --version` (install: `brew install jq` or `apt install jq`) |
-| `python3` | Powers the code indexer | `python3 --version` (need 3.10+) |
+Optional: `node`/`npm` (for [sheal](https://www.npmjs.com/package/@liwala/sheal) session intelligence), `shellcheck` (script linting).
 
-Optional: `node`/`npm` (for runtime session intelligence), `shellcheck` (lints scripts).
+### Platforms
 
-</details>
+| Platform | Status |
+|:---------|:-------|
+| macOS (Intel + ARM) | CI-tested |
+| Linux (Ubuntu, Fedora, Arch) | CI-tested |
+| Alpine Linux (musl) | CI-tested |
+| WSL | Supported |
+| Windows (Git Bash / MSYS2) | Supported (not in CI) |
 
 ---
 
-## What It Does
+## Quick start
 
-aiframework scans your repo to understand what it is &mdash; what language, what framework, what commands to run, how the files connect &mdash; then writes config files that Claude Code reads automatically:
+```bash
+# 1. Bootstrap your project
+aiframework run --target ~/your-project
 
-```
-$ aiframework run --target .
-
-DISCOVER  ████████████████████ 13 scanners
-  python / fastapi / api-service
-  47 endpoints, 209 symbols, 4 domains detected
-
-GENERATE  ████████████████████ 23 files written
-  CLAUDE.md, .claude/rules/, .claude/skills/, vault/
-  .githooks/, .github/workflows/, docs/, AGENTS.md
-
-VERIFY    ████████████████████ all checks passed
+# 2. Open Claude Code and run the setup skill (once per project)
+cd ~/your-project && claude
+# Then type: /aif-ready
 ```
 
-### What gets created
+`/aif-ready` researches your stack online, enhances the generated configs, and optimizes settings. After that, just code.
 
-| File | What it's for |
-|:-----|:--------------|
-| `CLAUDE.md` | The main file Claude Code reads &mdash; your stack, commands, rules, architecture |
-| `.claude/rules/` | Extra instructions Claude follows automatically (workflow, testing, security) |
-| `.claude/skills/` | Slash commands you can type in Claude Code (`/aif-review`, `/aif-ship`, etc.) |
-| `.claude/settings.json` | Permissions and automation (e.g., auto-lint on file save) |
-| `.githooks/` | Git hooks that lint on commit and run quality checks on push |
+---
+
+## What gets generated
+
+| File | Purpose |
+|:-----|:--------|
+| `CLAUDE.md` | Main config — stack, commands, rules, architecture |
+| `.claude/rules/` | Auto-loaded instructions by path pattern |
+| `.claude/skills/` | Slash commands (`/aif-review`, `/aif-ship`, etc.) |
+| `.claude/settings.json` | Permissions and automation config |
+| `.githooks/` | Pre-commit lint + pre-push quality gate |
 | `.github/workflows/ci.yml` | CI pipeline matched to your language |
-| `vault/wiki/` | A knowledge graph of your codebase &mdash; one page per file, linked by imports ([details](#knowledge-graph)) |
-| `docs/` | Documentation scaffold |
-| `AGENTS.md` | Config that also works with Cursor, Copilot, Codex, and Gemini |
+| `vault/wiki/` | Knowledge graph — one page per file, linked by imports |
+| `AGENTS.md` | Compatible with Cursor, Copilot, Codex, Gemini |
 
-Same repo, same output, every time. Then `/aif-ready` enhances it with knowledge specific to your framework.
+Same repo, same output, every time. Deterministic.
 
 ---
 
-## How It Works
+## How it works
 
 ```
 aiframework run --target /path/to/repo
 │
-│  DISCOVER ──────────────── scan everything, assume nothing
-│  │
+│  DISCOVER ──── scan everything, assume nothing
 │  ├── identity       name, version, short name
 │  ├── stack          language, framework, monorepo?
 │  ├── commands       package manager, lint, test, build
-│  ├── structure      files, dirs, source roots, test files
+│  ├── structure      files, dirs, source roots
 │  ├── ci + deploy    GitHub Actions, Docker, Fly.io, Vercel...
 │  ├── env            variables from .env, config files
 │  ├── domain         18 types (auth, db, ai, graphql...)
 │  ├── code_index     symbols + imports + edges (20 languages)
 │  └── archetype      library, cli-tool, web-app, api-service...
-│  │
 │  ╰──→ manifest.json + code-index.json
 │
-│  GENERATE ──────────────── deterministic, reproducible
-│  │
-│  ├── CLAUDE.md          80-150 lines, lean, high-signal
-│  ├── .claude/rules/     auto-loaded by path pattern
-│  ├── .claude/skills/    project skills + framework skills
-│  ├── .githooks/         pre-commit + pre-push with auto-refresh
-│  ├── .github/workflows/ CI pipeline for your language
-│  ├── vault/             31-file knowledge base
-│  └── docs/              Diataxis scaffold
+│  GENERATE ──── deterministic, reproducible
+│  ╰──→ CLAUDE.md, rules, skills, hooks, CI, vault, docs
 │
-│  VERIFY ────────────────── trust, but verify
-│  │
-│  ├── files          do all expected files exist?
-│  ├── consistency    do commands match across CLAUDE.md, hooks, CI?
-│  ├── security       any secrets in source? .gitignore coverage?
-│  ├── quality_gate   are lint/test commands actually working?
-│  └── freshness      is the manifest stale? did files drift?
-│
-╰──→ PASS / FAIL / WARN
+│  VERIFY ────── trust, but verify
+│  ├── files          do expected files exist?
+│  ├── consistency    commands match across CLAUDE.md, hooks, CI?
+│  ├── security       secrets in source? .gitignore coverage?
+│  ├── quality_gate   lint/test commands working?
+│  └── freshness      manifest stale? files drifted?
+│  ╰──→ PASS / FAIL / WARN
 ```
 
 ### Language support
@@ -190,40 +162,40 @@ aiframework run --target /path/to/repo
 | PHP, Kotlin, Swift, Elixir, Bash | Major frameworks |
 | + 12 more | Extensible via `lib/data/languages.json` |
 
-The code indexer reads your actual source code to find functions, classes, types, and how files import each other &mdash; so Claude Code can navigate your codebase intelligently.
+---
+
+## Slash commands
+
+Available inside Claude Code after running `/aif-ready`:
+
+| Command | What it does |
+|:--------|:-------------|
+| `/aif-ready` | One-time setup — researches stack, enhances configs |
+| `/aif-review` | Pre-commit code review against your project's rules |
+| `/aif-ship` | Lint + review + changelog + commit (never pushes without approval) |
+| `/aif-learn` | Save a gotcha so Claude remembers next time |
+| `/aif-analyze` | Find missing tests, circular deps, dead code |
+| `/aif-evolve` | Promote accumulated learnings into permanent rules |
+| `/aif-pulse` | Discover new Claude Code features to adopt |
+
+Configs auto-refresh on every `git push` — no manual sync needed.
 
 ---
 
-## Daily Workflow
-
-Once you've run `/aif-ready`, these slash commands are available inside Claude Code:
-
-| Command | When to use it | What it does |
-|:--------|:---------------|:-------------|
-| `/aif-ready` | Once per project | Researches your stack, enhances configs |
-| `/aif-review` | Before committing | Reviews your code against your project's rules |
-| `/aif-ship` | When ready to push | Runs lint, review, updates docs, commits |
-| `/aif-learn` | When you discover something | Saves gotchas so Claude remembers next time |
-| `/aif-analyze` | When curious | Finds missing tests, circular dependencies |
-| `/aif-evolve` | Weekly | Improves your CLAUDE.md based on accumulated learnings |
-| `/aif-pulse` | Monthly | Discovers new Claude Code features you can adopt |
-
-Your configs auto-refresh on every `git push` &mdash; you never need to manually keep them in sync.
-
----
-
-## CLI Reference
+## CLI reference
 
 ```
-$ aiframework <command> [options]
+aiframework <command> [options]
 
-  run            full pipeline: discover, generate, verify
-  discover       scan repo into manifest.json + code-index.json
-  generate       read manifest, generate all files
+Commands:
+  run            discover + generate + verify (full pipeline)
+  discover       scan repo → manifest.json + code-index.json
+  generate       manifest → all config files
   verify         validate generated files (5 validators)
   refresh        re-discover + generate only if drift detected
   update         self-update + refresh all bootstrapped repos
 
+Options:
   --target <path>       target repo (default: cwd)
   --non-interactive     skip user context questions
   --no-index            skip code indexing
@@ -239,13 +211,13 @@ $ aiframework <command> [options]
 aiframework update
 ```
 
-Auto-detects install method (git/homebrew/tarball) and does the right thing. Also updates all bootstrapped repos. Aliases: `upgrade`, `self-update`.
+Auto-detects install method (git / Homebrew / tarball), pulls latest, and refreshes all bootstrapped repos.
 
 ---
 
-## Knowledge Graph
+## Knowledge graph
 
-Every source file gets a wiki page in `vault/wiki/`. Every import becomes a bidirectional link. Claude Code can traverse the graph to understand any part of the codebase without reading every file.
+Every source file gets a wiki page in `vault/wiki/`. Every import becomes a bidirectional link. Claude Code traverses the graph to understand any part of the codebase without reading every file.
 
 ```
 vault/wiki/
@@ -254,51 +226,11 @@ vault/wiki/
 │   └── architecture.md               module graph + top files by PageRank
 └── entities/
     ├── src-api-auth-controller-ts.md  symbols, imports, imported-by
-    ├── src-api-auth-service-ts.md     [[src-api-auth-controller-ts]] link
+    ├── src-api-auth-service-ts.md     [[linked]] to controller
     └── ...                            one page per source file
 ```
 
-200 files produces ~220 pages, ~800 wikilinks. Auto-updates on every `git push`.
-
----
-
-## Ecosystem
-
-aiframework handles **setup-time** intelligence. Two optional tools extend it:
-
-| Tool | What | Install |
-|:-----|:-----|:--------|
-| [gstack](https://github.com/garrytan/gstack) | 37 skills: `/ship`, `/qa`, `/review`, `/investigate`, `/cso`, browser automation | `git clone ... ~/.claude/skills/gstack && ./setup` |
-| [sheal](https://www.npmjs.com/package/@liwala/sheal) | Runtime session intelligence: watches sessions, extracts learnings, detects drift | Auto-installed with `make install` (needs Node.js) |
-
-Both are optional. aiframework works fully standalone.
-
-<details>
-<summary>gstack skills (37)</summary>
-
-**Ship & Debug:** `/ship` `/review` `/land-and-deploy` `/investigate` `/health` `/retro` `/codex`
-
-**QA & Browser:** `/qa` `/browse` `/design-review` `/benchmark` `/canary` `/cso`
-
-**Plan & Design:** `/plan-ceo-review` `/plan-eng-review` `/plan-design-review` `/autoplan` `/design-shotgun` `/design-html`
-
-**Utilities:** `/office-hours` `/checkpoint` `/guard` `/freeze` `/pair-agent`
-
-</details>
-
-<details>
-<summary>sheal workflow</summary>
-
-```
-Session start → health check (auto via hook)
-During work   → /aif-learn captures gotchas (dual-writes to sheal + JSONL)
-Session end   → /sheal-retro extracts patterns
-Weekly        → /sheal-drift promotes learnings to permanent rules
-```
-
-sheal is optional. Without it, nothing changes &mdash; no extra output, no extra files.
-
-</details>
+Auto-updates on every `git push`.
 
 ---
 
@@ -315,16 +247,27 @@ All detection is data-driven. Add a language, domain, or archetype by editing on
 
 ---
 
+## Ecosystem
+
+aiframework handles **setup-time** intelligence. Two optional tools extend it at runtime:
+
+| Tool | What | Install |
+|:-----|:-----|:--------|
+| [gstack](https://github.com/garrytan/gstack) | 37 runtime skills: `/ship`, `/qa`, `/review`, `/investigate`, `/cso`, browser automation | See gstack README |
+| [sheal](https://www.npmjs.com/package/@liwala/sheal) | Session intelligence: watches sessions, extracts learnings, detects drift | Auto-installed (needs Node.js) |
+
+Both are optional. aiframework works fully standalone.
+
+---
+
 ## Telemetry
 
-aiframework collects **anonymous, aggregate usage data** to help us prioritize languages, fix common failures, and improve the generated output. This data directly shapes which frameworks get better templates and which bugs get fixed first.
+Anonymous, aggregate usage data to prioritize languages, fix common failures, and improve generated output.
 
-**Collected:** event type (`run`, `refresh`), aiframework version, OS, detected language/framework, error counts, duration.<br>
+**Collected:** event type (`run`, `refresh`), version, OS, detected language/framework, error counts, duration.
 **Never collected:** source code, file contents, file paths, project names, git history, personal information.
 
-Telemetry follows the same principles as [Homebrew](https://docs.brew.sh/Analytics), [Next.js](https://nextjs.org/telemetry), and [VS Code](https://code.visualstudio.com/docs/getstarted/telemetry). We encourage you to leave it enabled &mdash; it's the most impactful way to help improve aiframework for everyone.
-
-To opt out:
+Opt out:
 
 ```bash
 mkdir -p ~/.aiframework && echo "telemetry: false" >> ~/.aiframework/config
@@ -332,22 +275,9 @@ mkdir -p ~/.aiframework && echo "telemetry: false" >> ~/.aiframework/config
 
 ---
 
-## Known Gaps
-
-| Area | Status |
-|:-----|:-------|
-| Core pipeline | Production-ready (needs real-world repo validation) |
-| Knowledge graph | Production-ready (needs large repo validation) |
-| macOS / Linux | Tested (CI + local) |
-| Windows (Git Bash) | CI-tested (needs community validation) |
-
-[Full testing checklist](docs/KNOWN_GAPS.md). If you test on your project, [open an issue](https://github.com/evergonlabs/aiframework/issues).
-
----
-
 <div align="center">
 
-**[Evergon Labs](https://github.com/evergonlabs)** &middot; [MIT License](LICENSE)
+**[Evergon Labs](https://github.com/evergonlabs)** · [MIT License](LICENSE) · [Report an issue](https://github.com/evergonlabs/aiframework/issues)
 
 [![GitHub stars](https://img.shields.io/github/stars/evergonlabs/aiframework?style=social)](https://github.com/evergonlabs/aiframework)
 
