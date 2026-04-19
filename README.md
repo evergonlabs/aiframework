@@ -41,15 +41,13 @@ VERIFY    ████████████████████ all check
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
 ```
 
-The installer checks dependencies, detects your OS and package manager, and tells you exactly what's missing. Preview first with `--dry-run`:
+The installer checks dependencies, detects your OS and package manager, and tells you exactly what's missing.
 
 ```bash
+# Preview what will be installed (no changes made)
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --dry-run
-```
 
-Auto-install missing dependencies (jq, Python, git) on Linux/macOS:
-
-```bash
+# Auto-install missing deps (jq, Python, git) on Linux/macOS
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --auto-deps
 ```
 
@@ -61,6 +59,19 @@ curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/instal
 | **Homebrew** | `brew tap evergonlabs/tap && brew install aiframework` |
 | **Manual** | `git clone https://github.com/evergonlabs/aiframework && cd aiframework && make install` |
 | **Tarball** | Download from [Releases](https://github.com/evergonlabs/aiframework/releases), extract, `make install` |
+
+</details>
+
+<details>
+<summary>Installer flags</summary>
+
+| Flag | What it does |
+|:-----|:-------------|
+| `--dry-run` | Show what will be installed without making changes |
+| `--auto-deps` | Auto-install missing dependencies (requires sudo on Linux) |
+| `--no-modify-rc` | Don't add aiframework to your shell PATH |
+| `--uninstall` | Remove aiframework and clean up |
+| `--help` | Show all options |
 
 </details>
 
@@ -89,16 +100,27 @@ Optional: `node`/`npm` (for [sheal](https://www.npmjs.com/package/@liwala/sheal)
 
 ## Quick start
 
-```bash
-# 1. Bootstrap your project
-aiframework run --target ~/your-project
+**1. Bootstrap your project:**
 
-# 2. Open Claude Code and run the setup skill (once per project)
-cd ~/your-project && claude
-# Then type: /aif-ready
+```bash
+aiframework run --target ~/your-project
 ```
 
-`/aif-ready` researches your stack online, enhances the generated configs, and optimizes settings. After that, just code.
+This scans the repo and generates all config files. Takes about 60 seconds.
+
+**2. Open Claude Code and run the setup skill:**
+
+```bash
+cd ~/your-project && claude
+```
+
+Then type:
+
+```
+/aif-ready
+```
+
+This researches your specific stack, enhances the generated configs, and optimizes settings. **Run once per project.** After that, just code.
 
 ---
 
@@ -107,13 +129,16 @@ cd ~/your-project && claude
 | File | Purpose |
 |:-----|:--------|
 | `CLAUDE.md` | Main config — stack, commands, rules, architecture |
-| `.claude/rules/` | Auto-loaded instructions by path pattern |
+| `.claude/rules/` | Auto-loaded instructions by path pattern (workflow, testing, security) |
 | `.claude/skills/` | Slash commands (`/aif-review`, `/aif-ship`, etc.) |
 | `.claude/settings.json` | Permissions and automation config |
+| `.cursorrules` | Cursor IDE rules (same data, Cursor format) |
 | `.githooks/` | Pre-commit lint + pre-push quality gate |
 | `.github/workflows/ci.yml` | CI pipeline matched to your language |
-| `vault/wiki/` | Knowledge graph — one page per file, linked by imports |
+| `vault/wiki/` | Knowledge graph — one page per source file, linked by imports |
+| `docs/` | Architecture doc + Diataxis scaffold |
 | `AGENTS.md` | Compatible with Cursor, Copilot, Codex, Gemini |
+| `tools/learnings/` | Persistent learning storage (JSONL) |
 
 Same repo, same output, every time. Deterministic.
 
@@ -150,6 +175,8 @@ aiframework run --target /path/to/repo
 
 ### Language support
 
+20 languages with framework detection:
+
 | Language | Frameworks |
 |:---------|:-----------|
 | TypeScript / JavaScript | Next.js, NestJS, React, Vue, Express, Hono, Svelte |
@@ -159,8 +186,11 @@ aiframework run --target /path/to/repo
 | Ruby | Rails, Sinatra |
 | Java | Spring Boot, Quarkus |
 | C# | ASP.NET, Blazor |
-| PHP, Kotlin, Swift, Elixir, Bash | Major frameworks |
-| + 12 more | Extensible via `lib/data/languages.json` |
+| PHP | Laravel, Symfony |
+| Kotlin, Swift, Elixir, Bash | Major frameworks |
+| C, C++, Scala, Dart, Zig, Lua, R | Extensible via `lib/data/languages.json` |
+
+The code indexer reads your actual source to extract functions, classes, types, and import edges — so Claude Code can navigate your codebase intelligently.
 
 ---
 
@@ -193,6 +223,9 @@ Commands:
   generate       manifest → all config files
   verify         validate generated files (5 validators)
   refresh        re-discover + generate only if drift detected
+  report         human-readable summary of discovered data
+  index          build code-index.json (standalone)
+  stats          cross-repo knowledge store statistics
   update         self-update + refresh all bootstrapped repos
 
 Options:
@@ -203,6 +236,8 @@ Options:
   --verbose             detailed output
 ```
 
+Aliases: `update` = `upgrade` = `self-update`.
+
 ---
 
 ## Upgrading
@@ -211,7 +246,7 @@ Options:
 aiframework update
 ```
 
-Auto-detects install method (git / Homebrew / tarball), pulls latest, and refreshes all bootstrapped repos.
+Auto-detects install method (git / Homebrew / tarball), pulls latest, verifies checksum, and refreshes all bootstrapped repos.
 
 ---
 
@@ -260,6 +295,25 @@ Both are optional. aiframework works fully standalone.
 
 ---
 
+## Roadmap
+
+aiframework v2 is being rewritten in Rust for zero-dependency distribution:
+
+| Feature | Status |
+|:--------|:-------|
+| Code indexer (12 parsers, tree-sitter) | Done |
+| Dependency graph + PageRank | Done |
+| Complexity metrics | Done |
+| Language/framework detection | Done |
+| Scanner modules (identity, stack, commands, structure) | Done |
+| Generator modules (CLAUDE.md, rules, skills) | In progress |
+| MCP server | Planned |
+| Cross-platform binary releases (6 targets) | Planned |
+
+The Rust binary is 2 MB, has zero runtime dependencies, and indexes code 3-5x faster than the Python version. Track progress in `rust/`.
+
+---
+
 ## Telemetry
 
 Anonymous, aggregate usage data to prioritize languages, fix common failures, and improve generated output.
@@ -272,6 +326,12 @@ Opt out:
 ```bash
 mkdir -p ~/.aiframework && echo "telemetry: false" >> ~/.aiframework/config
 ```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
