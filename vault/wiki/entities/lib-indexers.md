@@ -29,8 +29,8 @@ confidence: medium
 
 | File | Symbols | PageRank |
 |------|---------|----------|
-| [[lib-indexers-init-py|__init__.py]] | 0 | 0.0024 |
-| [[lib-indexers-graph-py|graph.py]] | 4 | 0.0024 |
+| [[lib-indexers-init-py|__init__.py]] | 0 | 0.0016 |
+| [[lib-indexers-graph-py|graph.py]] | 4 | 0.0016 |
 | [[lib-indexers-lang-bash-py|lang_bash.py]] | 0 | — |
 | [[lib-indexers-lang-go-py|lang_go.py]] | 0 | — |
 | [[lib-indexers-lang-python-py|lang_python.py]] | 0 | — |
@@ -38,7 +38,7 @@ confidence: medium
 | [[lib-indexers-lang-rust-py|lang_rust.py]] | 0 | — |
 | [[lib-indexers-lang-typescript-py|lang_typescript.py]] | 0 | — |
 | [[lib-indexers-parse-py|parse.py]] | 10 | — |
-| [[lib-indexers-registry-py|registry.py]] | 2 | 0.0024 |
+| [[lib-indexers-registry-py|registry.py]] | 2 | 0.0016 |
 
 ## Dependencies
 

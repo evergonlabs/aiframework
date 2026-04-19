@@ -31,17 +31,17 @@ confidence: medium
 |------|---------|----------|
 | [[lib-scanners-archetype-sh|archetype.sh]] | 1 | — |
 | [[lib-scanners-ci-sh|ci.sh]] | 2 | — |
-| [[lib-scanners-code-index-sh|code_index.sh]] | 2 | 0.0019 |
+| [[lib-scanners-code-index-sh|code_index.sh]] | 2 | 0.0012 |
 | [[lib-scanners-commands-sh|commands.sh]] | 1 | — |
-| [[lib-scanners-domain-sh|domain.sh]] | 1 | — |
-| [[lib-scanners-env-sh|env.sh]] | 1 | 0.0019 |
+| [[lib-scanners-domain-sh|domain.sh]] | 1 | 0.0012 |
+| [[lib-scanners-env-sh|env.sh]] | 1 | — |
 | [[lib-scanners-identity-sh|identity.sh]] | 1 | — |
 | [[lib-scanners-quality-sh|quality.sh]] | 1 | — |
-| [[lib-scanners-sheal-sh|sheal.sh]] | 1 | 0.0025 |
-| [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] | 1 | 0.0021 |
-| [[lib-scanners-stack-sh|stack.sh]] | 1 | 0.0019 |
-| [[lib-scanners-structure-sh|structure.sh]] | 2 | 0.0019 |
-| [[lib-scanners-user-context-sh|user_context.sh]] | 2 | — |
+| [[lib-scanners-sheal-sh|sheal.sh]] | 1 | 0.0016 |
+| [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] | 1 | 0.0014 |
+| [[lib-scanners-stack-sh|stack.sh]] | 1 | — |
+| [[lib-scanners-structure-sh|structure.sh]] | 2 | 0.0012 |
+| [[lib-scanners-user-context-sh|user_context.sh]] | 2 | 0.0012 |
 
 ## Dependencies
 

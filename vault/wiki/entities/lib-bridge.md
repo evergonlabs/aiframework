@@ -29,7 +29,7 @@ confidence: medium
 
 | File | Symbols | PageRank |
 |------|---------|----------|
-| [[lib-bridge-sheal-learnings-sh|sheal_learnings.sh]] | 4 | 0.0024 |
+| [[lib-bridge-sheal-learnings-sh|sheal_learnings.sh]] | 4 | 0.0016 |
 
 ## Dependencies
 

@@ -14,7 +14,7 @@ confidence: medium
 
 # Architecture — Module Graph
 
-> Auto-generated from code index. 80 files, 404 symbols, 76 edges.
+> Auto-generated from code index. 124 files, 579 symbols, 76 edges.
 
 ## Modules
 
@@ -35,6 +35,13 @@ confidence: medium
 | [[lib-mcp|lib/mcp]] | general | 2 | 0 | 0 |
 | [[lib-scanners|lib/scanners]] | discovery | 13 | 21 | 0 |
 | [[lib-validators|lib/validators]] | verification | 5 | 18 | 0 |
+| [[rust-src|rust/src]] | source | 3 | 0 | 0 |
+| [[rust-src-generator|rust/src/generator]] | generation | 6 | 0 | 0 |
+| [[rust-src-indexer|rust/src/indexer]] | general | 6 | 0 | 0 |
+| [[rust-src-indexer-parsers|rust/src/indexer/parsers]] | general | 14 | 0 | 0 |
+| [[rust-src-scanner|rust/src/scanner]] | discovery | 10 | 0 | 0 |
+| [[rust-src-validator|rust/src/validator]] | verification | 1 | 0 | 0 |
+| [[rust-tests|rust/tests]] | testing | 4 | 0 | 0 |
 | [[tests|tests]] | testing | 7 | 0 | 34 |
 | [[vault-vault-hooks|vault/.vault/hooks]] | general | 1 | 0 | 0 |
 | [[vault-vault-scripts|vault/.vault/scripts]] | tooling | 4 | 0 | 0 |
@@ -43,21 +50,21 @@ confidence: medium
 
 | File | Path | Score |
 |------|------|-------|
-| [[lib-scanners-sheal-sh|sheal.sh]] | `lib/scanners/sheal.sh` | 0.0025 |
-| [[lib-generators-sheal-sh|sheal.sh]] | `lib/generators/sheal.sh` | 0.0025 |
-| [[lib-bridge-sheal-learnings-sh|sheal_learnings.sh]] | `lib/bridge/sheal_learnings.sh` | 0.0024 |
-| [[lib-indexers-registry-py|registry.py]] | `lib/indexers/registry.py` | 0.0024 |
-| [[lib-indexers-graph-py|graph.py]] | `lib/indexers/graph.py` | 0.0024 |
-| [[lib-indexers-init-py|__init__.py]] | `lib/indexers/__init__.py` | 0.0024 |
-| [[lib-validators-freshness-sh|freshness.sh]] | `lib/validators/freshness.sh` | 0.0021 |
-| [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] | `lib/scanners/skill_suggest.sh` | 0.0021 |
-| [[lib-validators-quality-gate-sh|quality_gate.sh]] | `lib/validators/quality_gate.sh` | 0.0021 |
-| [[lib-validators-consistency-sh|consistency.sh]] | `lib/validators/consistency.sh` | 0.0021 |
-| [[lib-generators-preserve-sh|preserve.sh]] | `lib/generators/preserve.sh` | 0.0021 |
-| [[lib-generators-skills-sh|skills.sh]] | `lib/generators/skills.sh` | 0.0021 |
-| [[lib-validators-security-sh|security.sh]] | `lib/validators/security.sh` | 0.0021 |
-| [[lib-validators-files-sh|files.sh]] | `lib/validators/files.sh` | 0.0021 |
-| [[lib-generators-report-sh|report.sh]] | `lib/generators/report.sh` | 0.0019 |
+| [[lib-scanners-sheal-sh|sheal.sh]] | `lib/scanners/sheal.sh` | 0.0016 |
+| [[lib-generators-sheal-sh|sheal.sh]] | `lib/generators/sheal.sh` | 0.0016 |
+| [[lib-indexers-registry-py|registry.py]] | `lib/indexers/registry.py` | 0.0016 |
+| [[lib-indexers-graph-py|graph.py]] | `lib/indexers/graph.py` | 0.0016 |
+| [[lib-indexers-init-py|__init__.py]] | `lib/indexers/__init__.py` | 0.0016 |
+| [[lib-bridge-sheal-learnings-sh|sheal_learnings.sh]] | `lib/bridge/sheal_learnings.sh` | 0.0016 |
+| [[lib-generators-preserve-sh|preserve.sh]] | `lib/generators/preserve.sh` | 0.0014 |
+| [[lib-validators-security-sh|security.sh]] | `lib/validators/security.sh` | 0.0014 |
+| [[lib-scanners-skill-suggest-sh|skill_suggest.sh]] | `lib/scanners/skill_suggest.sh` | 0.0014 |
+| [[lib-validators-freshness-sh|freshness.sh]] | `lib/validators/freshness.sh` | 0.0014 |
+| [[lib-validators-quality-gate-sh|quality_gate.sh]] | `lib/validators/quality_gate.sh` | 0.0014 |
+| [[lib-validators-consistency-sh|consistency.sh]] | `lib/validators/consistency.sh` | 0.0014 |
+| [[lib-generators-skills-sh|skills.sh]] | `lib/generators/skills.sh` | 0.0014 |
+| [[lib-validators-files-sh|files.sh]] | `lib/validators/files.sh` | 0.0014 |
+| [[lib-generators-report-sh|report.sh]] | `lib/generators/report.sh` | 0.0012 |
 
 ## Entry Points (fan-in = 0)
 

@@ -14,18 +14,18 @@ confidence: medium
 
 # aiframework
 
-> `bin/aiframework` — bash, 1304 lines
+> `bin/aiframework` — bash, 1352 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `bin/aiframework` |
 | Language | bash |
-| Lines | 1304 |
-| Size | 45644 bytes |
-| Symbols | 37 |
+| Lines | 1352 |
+| Size | 47187 bytes |
+| Symbols | 39 |
 | PageRank | — |
 
-## Symbols (37)
+## Symbols (39)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
@@ -49,14 +49,14 @@ Priority: GNU timeout → gtime... |
 | `banner` | function | 331 | public | — |
 | `_aif_summary` | function | 344 | private | Completion summary box |
 | `usage` | function | 365 | public | — |
-| `parse_args` | function | 412 | public | — |
-| `cmd_discover` | function | 476 | public | — |
-| `_run_scanner` | function | 506 | private | — |
-| `cmd_generate` | function | 611 | public | — |
-| `cmd_verify` | function | 737 | public | — |
-| `cmd_index` | function | 812 | public | — |
+| `_tildify` | function | 415 | private | — |
+| `_smart_noargs` | function | 420 | private | Smart no-args: detect project and suggest next step |
+| `parse_args` | function | 461 | public | — |
+| `cmd_discover` | function | 524 | public | — |
+| `_run_scanner` | function | 554 | private | — |
+| `cmd_generate` | function | 659 | public | — |
 
-> Showing 25 of 37 symbols.
+> Showing 25 of 39 symbols.
 
 ## Imports (33)
 

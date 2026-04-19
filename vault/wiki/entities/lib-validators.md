@@ -29,11 +29,11 @@ confidence: medium
 
 | File | Symbols | PageRank |
 |------|---------|----------|
-| [[lib-validators-consistency-sh|consistency.sh]] | 1 | 0.0021 |
-| [[lib-validators-files-sh|files.sh]] | 2 | 0.0021 |
-| [[lib-validators-freshness-sh|freshness.sh]] | 1 | 0.0021 |
-| [[lib-validators-quality-gate-sh|quality_gate.sh]] | 2 | 0.0021 |
-| [[lib-validators-security-sh|security.sh]] | 1 | 0.0021 |
+| [[lib-validators-consistency-sh|consistency.sh]] | 1 | 0.0014 |
+| [[lib-validators-files-sh|files.sh]] | 2 | 0.0014 |
+| [[lib-validators-freshness-sh|freshness.sh]] | 1 | 0.0014 |
+| [[lib-validators-quality-gate-sh|quality_gate.sh]] | 2 | 0.0014 |
+| [[lib-validators-security-sh|security.sh]] | 1 | 0.0014 |
 
 ## Dependencies
 

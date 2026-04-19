@@ -12,7 +12,7 @@ confidence: high
 
 # Vault Index
 
-> Master registry of all vault pages. 114 pages indexed.
+> Master registry of all vault pages. 165 pages indexed.
 
 | Slug | Path | Type | Updated | Status |
 |------|------|------|---------|--------|
@@ -110,6 +110,57 @@ confidence: high
 | project-overview | wiki/concepts/project-overview.md | concept | 2026-04-19 | current |
 | root-module | wiki/entities/root-module.md | entity | 2026-04-19 | current |
 | run-sh | wiki/entities/run-sh.md | entity | 2026-04-19 | current |
+| rust-src | wiki/entities/rust-src.md | entity | 2026-04-19 | current |
+| rust-src-cli-rs | wiki/entities/rust-src-cli-rs.md | entity | 2026-04-19 | current |
+| rust-src-generator | wiki/entities/rust-src-generator.md | entity | 2026-04-19 | current |
+| rust-src-generator-agents-md-rs | wiki/entities/rust-src-generator-agents-md-rs.md | entity | 2026-04-19 | current |
+| rust-src-generator-ci-rs | wiki/entities/rust-src-generator-ci-rs.md | entity | 2026-04-19 | current |
+| rust-src-generator-claude-md-rs | wiki/entities/rust-src-generator-claude-md-rs.md | entity | 2026-04-19 | current |
+| rust-src-generator-cursorrules-rs | wiki/entities/rust-src-generator-cursorrules-rs.md | entity | 2026-04-19 | current |
+| rust-src-generator-hooks-rs | wiki/entities/rust-src-generator-hooks-rs.md | entity | 2026-04-19 | current |
+| rust-src-generator-mod-rs | wiki/entities/rust-src-generator-mod-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer | wiki/entities/rust-src-indexer.md | entity | 2026-04-19 | current |
+| rust-src-indexer-data-rs | wiki/entities/rust-src-indexer-data-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-graph-rs | wiki/entities/rust-src-indexer-graph-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-metrics-rs | wiki/entities/rust-src-indexer-metrics-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-mod-rs | wiki/entities/rust-src-indexer-mod-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parse-rs | wiki/entities/rust-src-indexer-parse-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers | wiki/entities/rust-src-indexer-parsers.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-bash-rs | wiki/entities/rust-src-indexer-parsers-bash-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-csharp-rs | wiki/entities/rust-src-indexer-parsers-csharp-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-elixir-rs | wiki/entities/rust-src-indexer-parsers-elixir-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-go-rs | wiki/entities/rust-src-indexer-parsers-go-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-java-rs | wiki/entities/rust-src-indexer-parsers-java-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-kotlin-rs | wiki/entities/rust-src-indexer-parsers-kotlin-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-mod-rs | wiki/entities/rust-src-indexer-parsers-mod-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-php-rs | wiki/entities/rust-src-indexer-parsers-php-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-python-rs | wiki/entities/rust-src-indexer-parsers-python-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-ruby-rs | wiki/entities/rust-src-indexer-parsers-ruby-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-rust-rs | wiki/entities/rust-src-indexer-parsers-rust-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-swift-rs | wiki/entities/rust-src-indexer-parsers-swift-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-ts-python-rs | wiki/entities/rust-src-indexer-parsers-ts-python-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-parsers-typescript-rs | wiki/entities/rust-src-indexer-parsers-typescript-rs.md | entity | 2026-04-19 | current |
+| rust-src-indexer-registry-rs | wiki/entities/rust-src-indexer-registry-rs.md | entity | 2026-04-19 | current |
+| rust-src-lib-rs | wiki/entities/rust-src-lib-rs.md | entity | 2026-04-19 | current |
+| rust-src-main-rs | wiki/entities/rust-src-main-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner | wiki/entities/rust-src-scanner.md | entity | 2026-04-19 | current |
+| rust-src-scanner-archetype-rs | wiki/entities/rust-src-scanner-archetype-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-ci-rs | wiki/entities/rust-src-scanner-ci-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-commands-rs | wiki/entities/rust-src-scanner-commands-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-domain-rs | wiki/entities/rust-src-scanner-domain-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-env-rs | wiki/entities/rust-src-scanner-env-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-identity-rs | wiki/entities/rust-src-scanner-identity-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-mod-rs | wiki/entities/rust-src-scanner-mod-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-quality-rs | wiki/entities/rust-src-scanner-quality-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-stack-rs | wiki/entities/rust-src-scanner-stack-rs.md | entity | 2026-04-19 | current |
+| rust-src-scanner-structure-rs | wiki/entities/rust-src-scanner-structure-rs.md | entity | 2026-04-19 | current |
+| rust-src-validator | wiki/entities/rust-src-validator.md | entity | 2026-04-19 | current |
+| rust-src-validator-mod-rs | wiki/entities/rust-src-validator-mod-rs.md | entity | 2026-04-19 | current |
+| rust-tests | wiki/entities/rust-tests.md | entity | 2026-04-19 | current |
+| rust-tests-data-test-rs | wiki/entities/rust-tests-data-test-rs.md | entity | 2026-04-19 | current |
+| rust-tests-generator-test-rs | wiki/entities/rust-tests-generator-test-rs.md | entity | 2026-04-19 | current |
+| rust-tests-indexer-test-rs | wiki/entities/rust-tests-indexer-test-rs.md | entity | 2026-04-19 | current |
+| rust-tests-scanner-test-rs | wiki/entities/rust-tests-scanner-test-rs.md | entity | 2026-04-19 | current |
 | tech-stack | wiki/concepts/tech-stack.md | concept | 2026-04-19 | current |
 | tests | wiki/entities/tests.md | entity | 2026-04-19 | current |
 | tests-api | wiki/entities/tests-api.md | entity | 2026-04-19 | archived |

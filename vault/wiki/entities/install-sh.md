@@ -14,18 +14,18 @@ confidence: medium
 
 # install.sh
 
-> `install.sh` — bash, 607 lines
+> `install.sh` — bash, 623 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `install.sh` |
 | Language | bash |
-| Lines | 607 |
-| Size | 19456 bytes |
-| Symbols | 16 |
+| Lines | 623 |
+| Size | 19987 bytes |
+| Symbols | 17 |
 | PageRank | — |
 
-## Symbols (16)
+## Symbols (17)
 
 | Name | Kind | Line | Visibility | Description |
 |------|------|------|------------|-------------|
@@ -34,17 +34,18 @@ confidence: medium
 | `warn` | function | 29 | public | — |
 | `err` | function | 30 | public | — |
 | `die` | function | 31 | public | — |
-| `detect_platform` | function | 35 | public | — |
-| `set_default_paths` | function | 69 | public | — |
-| `check_command` | function | 120 | public | — |
-| `detect_pkg_manager` | function | 125 | public | Detect Linux package manager |
-| `pkg_install_hint` | function | 137 | public | Generate install command for a package per distro |
-| `try_auto_install` | function | 184 | public | Auto-install a missing dependency (only with --auto-deps) |
-| `check_dependencies` | function | 243 | public | — |
-| `install_aiframework` | function | 339 | public | — |
-| `ensure_path` | function | 413 | public | — |
-| `uninstall_aiframework` | function | 468 | public | — |
-| `main` | function | 501 | public | — |
+| `tildify` | function | 34 | public | Replace $HOME with ~ in paths for cleaner output |
+| `detect_platform` | function | 40 | public | — |
+| `set_default_paths` | function | 74 | public | — |
+| `check_command` | function | 125 | public | — |
+| `detect_pkg_manager` | function | 130 | public | Detect Linux package manager |
+| `pkg_install_hint` | function | 142 | public | Generate install command for a package per distro |
+| `try_auto_install` | function | 189 | public | Auto-install a missing dependency (only with --auto-deps) |
+| `check_dependencies` | function | 248 | public | — |
+| `install_aiframework` | function | 344 | public | — |
+| `ensure_path` | function | 418 | public | — |
+| `uninstall_aiframework` | function | 473 | public | — |
+| `main` | function | 506 | public | — |
 
 ## Imports
 

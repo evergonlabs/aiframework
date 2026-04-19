@@ -1,6 +1,6 @@
 # CLAUDE.md — aiframework
 
-> Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly. Stack: bash+python/none.
+> Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly. Stack: bash+python+rust/none.
 
 | You need to... | Read |
 |----------------|------|
@@ -44,14 +44,14 @@ make test
 **Most important files** (by dependency rank):
 - `lib/scanners/sheal.sh`
 - `lib/generators/sheal.sh`
-- `lib/bridge/sheal_learnings.sh`
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
-- `lib/validators/freshness.sh`
-- `lib/scanners/skill_suggest.sh`
-- `lib/validators/quality_gate.sh`
-- `lib/validators/consistency.sh`
+- `lib/bridge/sheal_learnings.sh`
 - `lib/generators/preserve.sh`
+- `lib/validators/security.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/validators/freshness.sh`
+- `lib/validators/quality_gate.sh`
 
 ## Environment Variables
 
@@ -81,7 +81,7 @@ make test
 
 ## Key State
 
-- Source files: 80
+- Source files: 124
 - Tests: [run `make test` to count]
 
 ## Makefile
