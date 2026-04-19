@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added (Track B: Rust Rewrite)
+- **Rust indexer** — `rust/` directory with full code indexer rewrite (v2.0.0-alpha.1)
+- **12 language parsers**: Python, TypeScript/JS, Go, Rust, Ruby, Bash, Java, C#, PHP, Kotlin, Swift, Elixir
+- **Dependency graph + PageRank** — same algorithm as Python version, ported to Rust
+- **CLI with clap** — `aiframework index --target <path>` command working
+- **1.4 MB binary** (stripped, LTO) — zero runtime dependencies
+- **7 snapshot tests** — validates parser output for each major language
+- **Shebang detection** — extensionless files (bin/aiframework) detected by shebang line
+
 ## [1.4.0] — 2026-04-19
 ### Added
 - **Runtime Python version gate** — `bin/aiframework` now checks Python 3.10+ at startup with clear upgrade instructions instead of cryptic SyntaxError from match/case
