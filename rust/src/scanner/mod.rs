@@ -2,6 +2,11 @@ pub mod identity;
 pub mod stack;
 pub mod commands;
 pub mod structure;
+pub mod archetype;
+pub mod ci;
+pub mod domain;
+pub mod env;
+pub mod quality;
 
 use serde_json::{json, Value};
 use std::path::Path;
@@ -19,12 +24,22 @@ pub fn discover(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
     let stack = stack::scan(&target, &file_names);
     let commands = commands::scan(&target, &file_names, &stack);
     let structure = structure::scan(&target, &file_names);
+    let archetype = archetype::scan(&target, &file_names);
+    let ci = ci::scan(&target, &file_names);
+    let domain = domain::scan(&target, &file_names);
+    let env = env::scan(&target, &file_names);
+    let quality = quality::scan(&target, &file_names);
 
     let manifest = json!({
         "identity": identity,
         "stack": stack,
         "commands": commands,
         "structure": structure,
+        "archetype": archetype,
+        "ci": ci,
+        "domain": domain,
+        "env": env,
+        "quality": quality,
     });
 
     Ok(manifest)

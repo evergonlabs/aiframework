@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use crate::generator;
 use crate::indexer;
 use crate::scanner;
+use crate::validator;
 
 #[derive(Parser)]
 #[command(name = "aiframework", version, about = "Make Claude Code understand your project instantly")]
@@ -271,7 +272,45 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         Command::Verify { target, .. } => {
-            eprintln!("TODO: verify for {}", target.display());
+            let results = validator::verify(&target)?;
+
+            // Calculate column widths
+            let name_width = results.iter().map(|r| r.name.len()).max().unwrap_or(10).max(5);
+            let detail_width = results.iter().map(|r| r.detail.len()).max().unwrap_or(10).max(7);
+
+            // Print table header
+            println!(
+                "{:<name_width$}   {:<6}   {}",
+                "Check", "Status", "Details",
+                name_width = name_width,
+            );
+            println!(
+                "{:<name_width$}   {:<6}   {}",
+                "-".repeat(name_width), "------", "-".repeat(detail_width),
+                name_width = name_width,
+            );
+
+            let mut fail_count = 0;
+            for r in &results {
+                let status_str = format!("{}", r.status);
+                println!(
+                    "{:<name_width$}   {:<6}   {}",
+                    r.name, status_str, r.detail,
+                    name_width = name_width,
+                );
+                if r.status == validator::CheckStatus::Fail {
+                    fail_count += 1;
+                }
+            }
+
+            let total = results.len();
+            let pass = results.iter().filter(|r| r.status == validator::CheckStatus::Pass).count();
+            let warn = results.iter().filter(|r| r.status == validator::CheckStatus::Warn).count();
+            println!("\n{pass}/{total} passed, {warn} warnings, {fail_count} failures");
+
+            if fail_count > 0 {
+                std::process::exit(1);
+            }
             Ok(())
         }
         Command::Refresh { target } => {

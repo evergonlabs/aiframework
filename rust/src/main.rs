@@ -2,6 +2,7 @@ mod cli;
 mod generator;
 mod indexer;
 mod scanner;
+mod validator;
 
 use std::process;
 

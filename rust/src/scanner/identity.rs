@@ -33,12 +33,8 @@ fn detect_name(target: &Path) -> String {
     let cargo_toml = target.join("Cargo.toml");
     if cargo_toml.exists() {
         if let Ok(content) = std::fs::read_to_string(&cargo_toml) {
-            for line in content.lines() {
-                if line.starts_with("name") {
-                    if let Some(val) = line.split('=').nth(1) {
-                        return val.trim().trim_matches('"').to_string();
-                    }
-                }
+            if let Some(name) = extract_toml_value(&content, "name") {
+                return name;
             }
         }
     }
@@ -47,12 +43,8 @@ fn detect_name(target: &Path) -> String {
     let pyproject = target.join("pyproject.toml");
     if pyproject.exists() {
         if let Ok(content) = std::fs::read_to_string(&pyproject) {
-            for line in content.lines() {
-                if line.starts_with("name") {
-                    if let Some(val) = line.split('=').nth(1) {
-                        return val.trim().trim_matches('"').to_string();
-                    }
-                }
+            if let Some(name) = extract_toml_value(&content, "name") {
+                return name;
             }
         }
     }
@@ -89,7 +81,43 @@ fn detect_version(target: &Path) -> String {
         }
     }
 
+    // Cargo.toml
+    let cargo_toml = target.join("Cargo.toml");
+    if cargo_toml.exists() {
+        if let Ok(content) = std::fs::read_to_string(&cargo_toml) {
+            if let Some(v) = extract_toml_value(&content, "version") {
+                return v;
+            }
+        }
+    }
+
+    // pyproject.toml
+    let pyproject = target.join("pyproject.toml");
+    if pyproject.exists() {
+        if let Ok(content) = std::fs::read_to_string(&pyproject) {
+            if let Some(v) = extract_toml_value(&content, "version") {
+                return v;
+            }
+        }
+    }
+
     "0.0.0".to_string()
+}
+
+/// Extract a value from a TOML file (simple key = "value" parsing).
+fn extract_toml_value(content: &str, key: &str) -> Option<String> {
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(key) {
+            if let Some(val) = trimmed.split('=').nth(1) {
+                let v = val.trim().trim_matches('"').trim_matches('\'');
+                if !v.is_empty() {
+                    return Some(v.to_string());
+                }
+            }
+        }
+    }
+    None
 }
 
 fn detect_description(target: &Path) -> String {

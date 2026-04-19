@@ -189,11 +189,87 @@ pub fn generate(manifest: &Value, code_index: Option<&Value>) -> String {
         }
     }
 
-    // Common mistakes
-    out.push_str("## Common Mistakes\n\n");
-    out.push_str("- Not running the full test suite before marking done\n");
-    out.push_str("- Editing the wrong config file (staging vs production)\n");
-    out.push_str("- Forgetting to update documentation after changes\n\n");
+    // Quality tools
+    let linter_tool = str_or(manifest, &["quality", "linter", "tool"], "");
+    let formatter_tool = str_or(manifest, &["quality", "formatter", "tool"], "");
+    let type_checker_tool = str_or(manifest, &["quality", "type_checker", "tool"], "");
+    let test_framework_tool = str_or(manifest, &["quality", "test_framework", "tool"], "");
+
+    let has_quality = !linter_tool.is_empty()
+        || !formatter_tool.is_empty()
+        || !type_checker_tool.is_empty()
+        || !test_framework_tool.is_empty();
+
+    if has_quality {
+        out.push_str("## Quality Tools\n\n");
+        if !linter_tool.is_empty() {
+            let config = str_or(manifest, &["quality", "linter", "config_file"], "");
+            out.push_str(&format!("- **Linter**: {linter_tool}"));
+            if !config.is_empty() {
+                out.push_str(&format!(" (`{config}`)"));
+            }
+            out.push('\n');
+        }
+        if !formatter_tool.is_empty() {
+            out.push_str(&format!("- **Formatter**: {formatter_tool}\n"));
+        }
+        if !type_checker_tool.is_empty() {
+            out.push_str(&format!("- **Type checker**: {type_checker_tool}\n"));
+        }
+        if !test_framework_tool.is_empty() {
+            out.push_str(&format!("- **Test framework**: {test_framework_tool}\n"));
+        }
+        out.push('\n');
+    }
+
+    // CI coverage
+    if let Some(coverage) = manifest["ci"]["coverage"].as_array() {
+        if !coverage.is_empty() {
+            let items: Vec<&str> = coverage.iter().filter_map(|c| c.as_str()).collect();
+            out.push_str(&format!(
+                "## CI\n\n- **Provider**: {}\n- **Coverage**: {}\n",
+                str_or(manifest, &["ci", "provider"], "none"),
+                items.join(", ")
+            ));
+            if let Some(gaps) = manifest["ci"]["gaps"].as_array() {
+                if !gaps.is_empty() {
+                    let gap_items: Vec<&str> = gaps.iter().filter_map(|g| g.as_str()).collect();
+                    out.push_str(&format!("- **Gaps**: {}\n", gap_items.join(", ")));
+                }
+            }
+            out.push('\n');
+        }
+    }
+
+    // Gotchas (language-specific)
+    out.push_str("## Gotchas\n\n");
+    match lang.as_str() {
+        "typescript" | "javascript" => {
+            out.push_str("- Check `tsconfig.json` strict mode before changing type assertions\n");
+            out.push_str("- Run the full test suite — snapshot tests may need updating\n");
+        }
+        "python" => {
+            out.push_str("- Check Python version requirements before using new syntax\n");
+            out.push_str("- Virtual environment must be active for imports to resolve\n");
+        }
+        "rust" => {
+            out.push_str("- Run `cargo clippy` in addition to `cargo check`\n");
+            out.push_str("- Unsafe code requires explicit justification in comments\n");
+        }
+        "go" => {
+            out.push_str("- Run `go vet` in addition to tests\n");
+            out.push_str("- Error handling: never ignore returned errors\n");
+        }
+        "bash" => {
+            out.push_str("- All scripts must pass shellcheck with zero warnings\n");
+            out.push_str("- Bash 3.2 compatibility: avoid associative arrays\n");
+        }
+        _ => {
+            out.push_str("- Not running the full test suite before marking done\n");
+            out.push_str("- Forgetting to update documentation after changes\n");
+        }
+    }
+    out.push('\n');
 
     // Footer
     out.push_str(&format!(
