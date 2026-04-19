@@ -5,6 +5,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-04-19
+### Added
+- **PostHog telemetry** — all analytics now routed to PostHog EU instance (`eu.i.posthog.com`). Replaces custom Cloudflare Worker endpoint
+- **`aiframework-update-check` installed everywhere** — now included in curl|sh installer, `make install`, Homebrew formula, and `make uninstall`
+- **Homebrew `head` directive** — `brew install --HEAD aiframework` now works
+- **`--no-modify-rc` installer flag** — skip shell RC file modification during install
+- **Mandatory checksum verification** — tarball self-update now aborts if no checksums file, no sha256 tool, or checksum mismatch (previously silently skipped)
+- **CI ShellCheck coverage** — all 4 binaries now linted in CI (was only `bin/aiframework`)
+
+### Fixed
+- **Uninstall PATH cleanup** — `--uninstall` now removes the PATH entry it added to shell RC files (with backup). Uses exact 2-line block matching via awk to avoid removing unrelated lines
+- **Sheal test environment isolation** — tests that assert "sheal not installed" now use shadow PATH directories, passing regardless of whether sheal is actually installed on the machine
+- **Installer test false positive** — idempotent install test now actually verifies symlink re-targeting instead of always passing
+- **Semver validation** — `aiframework-update-check` now validates remote VERSION matches strict `N.N.N` format before comparison
+- **Checksum grep precision** — tarball upgrade now matches exact filename (`aiframework-VERSION.tar.gz`) instead of broad `aiframework-` prefix, preventing false matches on multi-platform releases
+- **JSON output escaping** — `aiframework-update-check --json` now escapes backslashes, quotes, and tabs in output values
+- **Python version check** — installer now correctly accepts Python 4.x (was rejecting `major >= 4` with `minor < 10`)
+- **Makefile uninstall message** — no longer lists stale binary names
+- **Homebrew formula** — Python dependency relaxed from `python@3.12` to `python@3`
+- **Hardcoded version removed** — `getting-started.md` no longer says "should print 1.3.0"
+- **PostHog API key in .env** — no secrets hardcoded in source; reads from `.env` or environment variables
+
+### Changed
+- **README rewrite** — 748 → 348 lines. Developer-first structure: problem statement, quick start with explanations, plain English descriptions. Ecosystem details collapsed. Telemetry section now explains value and references industry peers (Homebrew, Next.js, VS Code)
+- **Test badge accurate** — updated to 151 (actual count across all 7 test suites)
+
 ## [1.3.0] — 2026-04-18
 ### Added
 - **One-line installer** — `curl -fsSL .../install.sh | sh` with auto-detection for macOS, Linux, WSL, and Windows (Git Bash/MSYS2). Handles dependency checks, PATH setup, and idempotent re-installs

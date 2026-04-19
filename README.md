@@ -15,7 +15,7 @@
 
 Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly.
 
-[![version](https://img.shields.io/badge/v1.3.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
+[![version](https://img.shields.io/badge/v1.3.1-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
 
