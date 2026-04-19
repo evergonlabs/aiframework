@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.2] — 2026-04-19
+### Fixed
+- **CI workflow green** — ShellCheck severity set to error-only, dist tarball handles missing templates dir, dropped Windows from installer matrix (bash CLI), added fail-fast: false to all matrices
+- **Repo now public** — made `evergonlabs/aiframework` public, added description and topics
+
 ## [1.3.1] — 2026-04-19
 ### Added
 - **PostHog telemetry** — all analytics now routed to PostHog EU instance (`eu.i.posthog.com`). Replaces custom Cloudflare Worker endpoint
