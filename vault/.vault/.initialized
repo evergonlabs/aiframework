@@ -1,5 +1,0 @@
-vault_version: 1.0
-generated_by: aiframework
-generated_at: 2026-04-15T15:28:54Z
-project: aiframework
-generator: lib/generators/vault.sh

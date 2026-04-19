@@ -28,3 +28,21 @@ dist/
 
 # Internal ops docs (not for public repo)
 TELEMETRY-SETUP.md
+SESSION-HANDOFF-*.md
+
+# Local runtime state
+.self-heal.json
+vault/.vault/.wiki-hashes.json
+vault/.vault/lint-report-*.txt
+vault/.vault/.initialized
+
+# Secrets and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+id_rsa
+id_ed25519
+credentials*
+*.secret
