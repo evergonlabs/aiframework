@@ -2,6 +2,7 @@ mod cli;
 mod generator;
 mod indexer;
 mod scanner;
+mod ui;
 mod validator;
 
 use std::process;
@@ -9,7 +10,7 @@ use std::process;
 fn main() {
     let args = cli::parse();
     if let Err(e) = cli::run(args) {
-        eprintln!("error: {e}");
+        ui::error(&e.to_string());
         process::exit(1);
     }
 }
