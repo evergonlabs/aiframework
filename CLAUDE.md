@@ -47,11 +47,11 @@ make test
 - `lib/bridge/sheal_learnings.sh`
 - `lib/indexers/registry.py`
 - `lib/indexers/graph.py`
+- `lib/validators/freshness.sh`
+- `lib/scanners/skill_suggest.sh`
 - `lib/validators/quality_gate.sh`
-- `lib/validators/security.sh`
 - `lib/validators/consistency.sh`
 - `lib/generators/preserve.sh`
-- `lib/scanners/skill_suggest.sh`
 
 ## Environment Variables
 
@@ -160,7 +160,7 @@ This file auto-evolves. Rules of thumb:
 
 ---
 
-*Generated: 2026-04-19 by aiframework v1.3.1. Run `aiframework refresh` to update. Lean mode (complex).*
+*Generated: 2026-04-19 by aiframework v1.4.0. Run `aiframework refresh` to update. Lean mode (complex).*
 
 <!-- BEGIN SHEAL INTEGRATION -->
 ## Self-Healing Workflow

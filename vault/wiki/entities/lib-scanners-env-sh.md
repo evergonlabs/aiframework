@@ -23,7 +23,7 @@ confidence: medium
 | Lines | 166 |
 | Size | 6821 bytes |
 | Symbols | 1 |
-| PageRank | — |
+| PageRank | 0.0019 |
 
 ## Symbols (1)
 
