@@ -1,8 +1,8 @@
 ---
 title: "bin / aiframework"
 type: entity
-created: "2026-04-18"
-updated: "2026-04-18"
+created: "2026-04-19"
+updated: "2026-04-19"
 status: current
 tags:
   - type/entity
@@ -14,14 +14,14 @@ confidence: medium
 
 # aiframework
 
-> `bin/aiframework` — bash, 1267 lines
+> `bin/aiframework` — bash, 1287 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `bin/aiframework` |
 | Language | bash |
-| Lines | 1267 |
-| Size | 43846 bytes |
+| Lines | 1287 |
+| Size | 44700 bytes |
 | Symbols | 37 |
 | PageRank | — |
 
@@ -32,29 +32,29 @@ confidence: medium
 | `_aiframework_cleanup` | function | 37 | private | Cleanup trap — remove temp files on exit |
 | `_aif_timeout` | function | 46 | private | Cross-platform timeout wrapper
 Priority: GNU timeout → gtime... |
-| `_aif_telemetry_enabled` | function | 101 | private | — |
-| `_aif_telemetry_base` | function | 108 | private | Build the base payload that's common to all events |
-| `_aif_telemetry` | function | 148 | private | Send a telemetry event — fire-and-forget, never blocks |
-| `_aif_telemetry_error` | function | 180 | private | Record an error for inclusion in the next telemetry event |
-| `check_dependencies` | function | 193 | public | Dependency check — validate required tools are available |
-| `_aif_timer_start` | function | 236 | private | — |
-| `_aif_timer_elapsed` | function | 237 | private | — |
-| `log_info` | function | 250 | public | — |
-| `log_ok` | function | 251 | public | — |
-| `log_warn` | function | 252 | public | — |
-| `log_error` | function | 253 | public | — |
-| `log_step` | function | 255 | public | — |
-| `log_phase` | function | 271 | public | — |
-| `log_phase_done` | function | 287 | public | — |
-| `banner` | function | 294 | public | — |
-| `_aif_summary` | function | 307 | private | Completion summary box |
-| `usage` | function | 328 | public | — |
-| `parse_args` | function | 375 | public | — |
-| `cmd_discover` | function | 439 | public | — |
-| `_run_scanner` | function | 469 | private | — |
-| `cmd_generate` | function | 574 | public | — |
-| `cmd_verify` | function | 700 | public | — |
-| `cmd_index` | function | 775 | public | — |
+| `_aif_telemetry_enabled` | function | 108 | private | — |
+| `_aif_telemetry_base` | function | 115 | private | Build the base properties common to all events |
+| `_aif_telemetry` | function | 155 | private | Send a telemetry event via PostHog — fire-and-forget, never ... |
+| `_aif_telemetry_error` | function | 200 | private | Record an error for inclusion in the next telemetry event |
+| `check_dependencies` | function | 213 | public | Dependency check — validate required tools are available |
+| `_aif_timer_start` | function | 256 | private | — |
+| `_aif_timer_elapsed` | function | 257 | private | — |
+| `log_info` | function | 270 | public | — |
+| `log_ok` | function | 271 | public | — |
+| `log_warn` | function | 272 | public | — |
+| `log_error` | function | 273 | public | — |
+| `log_step` | function | 275 | public | — |
+| `log_phase` | function | 291 | public | — |
+| `log_phase_done` | function | 307 | public | — |
+| `banner` | function | 314 | public | — |
+| `_aif_summary` | function | 327 | private | Completion summary box |
+| `usage` | function | 348 | public | — |
+| `parse_args` | function | 395 | public | — |
+| `cmd_discover` | function | 459 | public | — |
+| `_run_scanner` | function | 489 | private | — |
+| `cmd_generate` | function | 594 | public | — |
+| `cmd_verify` | function | 720 | public | — |
+| `cmd_index` | function | 795 | public | — |
 
 > Showing 25 of 37 symbols.
 

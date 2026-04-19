@@ -1,8 +1,8 @@
 ---
 title: "lib / knowledge / store.sh"
 type: entity
-created: "2026-04-18"
-updated: "2026-04-18"
+created: "2026-04-19"
+updated: "2026-04-19"
 status: current
 tags:
   - type/entity
@@ -23,7 +23,7 @@ confidence: medium
 | Lines | 105 |
 | Size | 3836 bytes |
 | Symbols | 4 |
-| PageRank | — |
+| PageRank | 0.0019 |
 
 ## Symbols (4)
 

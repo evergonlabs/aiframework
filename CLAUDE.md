@@ -1,6 +1,6 @@
 # CLAUDE.md — aiframework
 
-> Your repo already knows everything. Claude Code just can't read it yet. Stack: bash+python/none.
+> Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly. Stack: bash+python/none.
 
 | You need to... | Read |
 |----------------|------|
@@ -45,18 +45,20 @@ make test
 - `lib/generators/sheal.sh`
 - `lib/scanners/sheal.sh`
 - `lib/bridge/sheal_learnings.sh`
-- `lib/indexers/graph.py`
 - `lib/indexers/registry.py`
-- `lib/validators/security.sh`
-- `lib/validators/freshness.sh`
+- `lib/indexers/graph.py`
 - `lib/generators/skills.sh`
-- `lib/validators/quality_gate.sh`
-- `lib/generators/preserve.sh`
+- `lib/validators/security.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/validators/consistency.sh`
+- `lib/validators/files.sh`
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| POSTHOG_API_KEY | No | - |
+| POSTHOG_HOST | No | - |
 | SHA256 | No | - |
 | TARBALL_URL | No | - |
 | VERSION | No | - |
@@ -158,7 +160,7 @@ This file auto-evolves. Rules of thumb:
 
 ---
 
-*Generated: 2026-04-18 by aiframework v1.3.0. Run `aiframework refresh` to update. Lean mode (complex).*
+*Generated: 2026-04-19 by aiframework v1.3.1. Run `aiframework refresh` to update. Lean mode (complex).*
 
 <!-- BEGIN SHEAL INTEGRATION -->
 ## Self-Healing Workflow

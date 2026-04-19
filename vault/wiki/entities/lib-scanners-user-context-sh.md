@@ -1,8 +1,8 @@
 ---
 title: "lib / scanners / user_context.sh"
 type: entity
-created: "2026-04-18"
-updated: "2026-04-18"
+created: "2026-04-19"
+updated: "2026-04-19"
 status: current
 tags:
   - type/entity

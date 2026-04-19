@@ -1,8 +1,8 @@
 ---
 title: "bin / aiframework-telemetry"
 type: entity
-created: "2026-04-18"
-updated: "2026-04-18"
+created: "2026-04-19"
+updated: "2026-04-19"
 status: current
 tags:
   - type/entity
@@ -14,14 +14,14 @@ confidence: medium
 
 # aiframework-telemetry
 
-> `bin/aiframework-telemetry` — bash, 45 lines
+> `bin/aiframework-telemetry` — bash, 69 lines
 
 | Property | Value |
 |----------|-------|
 | Path | `bin/aiframework-telemetry` |
 | Language | bash |
-| Lines | 45 |
-| Size | 1782 bytes |
+| Lines | 69 |
+| Size | 2313 bytes |
 | Symbols | 0 |
 | PageRank | — |
 

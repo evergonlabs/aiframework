@@ -1,8 +1,8 @@
 ---
 title: "lib / scanners / quality.sh"
 type: entity
-created: "2026-04-18"
-updated: "2026-04-18"
+created: "2026-04-19"
+updated: "2026-04-19"
 status: current
 tags:
   - type/entity
@@ -23,7 +23,7 @@ confidence: medium
 | Lines | 356 |
 | Size | 12509 bytes |
 | Symbols | 1 |
-| PageRank | — |
+| PageRank | 0.0019 |
 
 ## Symbols (1)
 
