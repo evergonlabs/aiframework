@@ -14,13 +14,13 @@
 │   ├── onboarding/
 │   ├── reference/
 ├── lib/
+│   ├── bridge/
 │   ├── data/
 │   ├── freshness/
 │   ├── generators/
 │   ├── indexers/
 │   ├── knowledge/
 │   ├── mcp/
-│   ├── bridge/
 │   ├── scanners/
 │   ├── validators/
 ├── templates/
@@ -37,6 +37,7 @@
 │   ├── templates/
 │   ├── wiki/
 ├── Makefile
+├── .env.example
 ├── .gitignore
 ```
 
@@ -45,11 +46,12 @@
 | Module | Role | Files | Key Symbols | Depends On |
 |--------|------|-------|-------------|------------|
 | .githooks | general | 2 | - | - |
-| bin | entrypoint | 3 | - | lib/freshness, lib/generators, lib/knowledge |
+| .github/homebrew | general | 1 | - | - |
+| bin | entrypoint | 4 | - | lib/freshness, lib/generators, lib/knowledge |
 | lib | library | 1 | - | lib/indexers |
+| lib/bridge | general | 1 | - | - |
 | lib/freshness | general | 1 | - | - |
-| lib/bridge | integration | 1 | bridge_sync, bridge_jsonl_to_sheal, bridge_sheal_to_jsonl, bridge_retros_to_vault | - |
-| lib/generators | generation | 13 | - | - |
+| lib/generators | generation | 14 | - | - |
 | lib/indexers | general | 10 | - | lib/indexers |
 | lib/indexers/contrib | general | 1 | - | - |
 | lib/indexers/parsers | general | 7 | - | - |
@@ -57,34 +59,34 @@
 | lib/mcp | general | 2 | - | - |
 | lib/scanners | discovery | 13 | - | - |
 | lib/validators | verification | 5 | - | - |
-| tests | testing | 4 | - | lib/generators, lib/scanners, lib/validators |
+| tests | testing | 7 | - | lib/bridge, lib/generators, lib/scanners |
 | vault/.vault/hooks | general | 1 | - | - |
 | vault/.vault/scripts | tooling | 4 | - | - |
 
 ### Architecture Hot Spots
 
-- **Highest fan-in**: `lib/generators` (imported by 22 modules)
-- **Most complex**: `lib/generators` (80+ symbols across 13 files)
+- **Highest fan-in**: `lib/generators` (imported by 24 modules)
+- **Most complex**: `lib/generators` (94 symbols across 14 files)
 
 ## Repo Map (Most Important Files)
 
 > Files ranked by architectural importance (how many other files depend on them).
 
-- `lib/indexers/graph.py`
+- `lib/generators/sheal.sh`
+- `lib/scanners/sheal.sh`
+- `lib/bridge/sheal_learnings.sh`
 - `lib/indexers/registry.py`
+- `lib/indexers/graph.py`
+- `lib/generators/skills.sh`
+- `lib/validators/security.sh`
+- `lib/scanners/skill_suggest.sh`
+- `lib/validators/consistency.sh`
 - `lib/validators/files.sh`
 - `lib/validators/quality_gate.sh`
-- `lib/scanners/skill_suggest.sh`
-- `lib/validators/security.sh`
 - `lib/generators/preserve.sh`
-- `lib/generators/skills.sh`
 - `lib/validators/freshness.sh`
-- `lib/validators/consistency.sh`
-- `lib/generators/vault.sh`
-- `lib/scanners/user_context.sh`
-- `lib/scanners/code_index.sh`
 - `lib/generators/vault_ingest.sh`
-- `lib/generators/hooks.sh`
+- `lib/generators/tracking.sh`
 
 ## Core Principles
 
@@ -97,6 +99,14 @@
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
 | `ci.yml` | lint | push + PR |
+| `release.yml` | test + deploy | push |
+
+## GitHub Secrets
+
+| Secret | Used By |
+|--------|---------|
+| GITHUB_TOKEN | `release.yml` |
+| HOMEBREW_TAP_TOKEN | `release.yml` |
 
 ---
 

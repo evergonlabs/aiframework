@@ -54,7 +54,8 @@ dist:
 	echo "Building aiframework-$$VERSION.tar.gz..."; \
 	STAGING=$$(mktemp -d); \
 	mkdir -p "$$STAGING/aiframework"; \
-	cp -r bin lib templates Makefile VERSION README.md CHANGELOG.md install.sh "$$STAGING/aiframework/"; \
+	cp -r bin lib Makefile VERSION README.md CHANGELOG.md install.sh "$$STAGING/aiframework/"; \
+	if [ -d templates ] && [ "$$(ls -A templates 2>/dev/null)" ]; then cp -r templates "$$STAGING/aiframework/"; fi; \
 	cp LICENSE "$$STAGING/aiframework/" 2>/dev/null || true; \
 	find "$$STAGING" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true; \
 	find "$$STAGING" -name '.DS_Store' -delete 2>/dev/null || true; \
