@@ -1,4 +1,5 @@
 pub mod graph;
+pub mod metrics;
 pub mod parse;
 pub mod parsers;
 pub mod registry;
@@ -89,6 +90,7 @@ pub fn index_repo(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
             let lines = count_lines(&content);
             let size = content.len() as u64;
             let (symbols, imports, exports) = parser(&content, rel_str);
+            let file_metrics = metrics::compute_file_metrics(&content);
 
             Some(parse::FileData {
                 path: rel_str.to_string(),
@@ -98,6 +100,9 @@ pub fn index_repo(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
                 symbols,
                 imports,
                 exports,
+                complexity: file_metrics.complexity,
+                logical_loc: file_metrics.logical_loc,
+                patterns: file_metrics.patterns.iter().map(|s| s.to_string()).collect(),
             })
         })
         .collect();
@@ -137,17 +142,22 @@ pub fn index_repo(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
         let import_values: Vec<Value> = file.imports.iter().map(|i| json!(i)).collect();
         let export_values: Vec<Value> = file.exports.iter().map(|e| json!(e)).collect();
 
-        files_map.insert(
-            file.path.clone(),
-            json!({
-                "language": file.language,
-                "size_bytes": file.size_bytes,
-                "lines": file.lines,
-                "symbols": sym_values,
-                "imports": import_values,
-                "exports": export_values,
-            }),
-        );
+        let mut file_json = json!({
+            "language": file.language,
+            "size_bytes": file.size_bytes,
+            "lines": file.lines,
+            "symbols": sym_values,
+            "imports": import_values,
+            "exports": export_values,
+            "complexity": file.complexity,
+            "logical_loc": file.logical_loc,
+        });
+
+        if !file.patterns.is_empty() {
+            file_json["patterns"] = json!(file.patterns);
+        }
+
+        files_map.insert(file.path.clone(), file_json);
     }
 
     // Build dependency graph edges and modules

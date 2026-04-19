@@ -248,7 +248,7 @@ fn resolve_import(
     path_lookup: &HashMap<String, String>,
     stem_lookup: &HashMap<String, Vec<String>>,
 ) -> Option<String> {
-    // Direct match
+    // Direct match (exact path)
     if let Some(path) = path_lookup.get(import) {
         return Some(path.clone());
     }
@@ -263,6 +263,24 @@ fn resolve_import(
         let relative = format!("{}/{}", source_dir, import);
         if let Some(path) = path_lookup.get(&relative) {
             return Some(path.clone());
+        }
+    }
+
+    // Suffix match: "scanners/identity.sh" matches "lib/scanners/identity.sh"
+    // This handles bash source patterns where $LIB_DIR is stripped
+    if import.contains('/') {
+        let suffix = format!("/{}", import);
+        for known_path in path_lookup.values() {
+            if known_path.ends_with(&suffix) {
+                return Some(known_path.clone());
+            }
+        }
+        // Also try without leading path component
+        // e.g., "freshness/track.sh" matches "lib/freshness/track.sh"
+        for known_path in path_lookup.values() {
+            if known_path.ends_with(import) {
+                return Some(known_path.clone());
+            }
         }
     }
 
@@ -286,6 +304,13 @@ fn resolve_import(
         let as_path = import.replace('.', "/");
         if let Some(path) = path_lookup.get(&as_path) {
             return Some(path.clone());
+        }
+        // Also try suffix match on dotted paths
+        let suffix = format!("/{}", as_path);
+        for known_path in path_lookup.values() {
+            if known_path.ends_with(&suffix) || known_path.ends_with(&as_path) {
+                return Some(known_path.clone());
+            }
         }
     }
 

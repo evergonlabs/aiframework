@@ -10,7 +10,7 @@ static RE_FUNC_PARENS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(\w+)\s*\(\)\s*\{").unwrap()
 });
 static RE_SOURCE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"^\s*(?:source|\.) ["']?([^"'\s]+)["']?"#).unwrap()
+    Regex::new(r#"^\s*(?:source|\.) ["']?([^"'\n]+?)["']?\s*(?:#.*)?$"#).unwrap()
 });
 static RE_SAFE_PATH: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^[\w./_-]+$").unwrap()
@@ -83,9 +83,13 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
 }
 
 /// Strip shell variable expansions from a path.
+/// Handles: "$LIB_DIR/scanners/foo.sh" → "scanners/foo.sh"
+///          "${ROOT}/lib/bar.sh" → "lib/bar.sh"
+///          "$HOME/.config" → ".config"
 fn clean_bash_path(path: &str) -> String {
     let mut result = path.to_string();
-    // Remove ${VAR}/ and $VAR/ prefixes
+
+    // Remove all ${VAR} expansions (may appear anywhere in path)
     while result.contains("${") {
         if let Some(start) = result.find("${") {
             if let Some(end) = result[start..].find('}') {
@@ -102,13 +106,49 @@ fn clean_bash_path(path: &str) -> String {
             }
         }
     }
-    // Remove $VAR/ prefixes (simple variable)
-    if result.starts_with('$') {
+
+    // Remove $VAR/ prefixes (simple variable like $LIB_DIR/)
+    while result.starts_with('$') {
         if let Some(slash) = result.find('/') {
             result = result[slash + 1..].to_string();
         } else {
+            // Bare $VAR with no path — can't resolve
             return String::new();
         }
     }
+
+    // Remove $(command) substitutions
+    while result.contains("$(") {
+        if let Some(start) = result.find("$(") {
+            // Find matching )
+            let mut depth = 0;
+            let mut end = start;
+            for (i, ch) in result[start..].char_indices() {
+                match ch {
+                    '(' => depth += 1,
+                    ')' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            end = start + i;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if end > start {
+                let after = end + 1;
+                let skip = if result.as_bytes().get(after) == Some(&b'/') {
+                    1
+                } else {
+                    0
+                };
+                result = format!("{}{}", &result[..start], &result[after + skip..]);
+            } else {
+                break;
+            }
+        }
+    }
+
     result
 }

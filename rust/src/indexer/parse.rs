@@ -7,6 +7,12 @@ pub struct FileData {
     pub symbols: Vec<Symbol>,
     pub imports: Vec<String>,
     pub exports: Vec<String>,
+    /// Cyclomatic complexity estimate
+    pub complexity: usize,
+    /// Logical lines of code (excluding blanks/comments)
+    pub logical_loc: usize,
+    /// Detected code patterns (large_file, deep_nesting, etc.)
+    pub patterns: Vec<String>,
 }
 
 /// A code symbol: function, class, method, type, interface, etc.
