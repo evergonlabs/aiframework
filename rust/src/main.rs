@@ -1,5 +1,6 @@
 mod cli;
 mod indexer;
+mod scanner;
 
 use std::process;
 

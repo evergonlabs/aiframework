@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 use crate::indexer;
+use crate::scanner;
 
 #[derive(Parser)]
 #[command(name = "aiframework", version, about = "Make Claude Code understand your project instantly")]
@@ -152,8 +153,34 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             eprintln!("TODO: full pipeline for {}", target.display());
             Ok(())
         }
-        Command::Discover { target, .. } => {
-            eprintln!("TODO: discover for {}", target.display());
+        Command::Discover { target, output, no_index, verbose } => {
+            let manifest = scanner::discover(&target)?;
+
+            let out_dir = output.unwrap_or_else(|| target.join(".aiframework"));
+            std::fs::create_dir_all(&out_dir)?;
+
+            let manifest_path = out_dir.join("manifest.json");
+            let json = serde_json::to_string_pretty(&manifest)?;
+            std::fs::write(&manifest_path, &json)?;
+            println!("Wrote {}", manifest_path.display());
+
+            // Also run code indexer unless --no-index
+            if !no_index {
+                let index = indexer::index_repo(&target)?;
+                let index_path = out_dir.join("code-index.json");
+                let index_json = serde_json::to_string_pretty(&index)?;
+                std::fs::write(&index_path, &index_json)?;
+                println!("Wrote {}", index_path.display());
+
+                if verbose {
+                    let meta = &index["_meta"];
+                    println!(
+                        "  {} files, {} symbols, {} edges",
+                        meta["total_files"], meta["total_symbols"], meta["total_edges"]
+                    );
+                }
+            }
+
             Ok(())
         }
         Command::Generate { target, .. } => {
