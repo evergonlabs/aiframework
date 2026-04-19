@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+use crate::generator;
 use crate::indexer;
 use crate::scanner;
 
@@ -149,8 +150,73 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
 
-        Command::Run { target, .. } => {
-            eprintln!("TODO: full pipeline for {}", target.display());
+        Command::Run {
+            target,
+            no_index,
+            dry_run,
+            verbose,
+            ..
+        } => {
+            let start = std::time::Instant::now();
+
+            // Phase 1: DISCOVER
+            println!("\n  DISCOVER");
+            let manifest = scanner::discover(&target)?;
+
+            let aif_dir = target.join(".aiframework");
+            std::fs::create_dir_all(&aif_dir)?;
+
+            let manifest_path = aif_dir.join("manifest.json");
+            let manifest_json = serde_json::to_string_pretty(&manifest)?;
+            std::fs::write(&manifest_path, &manifest_json)?;
+
+            let lang = manifest["stack"]["language"].as_str().unwrap_or("unknown");
+            let fw = manifest["stack"]["framework"].as_str().unwrap_or("none");
+            let arch = manifest["archetype"]["type"].as_str().unwrap_or("unknown");
+            println!("    {lang} / {fw} / {arch}");
+
+            // Phase 2: INDEX
+            let code_index = if !no_index {
+                println!("\n  INDEX");
+                let index = indexer::index_repo(&target)?;
+                let meta = &index["_meta"];
+                println!(
+                    "    {} files, {} symbols, {} edges",
+                    meta["total_files"], meta["total_symbols"], meta["total_edges"]
+                );
+
+                let index_path = aif_dir.join("code-index.json");
+                let index_json = serde_json::to_string_pretty(&index)?;
+                std::fs::write(&index_path, &index_json)?;
+                Some(index)
+            } else {
+                None
+            };
+
+            // Phase 3: GENERATE
+            if !dry_run {
+                println!("\n  GENERATE");
+                let generated = generator::generate(
+                    &target,
+                    &manifest,
+                    code_index.as_ref(),
+                )?;
+                println!("    {} files written", generated.len());
+                if verbose {
+                    for f in &generated {
+                        println!("      {f}");
+                    }
+                }
+            } else {
+                println!("\n  GENERATE (dry-run — no files written)");
+            }
+
+            let elapsed = start.elapsed();
+            println!(
+                "\n  Done in {:.1}s",
+                elapsed.as_secs_f64()
+            );
+
             Ok(())
         }
         Command::Discover { target, output, no_index, verbose } => {
@@ -183,8 +249,25 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
 
             Ok(())
         }
-        Command::Generate { target, .. } => {
-            eprintln!("TODO: generate for {}", target.display());
+        Command::Generate { target, manifest } => {
+            let manifest_path = manifest.unwrap_or_else(|| target.join(".aiframework/manifest.json"));
+            let manifest_str = std::fs::read_to_string(&manifest_path)?;
+            let manifest: serde_json::Value = serde_json::from_str(&manifest_str)?;
+
+            // Try to load code index if it exists
+            let index_path = target.join(".aiframework/code-index.json");
+            let code_index = if index_path.exists() {
+                let idx_str = std::fs::read_to_string(&index_path)?;
+                Some(serde_json::from_str::<serde_json::Value>(&idx_str)?)
+            } else {
+                None
+            };
+
+            let generated = generator::generate(&target, &manifest, code_index.as_ref())?;
+            println!("Generated {} files", generated.len());
+            for f in &generated {
+                println!("  {f}");
+            }
             Ok(())
         }
         Command::Verify { target, .. } => {

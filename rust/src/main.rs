@@ -1,4 +1,5 @@
 mod cli;
+mod generator;
 mod indexer;
 mod scanner;
 

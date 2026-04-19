@@ -49,12 +49,12 @@ fn detect_package_manager(files: &[String]) -> String {
         }
     }
 
-    // Fallback: check manifest files
+    // Fallback: check manifest files (check Makefile BEFORE Cargo.toml for multi-lang repos)
     for f in files {
         let name = Path::new(f).file_name().and_then(|n| n.to_str()).unwrap_or("");
         match name {
-            "Cargo.toml" => return "cargo".into(),
             "go.mod" => return "go".into(),
+            "Cargo.toml" => return "cargo".into(),
             "requirements.txt" | "setup.py" | "pyproject.toml" => return "pip".into(),
             "package.json" => return "npm".into(),
             "Gemfile" => return "bundler".into(),
@@ -72,7 +72,25 @@ fn detect_commands(
     language: &str,
     pkg_manager: &str,
 ) -> (String, String, String, String, String, String, String) {
-    // Try package.json scripts first
+    // If Makefile exists, check for standard targets first
+    let makefile = target.join("Makefile");
+    if makefile.exists() {
+        if let Ok(content) = std::fs::read_to_string(&makefile) {
+            let has = |t: &str| content.lines().any(|l| l.starts_with(&format!("{t}:")));
+            let lint = if has("lint") { "make lint".to_string() } else { "NOT_CONFIGURED".to_string() };
+            let test = if has("test") { "make test".to_string() } else { "NOT_CONFIGURED".to_string() };
+            let build = if has("build") { "make build".to_string() } else { "NOT_CONFIGURED".to_string() };
+            let install = if has("install") { "make install".to_string() } else { "NOT_CONFIGURED".to_string() };
+            let check = if has("check") { "make check".to_string() } else { "NOT_CONFIGURED".to_string() };
+
+            // If Makefile has at least lint or test, use it as primary
+            if lint != "NOT_CONFIGURED" || test != "NOT_CONFIGURED" {
+                return (install, "NOT_CONFIGURED".into(), build, lint, test, "NOT_CONFIGURED".into(), check);
+            }
+        }
+    }
+
+    // Try package.json scripts
     let pkg_json = target.join("package.json");
     if pkg_json.exists() {
         if let Ok(content) = std::fs::read_to_string(&pkg_json) {
