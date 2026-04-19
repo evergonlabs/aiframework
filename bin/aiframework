@@ -363,39 +363,42 @@ _aif_summary() {
 }
 
 usage() {
-  cat <<'EOF'
+  local version
+  version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+  cat <<EOF
+aiframework v${version} — Make Claude Code understand your project instantly
+
 Usage: aiframework <command> [options]
 
 Commands:
-  discover    Scan a repo and produce manifest.json (deterministic, 100% coverage)
-  generate    Read manifest.json and generate CLAUDE.md + all supporting files
-  verify      Validate generated files against manifest (zero drift check)
-  report      Generate a human-readable report of everything detected and generated
-  refresh     Lightweight update: re-discover + regenerate only if drift detected
-  index       Build code index for the target repo (standalone)
-  run         Full pipeline: discover → generate → verify → report
-  upgrade     Pull latest + re-run on all bootstrapped repos (surgical, incremental)
-  stats       Show cross-repo knowledge store statistics
+  run         Full pipeline: discover + generate + verify (start here)
+  refresh     Re-scan and update only if drift detected
+  discover    Scan repo → manifest.json + code-index.json
+  generate    Manifest → CLAUDE.md + rules + skills + hooks
+  verify      Validate generated files (consistency, security, freshness)
+  index       Build code index (standalone symbol extraction)
+  report      Show what was detected and generated
+  update      Update aiframework + refresh all bootstrapped repos
+  stats       Cross-repo knowledge store statistics
 
 Options:
-  --target <path>      Target repo to analyze (default: current directory)
-  --manifest <path>    Path to manifest.json (default: .aiframework/manifest.json)
-  --output <path>      Output directory for manifest (default: .aiframework/)
-  --dry-run            Show what would be generated without writing files
-  --verbose            Show detailed scanner output
-  --non-interactive    Skip all user prompts (set all user_context to null)
-  --no-index           Skip the code index step during discover
+  --target <path>      Target repo (default: current directory)
+  --dry-run            Preview without writing files
+  --verbose            Detailed output
+  --non-interactive    Skip all prompts
+  --no-index           Skip code indexing during discover
+  --manifest <path>    Path to manifest.json
+  --output <path>      Output directory for manifest
   --help               Show this help
 
-Note: Enhancement is done via the /aif-enhance skill in Claude Code — no API key needed.
-
 Examples:
-  aiframework discover --target /path/to/repo
-  aiframework discover --target /path/to/repo --no-index
-  aiframework generate --manifest .aiframework/manifest.json
-  aiframework verify
-  aiframework index --target /path/to/repo
-  aiframework run --target /path/to/my-project
+  aiframework run --target ~/my-project     Bootstrap a project
+  aiframework run --dry-run                 Preview what would be generated
+  aiframework refresh                       Update after code changes
+  aiframework index --target .              Build code index only
+  aiframework update                        Self-update to latest version
+
+After bootstrapping, open Claude Code and type: /aif-ready
 EOF
 }
 
@@ -409,11 +412,56 @@ VERBOSE=false
 NON_INTERACTIVE=false
 NO_INDEX=false
 
+_tildify() {
+  case "$1" in "$HOME"/*) echo "~/${1#"$HOME"/}" ;; *) echo "$1" ;; esac
+}
+
+# Smart no-args: detect project and suggest next step
+_smart_noargs() {
+  local version
+  version="$(cat "$ROOT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+  echo ""
+  printf "${BOLD}aiframework${NC} v${version}\n"
+  echo ""
+
+  # Detect what kind of directory we're in
+  if [[ -d ".aiframework" && -f "CLAUDE.md" ]]; then
+    # Already bootstrapped
+    printf "  This repo is already bootstrapped.\n\n"
+    printf "  ${BOLD}aiframework refresh${NC}    Update if files changed\n"
+    printf "  ${BOLD}aiframework verify${NC}     Check everything is consistent\n"
+    printf "  ${BOLD}aiframework update${NC}     Update aiframework itself\n"
+  elif [[ -d ".git" ]]; then
+    # Git repo, not bootstrapped
+    local lang=""
+    [[ -f "package.json" ]] && lang="node"
+    [[ -f "Cargo.toml" ]] && lang="rust"
+    [[ -f "go.mod" ]] && lang="go"
+    [[ -f "requirements.txt" || -f "pyproject.toml" ]] && lang="python"
+    [[ -f "Gemfile" ]] && lang="ruby"
+
+    if [[ -n "$lang" ]]; then
+      printf "  Detected: ${BOLD}${lang}${NC} project at $(_tildify "$PWD")\n"
+    else
+      printf "  Detected: git repo at $(_tildify "$PWD")\n"
+    fi
+    printf "\n"
+    printf "  ${BOLD}aiframework run${NC}        Scan this repo and generate CLAUDE.md\n"
+    printf "  ${BOLD}aiframework run --dry-run${NC}  Preview without writing files\n"
+  else
+    printf "  No git repo detected in current directory.\n\n"
+    printf "  ${BOLD}aiframework run --target ~/your-project${NC}\n"
+  fi
+
+  printf "\n"
+  printf "  ${BOLD}aiframework --help${NC}     See all commands\n"
+  printf "\n"
+}
+
 parse_args() {
   if [[ $# -eq 0 ]]; then
-    usage
-    _aif_telemetry "error" "phase=parse" "type=no_args"
-    exit 1
+    _smart_noargs
+    exit 0
   fi
 
   # Handle --help/-h as first argument

@@ -30,6 +30,11 @@ warn()  { printf "${YELLOW}!${NC}  %s\n" "$1"; }
 err()   { printf "${RED}x${NC}  %s\n" "$1" >&2; }
 die()   { err "$1"; exit 1; }
 
+# Replace $HOME with ~ in paths for cleaner output
+tildify() {
+  case "$1" in "$HOME"/*) printf '%s' "~/${1#"$HOME"/}" ;; *) printf '%s' "$1" ;; esac
+}
+
 # ── Platform detection ──
 
 detect_platform() {
@@ -590,15 +595,26 @@ main() {
   install_aiframework
   ensure_path
 
+  # Write install receipt for self-update and diagnostics
+  mkdir -p "${HOME}/.aiframework"
+  cat > "${HOME}/.aiframework/install-receipt.json" << RECEIPT_EOF
+{
+  "version": "${VERSION}",
+  "method": "curl-installer",
+  "install_dir": "$(tildify "$AIFRAMEWORK_DIR")",
+  "bin_dir": "$(tildify "$BIN_DIR")",
+  "platform": "${PLATFORM}-${ARCH}",
+  "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date +%Y-%m-%dT%H:%M:%SZ)"
+}
+RECEIPT_EOF
+
+  # Clean success output
   echo ""
-  echo "================================"
-  printf "${BOLD}Next steps:${NC}\n"
+  ok "aiframework v${VERSION} installed"
   echo ""
-  echo "  1. Bootstrap a project:"
-  echo "     aiframework run --target ~/your-project"
+  echo "  To get started:"
   echo ""
-  echo "  2. Open Claude Code and run:"
-  echo "     /aif-ready"
+  printf "    ${BOLD}aiframework run --target ~/your-project${NC}\n"
   echo ""
   echo "  Docs: https://github.com/evergonlabs/aiframework"
   echo ""
