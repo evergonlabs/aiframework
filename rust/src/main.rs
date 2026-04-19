@@ -1,6 +1,7 @@
 mod cli;
 mod generator;
 mod indexer;
+mod mcp;
 mod scanner;
 mod ui;
 mod validator;

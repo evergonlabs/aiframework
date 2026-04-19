@@ -1,0 +1,134 @@
+# Cross-platform release build for aiframework Rust binary
+# Builds 6 targets and uploads to GitHub Releases
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: aiframework-macos-x86_64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: aiframework-macos-arm64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: aiframework-linux-x86_64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: aiframework-linux-arm64
+            cross: true
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            name: aiframework-linux-musl-x86_64
+            cross: true
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            name: aiframework-windows-x86_64.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (for cross-compilation)
+        if: matrix.cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build (native)
+        if: ${{ !matrix.cross }}
+        working-directory: rust
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Build (cross)
+        if: matrix.cross
+        working-directory: rust
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd rust/target/${{ matrix.target }}/release
+          tar czf ${{ github.workspace }}/${{ matrix.name }}.tar.gz aiframework
+          cd ${{ github.workspace }}
+          shasum -a 256 ${{ matrix.name }}.tar.gz >> checksums-sha256.txt
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd rust/target/${{ matrix.target }}/release
+          Compress-Archive -Path aiframework.exe -DestinationPath ${{ github.workspace }}/${{ matrix.name }}.zip
+          cd ${{ github.workspace }}
+          Get-FileHash ${{ matrix.name }}.zip -Algorithm SHA256 | Format-Table -Property Hash -HideTableHeaders >> checksums-sha256.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: |
+            ${{ matrix.name }}.tar.gz
+            ${{ matrix.name }}.zip
+          if-no-files-found: ignore
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          sha256sum *.tar.gz *.zip 2>/dev/null > checksums-sha256.txt || true
+          cat checksums-sha256.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.tar.gz
+            *.zip
+            checksums-sha256.txt
+          generate_release_notes: true
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run tests
+        working-directory: rust
+        run: cargo test
+      - name: Build release
+        working-directory: rust
+        run: cargo build --release
+      - name: Smoke test
+        working-directory: rust
+        run: |
+          ./target/release/aiframework index --target .. --summary
+          ./target/release/aiframework discover --target .. --output /tmp/smoke-test
+          test -f /tmp/smoke-test/manifest.json

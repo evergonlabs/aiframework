@@ -4,10 +4,14 @@ pub mod claude_md;
 pub mod cursorrules;
 pub mod docs;
 pub mod hooks;
+pub mod report;
 pub mod rules;
+pub mod sheal_gen;
 pub mod skills;
 pub mod tracking;
 pub mod vault;
+pub mod vault_ingest;
+pub mod wiki_graph;
 
 use serde_json::Value;
 use std::path::Path;
@@ -81,6 +85,26 @@ pub fn generate(
     // vault/ directory structure
     let vault_files = vault::generate(target, manifest, code_index)?;
     generated.extend(vault_files);
+
+    // vault/wiki/entities/ — ingest code index into entity pages
+    if code_index.is_some() {
+        let ingest_files = vault_ingest::generate(target, manifest, code_index)?;
+        generated.extend(ingest_files);
+
+        // vault/wiki/concepts/architecture.md — graph overview
+        let concepts_dir = target.join("vault/wiki/concepts");
+        let arch_wiki_path = concepts_dir.join("architecture.md");
+        if !arch_wiki_path.exists() {
+            std::fs::create_dir_all(&concepts_dir)?;
+            let graph_content = wiki_graph::generate(manifest, code_index);
+            std::fs::write(&arch_wiki_path, &graph_content)?;
+            generated.push("vault/wiki/concepts/architecture.md".into());
+        }
+    }
+
+    // .sheal/ session intelligence config
+    let sheal_files = sheal_gen::generate(target, manifest)?;
+    generated.extend(sheal_files);
 
     // tools/learnings/{short}-learnings.jsonl
     let tracking_files = tracking::generate(target, manifest)?;

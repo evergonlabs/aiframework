@@ -102,6 +102,19 @@ pub enum Command {
         target: PathBuf,
     },
 
+    /// Human-readable report of everything detected
+    Report {
+        #[arg(long, default_value = ".")]
+        target: PathBuf,
+    },
+
+    /// MCP server — expose repo context to Claude Code via JSON-RPC
+    Mcp {
+        /// Target directory
+        #[arg(long, default_value = ".")]
+        target: PathBuf,
+    },
+
     /// Self-update + refresh all bootstrapped repos
     #[command(alias = "upgrade", alias = "self-update")]
     Update,
@@ -464,6 +477,35 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             let edges = meta["total_edges"].as_u64().unwrap_or(0);
             ui::done(elapsed.as_secs_f64(), generated.len(), symbols, edges);
 
+            Ok(())
+        }
+
+        Command::Report { target } => {
+            let manifest_path = target.join(".aiframework/manifest.json");
+            if !manifest_path.exists() {
+                ui::error("No manifest found. Run `aiframework run` first.");
+                ui::help_hint("aiframework run --target .");
+                return Ok(());
+            }
+
+            let manifest_str = std::fs::read_to_string(&manifest_path)?;
+            let manifest: serde_json::Value = serde_json::from_str(&manifest_str)?;
+
+            let index_path = target.join(".aiframework/code-index.json");
+            let code_index = if index_path.exists() {
+                let idx_str = std::fs::read_to_string(&index_path)?;
+                Some(serde_json::from_str::<serde_json::Value>(&idx_str)?)
+            } else {
+                None
+            };
+
+            let report = generator::report::generate(&manifest, code_index.as_ref());
+            print!("{report}");
+            Ok(())
+        }
+
+        Command::Mcp { target } => {
+            crate::mcp::serve(&target)?;
             Ok(())
         }
 

@@ -22,28 +22,28 @@ pub fn get_parser(ext: &str) -> Option<ParserFn> {
         // Rust (tree-sitter based)
         "rs" => Some(parsers::ts_rust::parse),
 
-        // Ruby
-        "rb" => Some(parsers::ruby::parse),
+        // Ruby (tree-sitter based)
+        "rb" => Some(parsers::ts_ruby::parse),
 
         // Bash / Shell (tree-sitter based)
         "sh" | "bash" | "zsh" => Some(parsers::ts_bash::parse),
 
-        // Java
-        "java" => Some(parsers::java::parse),
+        // Java (tree-sitter based)
+        "java" => Some(parsers::ts_java::parse),
 
-        // C#
+        // C# (regex — keeps binary small)
         "cs" => Some(parsers::csharp::parse),
 
-        // PHP
+        // PHP (regex)
         "php" => Some(parsers::php::parse),
 
-        // Kotlin
+        // Kotlin (regex)
         "kt" | "kts" => Some(parsers::kotlin::parse),
 
-        // Swift
+        // Swift (regex)
         "swift" => Some(parsers::swift::parse),
 
-        // Elixir
+        // Elixir (regex)
         "ex" | "exs" => Some(parsers::elixir::parse),
 
         _ => None,

@@ -29,7 +29,8 @@ rayon = "1"
 walkdir = "2"
 ignore = "0.4"
 
-# Tree-sitter core + grammars (added per-language as we port from regex)
+# Tree-sitter: 8 grammars for the most common languages
+# C#, PHP, Kotlin, Swift, Elixir use regex parsers (keeps binary small)
 tree-sitter = "0.24"
 tree-sitter-python = "0.23"
 tree-sitter-javascript = "0.23"
@@ -37,6 +38,8 @@ tree-sitter-typescript = "0.23"
 tree-sitter-go = "0.23"
 tree-sitter-rust = "0.23"
 tree-sitter-bash = "0.23"
+tree-sitter-ruby = "0.23"
+tree-sitter-java = "0.23"
 
 [profile.release]
 opt-level = "z"
