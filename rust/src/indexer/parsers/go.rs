@@ -31,13 +31,25 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
     let mut exports = Vec::new();
 
     let mut in_import_block = false;
+    let mut pending_doc = String::new();
 
     for (i, line) in content.lines().enumerate() {
         let lineno = i + 1;
         let trimmed = line.trim();
 
-        // Skip comments
+        // Capture Go doc comments (// before declarations)
         if trimmed.starts_with("//") {
+            if pending_doc.is_empty() {
+                let comment = trimmed.trim_start_matches("//").trim();
+                if !comment.is_empty() {
+                    pending_doc = comment.to_string();
+                }
+            }
+            continue;
+        }
+        // Blank line resets pending doc
+        if trimmed.is_empty() {
+            pending_doc.clear();
             continue;
         }
 
@@ -95,7 +107,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: kind.into(),
                 line: lineno,
                 signature: sig,
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_doc),
                 visibility: if is_exported { "public" } else { "private" }.into(),
                 parent,
             });
@@ -121,7 +133,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: kind.into(),
                 line: lineno,
                 signature: format!("type {name} {kind_str}"),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_doc),
                 visibility: if is_exported { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -140,7 +152,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "type".into(),
                 line: lineno,
                 signature: trimmed.to_string(),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_doc),
                 visibility: if is_exported { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -159,7 +171,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "const".into(),
                 line: lineno,
                 signature: trimmed.chars().take(80).collect(),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_doc),
                 visibility: if is_exported { "public" } else { "private" }.into(),
                 parent: None,
             });

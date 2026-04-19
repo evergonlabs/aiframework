@@ -115,6 +115,13 @@ pub enum Command {
         target: PathBuf,
     },
 
+    /// Cross-repo knowledge store statistics
+    Stats {
+        /// Target directory (for current repo stats fallback)
+        #[arg(long, default_value = ".")]
+        target: PathBuf,
+    },
+
     /// Self-update + refresh all bootstrapped repos
     #[command(alias = "upgrade", alias = "self-update")]
     Update,
@@ -509,6 +516,123 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
 
+        Command::Stats { target } => {
+            ui::banner();
+            ui::phase("STATS");
+
+            let mut total_repos = 0u64;
+            let mut total_files = 0u64;
+            let mut total_symbols = 0u64;
+            let mut all_languages: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+            // Check knowledge store: ~/.aiframework/knowledge/*.json
+            let home = std::env::var("HOME").unwrap_or_default();
+            let knowledge_dir = std::path::PathBuf::from(&home).join(".aiframework/knowledge");
+
+            if knowledge_dir.is_dir() {
+                if let Ok(entries) = std::fs::read_dir(&knowledge_dir) {
+                    for entry in entries.filter_map(|e| e.ok()) {
+                        let path = entry.path();
+                        if path.extension().and_then(|e| e.to_str()) == Some("json") {
+                            if let Ok(content) = std::fs::read_to_string(&path) {
+                                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
+                                    total_repos += 1;
+                                    if let Some(meta) = val.get("_meta") {
+                                        total_files += meta["total_files"].as_u64().unwrap_or(0);
+                                        total_symbols += meta["total_symbols"].as_u64().unwrap_or(0);
+                                        if let Some(langs) = meta["languages"].as_object() {
+                                            for lang in langs.keys() {
+                                                all_languages.insert(lang.clone());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fallback: if no knowledge store, try current repo
+            if total_repos == 0 {
+                let manifest_path = target.join(".aiframework/manifest.json");
+                let index_path = target.join(".aiframework/code-index.json");
+
+                if index_path.exists() {
+                    if let Ok(content) = std::fs::read_to_string(&index_path) {
+                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
+                            total_repos = 1;
+                            if let Some(meta) = val.get("_meta") {
+                                total_files = meta["total_files"].as_u64().unwrap_or(0);
+                                total_symbols = meta["total_symbols"].as_u64().unwrap_or(0);
+                                if let Some(langs) = meta["languages"].as_object() {
+                                    for lang in langs.keys() {
+                                        all_languages.insert(lang.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if manifest_path.exists() {
+                    total_repos = 1;
+                    ui::dim("  (no code-index.json — run `aiframework index` for full stats)");
+                }
+            }
+
+            // Beautiful box output
+            let lang_count = all_languages.len();
+            println!(
+                "\n{}{}  \u{250c}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2510}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{2502}  Knowledge Store                    \u{2502}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{251c}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2524}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{2502}{}  Repos bootstrapped:  {:<13}{}{}\u{2502}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m",
+                total_repos,
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{2502}{}  Total files indexed: {:<13}{}{}\u{2502}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m",
+                format_number(total_files),
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{2502}{}  Total symbols:       {:<13}{}{}\u{2502}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m",
+                format_number(total_symbols),
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{2502}{}  Languages detected:  {:<13}{}{}\u{2502}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m",
+                lang_count,
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+            println!(
+                "{}{}  \u{2514}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2500}\u{2518}{}",
+                "\x1b[1m", "\x1b[36m", "\x1b[0m"
+            );
+
+            if !all_languages.is_empty() {
+                let mut langs: Vec<&str> = all_languages.iter().map(|s| s.as_str()).collect();
+                langs.sort();
+                println!();
+                ui::phase_kv("languages", &langs.join(", "));
+            }
+            println!();
+
+            Ok(())
+        }
+
         Command::Update => {
             ui::banner();
             ui::phase("UPDATE");
@@ -546,6 +670,19 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
     }
+}
+
+/// Format a number with comma separators (e.g. 2100 -> "2,100")
+fn format_number(n: u64) -> String {
+    let s = n.to_string();
+    let mut result = String::new();
+    for (i, ch) in s.chars().rev().enumerate() {
+        if i > 0 && i % 3 == 0 {
+            result.push(',');
+        }
+        result.push(ch);
+    }
+    result.chars().rev().collect()
 }
 
 /// Fetch latest version from GitHub releases (non-blocking, with timeout)

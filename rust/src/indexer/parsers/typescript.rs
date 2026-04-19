@@ -43,8 +43,10 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
     let mut current_class: Option<String> = None;
     let mut brace_depth = 0i32;
     let mut class_brace_depth = 0i32;
+    let mut pending_jsdoc = String::new();
 
-    for (i, line) in content.lines().enumerate() {
+    let lines: Vec<&str> = content.lines().collect();
+    for (i, line) in lines.iter().enumerate() {
         let lineno = i + 1;
         let trimmed = line.trim();
 
@@ -63,7 +65,11 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
             current_class = None;
         }
 
-        // Skip comments
+        // Capture JSDoc comments (/** ... */) for docstrings
+        if trimmed.starts_with("/**") {
+            pending_jsdoc = extract_jsdoc(&lines, i);
+            continue;
+        }
         if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*') {
             continue;
         }
@@ -84,7 +90,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "class".into(),
                 line: lineno,
                 signature: sig,
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_jsdoc),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -108,7 +114,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "interface".into(),
                 line: lineno,
                 signature: format!("interface {name}"),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_jsdoc),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -127,7 +133,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "type".into(),
                 line: lineno,
                 signature: format!("type {name}"),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_jsdoc),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -146,7 +152,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "enum".into(),
                 line: lineno,
                 signature: format!("enum {name}"),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_jsdoc),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -171,7 +177,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "function".into(),
                 line: lineno,
                 signature: sig,
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_jsdoc),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -191,7 +197,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                 kind: "function".into(),
                 line: lineno,
                 signature: format!("const {name} = () =>"),
-                docstring: String::new(),
+                docstring: std::mem::take(&mut pending_jsdoc),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -211,7 +217,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                     kind: "const".into(),
                     line: lineno,
                     signature: trimmed.chars().take(80).collect(),
-                    docstring: String::new(),
+                    docstring: std::mem::take(&mut pending_jsdoc),
                     visibility: "public".into(),
                     parent: None,
                 });
@@ -243,7 +249,7 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
                     kind: "method".into(),
                     line: lineno,
                     signature: sig,
-                    docstring: String::new(),
+                    docstring: std::mem::take(&mut pending_jsdoc),
                     visibility: if name.starts_with('_') {
                         "private"
                     } else {
@@ -272,6 +278,31 @@ pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<S
     imports.sort();
     imports.dedup();
     (symbols, imports, exports)
+}
+
+/// Extract the first meaningful line from a JSDoc comment block starting at line index `start`.
+fn extract_jsdoc(lines: &[&str], start: usize) -> String {
+    for j in start..lines.len() {
+        let t = lines[j].trim();
+        if t.starts_with("/**") {
+            // Single-line JSDoc: /** description */
+            let inner = t.trim_start_matches("/**").trim_end_matches("*/").trim();
+            if !inner.is_empty() {
+                return inner.to_string();
+            }
+            continue;
+        }
+        if t.starts_with("*/") {
+            break;
+        }
+        if t.starts_with('*') {
+            let inner = t.trim_start_matches('*').trim();
+            if !inner.is_empty() && !inner.starts_with('@') {
+                return inner.to_string();
+            }
+        }
+    }
+    String::new()
 }
 
 fn normalize_ts_import(module: &str) -> String {

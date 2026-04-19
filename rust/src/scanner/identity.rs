@@ -8,11 +8,16 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
     let description = detect_description(target);
     let short_name = to_short_name(&name);
 
+    let compose_services = detect_compose_services(target);
+    let dockerfile = detect_dockerfile(target);
+
     json!({
         "name": name,
         "short_name": short_name,
         "version": version,
         "description": description,
+        "compose_services": compose_services,
+        "dockerfile": dockerfile,
     })
 }
 
@@ -147,6 +152,73 @@ fn detect_description(target: &Path) -> String {
     }
 
     String::new()
+}
+
+fn detect_compose_services(target: &Path) -> Vec<String> {
+    for name in &["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"] {
+        let path = target.join(name);
+        if path.exists() {
+            if let Ok(content) = std::fs::read_to_string(&path) {
+                let mut services = Vec::new();
+                let mut in_services = false;
+                for line in content.lines() {
+                    let trimmed = line.trim();
+                    // Top-level "services:" key (no leading whitespace)
+                    if !line.starts_with(' ') && !line.starts_with('\t') && trimmed.starts_with("services:") {
+                        in_services = true;
+                        continue;
+                    }
+                    // Another top-level key ends the services block
+                    if in_services && !line.starts_with(' ') && !line.starts_with('\t') && !trimmed.is_empty() {
+                        break;
+                    }
+                    // Service names are indented exactly one level and end with ':'
+                    if in_services && trimmed.ends_with(':') && !trimmed.starts_with('#') {
+                        // Check it's a direct child (2-space or 4-space indent, not deeper nested key)
+                        let indent = line.len() - line.trim_start().len();
+                        if indent > 0 && indent <= 4 {
+                            let svc = trimmed.trim_end_matches(':').trim();
+                            if !svc.is_empty() {
+                                services.push(svc.to_string());
+                            }
+                        }
+                    }
+                }
+                return services;
+            }
+        }
+    }
+    vec![]
+}
+
+fn detect_dockerfile(target: &Path) -> Value {
+    let dockerfile = target.join("Dockerfile");
+    if !dockerfile.exists() {
+        return Value::Null;
+    }
+
+    let content = match std::fs::read_to_string(&dockerfile) {
+        Ok(c) => c,
+        Err(_) => return Value::Null,
+    };
+
+    let mut base_image = String::new();
+    let mut exposed_port = String::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if base_image.is_empty() && trimmed.to_uppercase().starts_with("FROM ") {
+            base_image = trimmed[5..].split_whitespace().next().unwrap_or("").to_string();
+        }
+        if trimmed.to_uppercase().starts_with("EXPOSE ") {
+            exposed_port = trimmed[7..].split_whitespace().next().unwrap_or("").to_string();
+        }
+    }
+
+    json!({
+        "base_image": base_image,
+        "exposed_port": exposed_port,
+    })
 }
 
 fn to_short_name(name: &str) -> String {

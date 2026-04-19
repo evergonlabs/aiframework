@@ -28,6 +28,7 @@ regex = "1"
 rayon = "1"
 walkdir = "2"
 ignore = "0.4"
+dirs = "5"
 
 # Tree-sitter: 8 grammars for the most common languages
 # C#, PHP, Kotlin, Swift, Elixir use regex parsers (keeps binary small)

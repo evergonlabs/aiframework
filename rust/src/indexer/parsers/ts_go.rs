@@ -51,7 +51,7 @@ fn visit_node(
                 kind: "function".into(),
                 line,
                 signature: sig,
-                docstring: String::new(),
+                docstring: extract_preceding_comment(content, node),
                 visibility: if is_exported { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -85,7 +85,7 @@ fn visit_node(
                 kind: "method".into(),
                 line,
                 signature: sig,
-                docstring: String::new(),
+                docstring: extract_preceding_comment(content, node),
                 visibility: if is_exported { "public" } else { "private" }.into(),
                 parent,
             });
@@ -124,7 +124,7 @@ fn visit_node(
                         kind: kind.into(),
                         line,
                         signature: sig,
-                        docstring: String::new(),
+                        docstring: extract_preceding_comment(content, node),
                         visibility: if is_exported { "public" } else { "private" }.into(),
                         parent: None,
                     });
@@ -154,7 +154,7 @@ fn visit_node(
                         kind: "const".into(),
                         line,
                         signature: full.chars().take(80).collect(),
-                        docstring: String::new(),
+                        docstring: extract_preceding_comment(content, node),
                         visibility: if is_exported { "public" } else { "private" }.into(),
                         parent: None,
                     });
@@ -220,4 +220,18 @@ fn child_field_text(content: &str, node: &tree_sitter::Node, field: &str) -> Opt
 
 fn node_text(content: &str, node: &tree_sitter::Node) -> String {
     content[node.start_byte()..node.end_byte()].to_string()
+}
+
+/// Extract Go doc comment (// before declarations) from the previous sibling.
+fn extract_preceding_comment(content: &str, node: &tree_sitter::Node) -> String {
+    if let Some(prev) = node.prev_named_sibling() {
+        if prev.kind() == "comment" {
+            let text = node_text(content, &prev);
+            let line = text.trim_start_matches("//").trim();
+            if !line.is_empty() {
+                return line.to_string();
+            }
+        }
+    }
+    String::new()
 }

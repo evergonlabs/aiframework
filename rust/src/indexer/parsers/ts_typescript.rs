@@ -82,7 +82,7 @@ fn visit_node(
                 kind: "class".into(),
                 line,
                 signature: sig,
-                docstring: String::new(),
+                docstring: extract_preceding_jsdoc(content, node),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -111,7 +111,7 @@ fn visit_node(
                 kind: "interface".into(),
                 line,
                 signature: format!("interface {name}"),
-                docstring: String::new(),
+                docstring: extract_preceding_jsdoc(content, node),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -132,7 +132,7 @@ fn visit_node(
                 kind: "type".into(),
                 line,
                 signature: format!("type {name}"),
-                docstring: String::new(),
+                docstring: extract_preceding_jsdoc(content, node),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -153,7 +153,7 @@ fn visit_node(
                 kind: "enum".into(),
                 line,
                 signature: format!("enum {name}"),
-                docstring: String::new(),
+                docstring: extract_preceding_jsdoc(content, node),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -179,7 +179,7 @@ fn visit_node(
                 kind: "function".into(),
                 line,
                 signature: sig,
-                docstring: String::new(),
+                docstring: extract_preceding_jsdoc(content, node),
                 visibility: if is_export { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -212,7 +212,7 @@ fn visit_node(
                 kind: "method".into(),
                 line,
                 signature: sig,
-                docstring: String::new(),
+                docstring: extract_preceding_jsdoc(content, node),
                 visibility: "public".into(),
                 parent: parent_class.map(|s| s.to_string()),
             });
@@ -252,7 +252,7 @@ fn visit_node(
                             kind: kind.into(),
                             line,
                             signature: sig,
-                            docstring: String::new(),
+                            docstring: extract_preceding_jsdoc(content, node),
                             visibility: "public".into(),
                             parent: None,
                         });
@@ -263,7 +263,7 @@ fn visit_node(
                             kind: kind.into(),
                             line,
                             signature: sig,
-                            docstring: String::new(),
+                            docstring: extract_preceding_jsdoc(content, node),
                             visibility: "private".into(),
                             parent: None,
                         });
@@ -345,6 +345,35 @@ fn child_field_text(content: &str, node: &tree_sitter::Node, field: &str) -> Opt
 
 fn node_text(content: &str, node: &tree_sitter::Node) -> String {
     content[node.start_byte()..node.end_byte()].to_string()
+}
+
+/// Extract JSDoc comment (/** ... */) from the previous sibling or parent's previous sibling.
+fn extract_preceding_jsdoc(content: &str, node: &tree_sitter::Node) -> String {
+    // Check the node itself or its export_statement parent for a preceding comment
+    let target = if let Some(parent) = node.parent() {
+        if parent.kind() == "export_statement" { parent } else { *node }
+    } else {
+        *node
+    };
+    if let Some(prev) = target.prev_named_sibling() {
+        if prev.kind() == "comment" {
+            let text = node_text(content, &prev);
+            if text.starts_with("/**") {
+                let inner = text
+                    .trim_start_matches("/**")
+                    .trim_end_matches("*/")
+                    .trim();
+                // Return first non-empty, non-tag line
+                for line in inner.lines() {
+                    let l = line.trim().trim_start_matches('*').trim();
+                    if !l.is_empty() && !l.starts_with('@') {
+                        return l.to_string();
+                    }
+                }
+            }
+        }
+    }
+    String::new()
 }
 
 /// Normalize a TS/JS import path — skip npm packages (no ./ or ../ prefix).

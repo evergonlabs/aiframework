@@ -102,7 +102,7 @@ fn visit_node(
                 kind: kind.into(),
                 line,
                 signature: sig,
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: parent_impl.map(|s| s.to_string()),
             });
@@ -123,7 +123,7 @@ fn visit_node(
                 kind: "struct".into(),
                 line,
                 signature: format!("struct {name}"),
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -144,7 +144,7 @@ fn visit_node(
                 kind: "enum".into(),
                 line,
                 signature: format!("enum {name}"),
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -165,7 +165,7 @@ fn visit_node(
                 kind: "trait".into(),
                 line,
                 signature: format!("trait {name}"),
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -187,7 +187,7 @@ fn visit_node(
                 kind: "type".into(),
                 line,
                 signature: full.chars().take(80).collect(),
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -209,7 +209,7 @@ fn visit_node(
                 kind: "const".into(),
                 line,
                 signature: full.chars().take(80).collect(),
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -231,7 +231,7 @@ fn visit_node(
                 kind: "const".into(),
                 line,
                 signature: full.chars().take(80).collect(),
-                docstring: String::new(),
+                docstring: extract_preceding_doc(content, node),
                 visibility: if is_pub { "public" } else { "private" }.into(),
                 parent: None,
             });
@@ -299,4 +299,20 @@ fn child_field_text(content: &str, node: &tree_sitter::Node, field: &str) -> Opt
 
 fn node_text(content: &str, node: &tree_sitter::Node) -> String {
     content[node.start_byte()..node.end_byte()].to_string()
+}
+
+/// Extract Rust /// doc comment from the previous sibling (line_comment or attribute_item).
+fn extract_preceding_doc(content: &str, node: &tree_sitter::Node) -> String {
+    if let Some(prev) = node.prev_named_sibling() {
+        if prev.kind() == "line_comment" {
+            let text = node_text(content, &prev);
+            if text.starts_with("///") {
+                let line = text.trim_start_matches("///").trim();
+                if !line.is_empty() {
+                    return line.to_string();
+                }
+            }
+        }
+    }
+    String::new()
 }

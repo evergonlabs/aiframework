@@ -14,6 +14,17 @@ pub fn scan(target: &Path, files: &[String], stack: &Value) -> Value {
     // GitHub URL
     let github_url = detect_github_url(target);
 
+    // New fields
+    let dev_port = detect_dev_port(target);
+    let prod_port = detect_prod_port(target);
+    let scripts = detect_scripts(target);
+    let lock_file = detect_lock_file(files);
+    let has_buildspec = target.join("buildspec.yml").exists();
+    let local_path = target.canonicalize()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|_| target.to_string_lossy().to_string());
+    let production_url = detect_production_url(target);
+
     json!({
         "package_manager": pkg_manager,
         "install": install,
@@ -25,6 +36,13 @@ pub fn scan(target: &Path, files: &[String], stack: &Value) -> Value {
         "typecheck": typecheck,
         "makefile_targets": makefile_targets,
         "github_url": github_url,
+        "dev_port": dev_port,
+        "prod_port": prod_port,
+        "scripts": scripts,
+        "lock_file": lock_file,
+        "has_buildspec": has_buildspec,
+        "local_path": local_path,
+        "production_url": production_url,
     })
 }
 
@@ -223,6 +241,158 @@ fn detect_makefile_targets(target: &Path) -> Vec<String> {
             None
         })
         .collect()
+}
+
+fn detect_dev_port(target: &Path) -> String {
+    // Check package.json scripts.dev for --port or PORT=
+    let pkg_json = target.join("package.json");
+    if pkg_json.exists() {
+        if let Ok(content) = std::fs::read_to_string(&pkg_json) {
+            if let Ok(pkg) = serde_json::from_str::<Value>(&content) {
+                if let Some(dev_script) = pkg["scripts"]["dev"].as_str() {
+                    // Look for --port NNNN or --port=NNNN
+                    if let Some(pos) = dev_script.find("--port") {
+                        let after = &dev_script[pos + 6..];
+                        let after = after.trim_start_matches('=').trim_start();
+                        let port: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
+                        if !port.is_empty() {
+                            return port;
+                        }
+                    }
+                    // Look for PORT=NNNN
+                    if let Some(pos) = dev_script.find("PORT=") {
+                        let after = &dev_script[pos + 5..];
+                        let port: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
+                        if !port.is_empty() {
+                            return port;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Check Dockerfile EXPOSE
+    let dockerfile = target.join("Dockerfile");
+    if dockerfile.exists() {
+        if let Ok(content) = std::fs::read_to_string(&dockerfile) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.to_uppercase().starts_with("EXPOSE ") {
+                    let port: String = trimmed[7..].split_whitespace().next().unwrap_or("").to_string();
+                    if !port.is_empty() {
+                        return port;
+                    }
+                }
+            }
+        }
+    }
+    // Check .env PORT=
+    let env_file = target.join(".env");
+    if env_file.exists() {
+        if let Ok(content) = std::fs::read_to_string(&env_file) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.starts_with("PORT=") {
+                    let port = trimmed[5..].trim().trim_matches('"').trim_matches('\'');
+                    if !port.is_empty() {
+                        return port.to_string();
+                    }
+                }
+            }
+        }
+    }
+    String::new()
+}
+
+fn detect_prod_port(target: &Path) -> String {
+    // Check .env for PRODUCTION_PORT or similar
+    let env_file = target.join(".env");
+    if env_file.exists() {
+        if let Ok(content) = std::fs::read_to_string(&env_file) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.starts_with("PRODUCTION_PORT=") || trimmed.starts_with("PROD_PORT=") {
+                    let val = trimmed.split('=').nth(1).unwrap_or("").trim().trim_matches('"').trim_matches('\'');
+                    if !val.is_empty() {
+                        return val.to_string();
+                    }
+                }
+            }
+        }
+    }
+    // Dockerfile EXPOSE as fallback for common prod ports
+    let dockerfile = target.join("Dockerfile");
+    if dockerfile.exists() {
+        if let Ok(content) = std::fs::read_to_string(&dockerfile) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.to_uppercase().starts_with("EXPOSE ") {
+                    let port = trimmed[7..].split_whitespace().next().unwrap_or("");
+                    if matches!(port, "80" | "443" | "3000" | "8080") {
+                        return port.to_string();
+                    }
+                }
+            }
+        }
+    }
+    String::new()
+}
+
+fn detect_scripts(target: &Path) -> Value {
+    let pkg_json = target.join("package.json");
+    if pkg_json.exists() {
+        if let Ok(content) = std::fs::read_to_string(&pkg_json) {
+            if let Ok(pkg) = serde_json::from_str::<Value>(&content) {
+                if let Some(scripts) = pkg.get("scripts") {
+                    return scripts.clone();
+                }
+            }
+        }
+    }
+    Value::Null
+}
+
+fn detect_lock_file(files: &[String]) -> String {
+    for f in files {
+        let name = Path::new(f).file_name().and_then(|n| n.to_str()).unwrap_or("");
+        match name {
+            "package-lock.json" | "yarn.lock" | "pnpm-lock.yaml" | "bun.lockb" | "bun.lock"
+            | "Cargo.lock" | "poetry.lock" | "Pipfile.lock" | "uv.lock" | "go.sum"
+            | "mix.lock" | "Gemfile.lock" | "composer.lock" => return name.to_string(),
+            _ => {}
+        }
+    }
+    String::new()
+}
+
+fn detect_production_url(target: &Path) -> String {
+    // Check .env PRODUCTION_URL
+    let env_file = target.join(".env");
+    if env_file.exists() {
+        if let Ok(content) = std::fs::read_to_string(&env_file) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.starts_with("PRODUCTION_URL=") {
+                    let val = trimmed[15..].trim().trim_matches('"').trim_matches('\'');
+                    if !val.is_empty() {
+                        return val.to_string();
+                    }
+                }
+            }
+        }
+    }
+    // Check package.json homepage
+    let pkg_json = target.join("package.json");
+    if pkg_json.exists() {
+        if let Ok(content) = std::fs::read_to_string(&pkg_json) {
+            if let Ok(pkg) = serde_json::from_str::<Value>(&content) {
+                if let Some(url) = pkg["homepage"].as_str() {
+                    return url.to_string();
+                }
+            }
+        }
+    }
+    String::new()
 }
 
 fn detect_github_url(target: &Path) -> String {
