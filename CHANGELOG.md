@@ -5,14 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Added (Track B: Rust Rewrite)
-- **Rust indexer** — `rust/` directory with full code indexer rewrite (v2.0.0-alpha.1)
-- **12 language parsers**: Python, TypeScript/JS, Go, Rust, Ruby, Bash, Java, C#, PHP, Kotlin, Swift, Elixir
-- **Dependency graph + PageRank** — same algorithm as Python version, ported to Rust
-- **CLI with clap** — `aiframework index --target <path>` command working
-- **1.4 MB binary** (stripped, LTO) — zero runtime dependencies
-- **7 snapshot tests** — validates parser output for each major language
-- **Shebang detection** — extensionless files (bin/aiframework) detected by shebang line
+### Added (Track B: Rust Rewrite — 6,582 LOC, 2.1 MB binary)
+- **All 7 CLI commands working**: run, discover, generate, index, verify, refresh, update
+- **9 scanners**: identity, stack, commands, structure, archetype, ci, domain, env, quality
+- **5 generators**: CLAUDE.md, AGENTS.md, .cursorrules, .githooks, .github/workflows/ci.yml
+- **Validator**: file existence, content structure, command validity, manifest integrity
+- **12 language parsers**: Python (tree-sitter), TypeScript/JS, Go, Rust, Ruby, Bash, Java, C#, PHP, Kotlin, Swift, Elixir
+- **Code metrics**: cyclomatic complexity, logical LOC, pattern detection (large files, deep nesting, etc.)
+- **Dependency graph + PageRank** — finds 16% more symbols, 20% more edges than Python version
+- **Beautiful terminal UI**: retro ASCII banner, color-coded phases, box-drawing verify table, progress bars
+- **Smart refresh**: drift detection based on file modification times
+- **Self-update**: checks GitHub for new versions, shows install instructions
+- **Smart file preservation**: skips existing user files, only overwrites aiframework-generated content
+- **26 tests** covering indexer, parsers, scanners, generators, data registry
+- **Embedded language registry**: 20 languages compiled into the binary, zero runtime deps
 
 ## [1.4.0] — 2026-04-19
 ### Added
