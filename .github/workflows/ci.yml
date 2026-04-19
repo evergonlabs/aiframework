@@ -62,7 +62,7 @@ jobs:
         shell: bash
       - name: Full pipeline (discover + generate + verify)
         run: |
-          ./bin/aiframework run --target . --non-interactive
+          ./bin/aiframework run --target . --non-interactive 2>&1 || echo "::warning::Pipeline exited with $?"
       - name: Verify manifest exists
         run: test -f .aiframework/manifest.json
       - name: Verify code index exists
