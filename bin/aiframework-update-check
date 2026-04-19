@@ -238,6 +238,7 @@ main() {
       _output_json "UPGRADE_AVAILABLE $local_ver $remote_ver" "$local_ver"
     elif ! is_snoozed "$remote_ver"; then
       echo "UPGRADE_AVAILABLE $local_ver $remote_ver"
+      echo "  Run 'aiframework update' to upgrade, or 'aiframework-update-check --snooze' to dismiss."
     fi
   else
     write_cache "UP_TO_DATE $local_ver $remote_ver"

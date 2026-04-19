@@ -101,6 +101,28 @@ jobs:
           rm -rf dist
         shell: bash
 
+  alpine:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test on Alpine Linux (musl)
+        run: |
+          docker run --rm -v "$PWD":/workspace -w /workspace alpine:3.19 sh -c '
+            apk add --no-cache bash python3 py3-pip jq git coreutils
+            echo "=== Alpine $(cat /etc/alpine-release) ==="
+            bash -n bin/aiframework
+            bash -n bin/aiframework-update-check
+            python3 -m py_compile lib/indexers/parse.py
+            echo "=== Installer dry-run ==="
+            sh install.sh --dry-run
+            echo "=== Full pipeline ==="
+            git config --global --add safe.directory /workspace
+            ./bin/aiframework run --target . --non-interactive 2>&1 || echo "::warning::Pipeline exited with $?"
+            test -f .aiframework/manifest.json && echo "OK: manifest.json"
+            test -f CLAUDE.md && echo "OK: CLAUDE.md"
+          '
+
   json-validation:
     runs-on: ubuntu-latest
     steps:

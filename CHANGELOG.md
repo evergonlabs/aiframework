@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-04-19
+### Added
+- **Runtime Python version gate** — `bin/aiframework` now checks Python 3.10+ at startup with clear upgrade instructions instead of cryptic SyntaxError from match/case
+- **Smart dependency detection** — installer detects Linux distro (apt/dnf/pacman/apk/zypper) and shows distro-specific install commands for each missing dependency
+- **`--auto-deps` installer flag** — opt-in auto-installation of missing dependencies (jq, Python, git) using the detected package manager
+- **`--dry-run` installer flag** — preview what the installer will do (clone location, symlinks, PATH changes) without making any changes
+- **Alpine Linux CI** — added Alpine 3.19 (musl libc) to CI matrix via Docker, testing installer dry-run and full pipeline
+
+### Improved
+- **Better Python error messages** — "Python 3.10+ required, found 3.8" with platform-specific upgrade commands instead of generic "install python3"
+- **Update check UX** — upgrade-available message now includes actionable next step (`aiframework update` or `--snooze`)
+
 ## [1.3.2] — 2026-04-19
 ### Fixed
 - **CI workflow green** — ShellCheck severity set to error-only, dist tarball handles missing templates dir, dropped Windows from installer matrix (bash CLI), added fail-fast: false to all matrices

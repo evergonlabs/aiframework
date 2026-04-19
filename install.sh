@@ -121,22 +121,143 @@ check_command() {
   command -v "$1" >/dev/null 2>&1
 }
 
+# Detect Linux package manager
+detect_pkg_manager() {
+  if check_command apt-get; then echo "apt"
+  elif check_command dnf; then echo "dnf"
+  elif check_command yum; then echo "yum"
+  elif check_command pacman; then echo "pacman"
+  elif check_command apk; then echo "apk"
+  elif check_command zypper; then echo "zypper"
+  else echo "unknown"
+  fi
+}
+
+# Generate install command for a package per distro
+pkg_install_hint() {
+  local pkg="$1"
+  case "$PLATFORM" in
+    macos)
+      case "$pkg" in
+        python3) echo "brew install python@3.12" ;;
+        *)       echo "brew install $pkg" ;;
+      esac
+      ;;
+    linux|wsl)
+      local mgr
+      mgr=$(detect_pkg_manager)
+      case "$mgr" in
+        apt)     case "$pkg" in
+                   python3) echo "sudo apt-get install -y python3.12 python3.12-venv" ;;
+                   *)       echo "sudo apt-get install -y $pkg" ;;
+                 esac ;;
+        dnf)     case "$pkg" in
+                   python3) echo "sudo dnf install -y python3.12" ;;
+                   *)       echo "sudo dnf install -y $pkg" ;;
+                 esac ;;
+        yum)     echo "sudo yum install -y $pkg" ;;
+        pacman)  case "$pkg" in
+                   python3) echo "sudo pacman -S --noconfirm python" ;;
+                   jq)      echo "sudo pacman -S --noconfirm jq" ;;
+                   *)       echo "sudo pacman -S --noconfirm $pkg" ;;
+                 esac ;;
+        apk)     case "$pkg" in
+                   python3) echo "sudo apk add python3" ;;
+                   *)       echo "sudo apk add $pkg" ;;
+                 esac ;;
+        zypper)  echo "sudo zypper install -y $pkg" ;;
+        *)       echo "Install $pkg using your package manager" ;;
+      esac
+      ;;
+    windows)
+      case "$pkg" in
+        python3) echo "https://python.org/downloads/  (check 'Add to PATH')" ;;
+        jq)      echo "choco install jq  OR  scoop install jq" ;;
+        git)     echo "https://git-scm.com/download/win" ;;
+        *)       echo "Install $pkg manually" ;;
+      esac
+      ;;
+  esac
+}
+
+# Auto-install a missing dependency (only with --auto-deps)
+try_auto_install() {
+  local pkg="$1"
+  if [ "${AUTO_DEPS:-0}" != "1" ]; then
+    return 1
+  fi
+  case "$PLATFORM" in
+    macos)
+      if check_command brew; then
+        info "  Auto-installing $pkg via Homebrew..."
+        case "$pkg" in
+          python3) brew install python@3.12 2>/dev/null && return 0 ;;
+          *)       brew install "$pkg" 2>/dev/null && return 0 ;;
+        esac
+      fi
+      ;;
+    linux|wsl)
+      local mgr
+      mgr=$(detect_pkg_manager)
+      case "$mgr" in
+        apt)
+          info "  Auto-installing $pkg via apt..."
+          case "$pkg" in
+            python3) sudo apt-get update -qq && sudo apt-get install -y python3.12 2>/dev/null && return 0
+                     sudo apt-get install -y python3 2>/dev/null && return 0 ;;
+            *)       sudo apt-get update -qq && sudo apt-get install -y "$pkg" 2>/dev/null && return 0 ;;
+          esac
+          ;;
+        dnf)
+          info "  Auto-installing $pkg via dnf..."
+          case "$pkg" in
+            python3) sudo dnf install -y python3.12 2>/dev/null && return 0 ;;
+            *)       sudo dnf install -y "$pkg" 2>/dev/null && return 0 ;;
+          esac
+          ;;
+        pacman)
+          info "  Auto-installing $pkg via pacman..."
+          case "$pkg" in
+            python3) sudo pacman -S --noconfirm python 2>/dev/null && return 0 ;;
+            jq)      sudo pacman -S --noconfirm jq 2>/dev/null && return 0 ;;
+            *)       sudo pacman -S --noconfirm "$pkg" 2>/dev/null && return 0 ;;
+          esac
+          ;;
+        apk)
+          info "  Auto-installing $pkg via apk..."
+          case "$pkg" in
+            python3) sudo apk add python3 2>/dev/null && return 0 ;;
+            *)       sudo apk add "$pkg" 2>/dev/null && return 0 ;;
+          esac
+          ;;
+        zypper)
+          info "  Auto-installing $pkg via zypper..."
+          sudo zypper install -y "$pkg" 2>/dev/null && return 0
+          ;;
+      esac
+      ;;
+  esac
+  return 1
+}
+
 check_dependencies() {
   missing=0
+  missing_pkgs=""
 
   # git (required)
   if check_command git; then
     git_ver="$(git --version | awk '{print $3}')"
     ok "git $git_ver"
   else
-    err "git is required but not installed"
-    case "$PLATFORM" in
-      macos)   info "  Install: brew install git  OR  xcode-select --install" ;;
-      linux)   info "  Install: sudo apt install git  (or dnf/pacman/zypper)" ;;
-      wsl)     info "  Install: sudo apt install git" ;;
-      windows) info "  Install: https://git-scm.com/download/win" ;;
-    esac
-    missing=1
+    if try_auto_install git; then
+      git_ver="$(git --version | awk '{print $3}')"
+      ok "git $git_ver (auto-installed)"
+    else
+      err "git is required but not installed"
+      info "  Install: $(pkg_install_hint git)"
+      missing=1
+      missing_pkgs="$missing_pkgs git"
+    fi
   fi
 
   # bash (required, 3.2+)
@@ -146,6 +267,7 @@ check_dependencies() {
   else
     err "bash is required but not installed"
     missing=1
+    missing_pkgs="$missing_pkgs bash"
   fi
 
   # python3 (required, 3.10+)
@@ -168,18 +290,21 @@ check_dependencies() {
     if [ "$py_major" -gt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -ge 10 ]; }; then
       ok "$PY_CMD $py_ver"
     else
-      err "python 3.10+ required (found $py_ver)"
+      err "Python 3.10+ required, found $py_ver. The code indexer uses match/case syntax (PEP 634)."
+      info "  Upgrade: $(pkg_install_hint python3)"
       missing=1
+      missing_pkgs="$missing_pkgs python3"
     fi
   else
-    err "python3 is required but not installed"
-    case "$PLATFORM" in
-      macos)   info "  Install: brew install python@3.12" ;;
-      linux)   info "  Install: sudo apt install python3  (or dnf/pacman/zypper)" ;;
-      wsl)     info "  Install: sudo apt install python3" ;;
-      windows) info "  Install: https://python.org/downloads/  (check 'Add to PATH')" ;;
-    esac
-    missing=1
+    if try_auto_install python3; then
+      py_ver="$(python3 -c 'import sys; print("{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro))' 2>/dev/null || echo "unknown")"
+      ok "python3 $py_ver (auto-installed)"
+    else
+      err "python3 is required but not installed"
+      info "  Install: $(pkg_install_hint python3)"
+      missing=1
+      missing_pkgs="$missing_pkgs python3"
+    fi
   fi
 
   # jq (required)
@@ -187,19 +312,25 @@ check_dependencies() {
     jq_ver="$(jq --version 2>/dev/null | tr -d 'jq-')"
     ok "jq $jq_ver"
   else
-    err "jq is required but not installed"
-    case "$PLATFORM" in
-      macos)   info "  Install: brew install jq" ;;
-      linux)   info "  Install: sudo apt install jq  (or dnf/pacman/zypper)" ;;
-      wsl)     info "  Install: sudo apt install jq" ;;
-      windows) info "  Install: choco install jq  OR  scoop install jq  OR  https://jqlang.github.io/jq/download/" ;;
-    esac
-    missing=1
+    if try_auto_install jq; then
+      jq_ver="$(jq --version 2>/dev/null | tr -d 'jq-')"
+      ok "jq $jq_ver (auto-installed)"
+    else
+      err "jq is required but not installed"
+      info "  Install: $(pkg_install_hint jq)"
+      missing=1
+      missing_pkgs="$missing_pkgs jq"
+    fi
   fi
 
   if [ "$missing" -ne 0 ]; then
     echo ""
-    die "Missing dependencies. Install them and re-run the installer."
+    if [ "${AUTO_DEPS:-0}" != "1" ]; then
+      info "Tip: Re-run with --auto-deps to auto-install missing packages:"
+      info "  curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --auto-deps"
+    fi
+    echo ""
+    die "Missing dependencies:${missing_pkgs}. Install them and re-run the installer."
   fi
 }
 
@@ -384,6 +515,12 @@ main() {
       --no-modify-rc)
         NO_MODIFY_RC=1
         ;;
+      --auto-deps)
+        AUTO_DEPS=1
+        ;;
+      --dry-run)
+        DRY_RUN=1
+        ;;
       --help|-h)
         echo "Usage: curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh"
         echo ""
@@ -398,6 +535,8 @@ main() {
         echo "Flags:"
         echo "  --uninstall            Remove aiframework"
         echo "  --no-modify-rc         Don't modify shell RC files (PATH)"
+        echo "  --auto-deps            Auto-install missing dependencies (requires sudo on Linux)"
+        echo "  --dry-run              Show what would be installed without making changes"
         echo "  --help                 Show this help"
         exit 0
         ;;
@@ -413,6 +552,40 @@ main() {
   info "Checking dependencies..."
   check_dependencies
   echo ""
+
+  # --dry-run: show what would happen and exit
+  if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo ""
+    printf "${BOLD}Dry run — no changes will be made${NC}\n"
+    echo ""
+    info "Would clone/update:  $GITHUB_REPO (branch: $BRANCH)"
+    info "Clone directory:     $AIFRAMEWORK_DIR"
+    info "Symlink binaries to: $BIN_DIR"
+    info "  - $BIN_DIR/aiframework"
+    info "  - $BIN_DIR/aiframework-mcp"
+    info "  - $BIN_DIR/aiframework-telemetry"
+    info "  - $BIN_DIR/aiframework-update-check"
+    if [ "${SKIP_SHEAL:-0}" != "1" ] && check_command npm; then
+      info "Would install:       sheal (via npm)"
+    fi
+    # Check PATH
+    case ":$PATH:" in
+      *":$BIN_DIR:"*) info "PATH: $BIN_DIR already in PATH" ;;
+      *)
+        SHELL_NAME="$(basename "${SHELL:-/bin/sh}")"
+        case "$SHELL_NAME" in
+          zsh)  SHELL_RC="$HOME/.zshrc" ;;
+          bash) SHELL_RC="$HOME/.bashrc" ;;
+          fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
+          *)    SHELL_RC="$HOME/.profile" ;;
+        esac
+        info "Would add to PATH:   $BIN_DIR (in $SHELL_RC)"
+        ;;
+    esac
+    echo ""
+    ok "Dry run complete. Re-run without --dry-run to install."
+    exit 0
+  fi
 
   install_aiframework
   ensure_path

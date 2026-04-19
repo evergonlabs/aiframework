@@ -17,6 +17,23 @@ if [[ ${BASH_VERSINFO[0]:-3} -lt 4 ]]; then
   echo "  macOS: brew install bash"
 fi
 
+# Early Python version gate — catch before match/case syntax causes cryptic SyntaxError
+if command -v python3 &>/dev/null; then
+  if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,10) else 1)" 2>/dev/null; then
+    _py_ver=$(python3 -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))" 2>/dev/null || echo "unknown")
+    echo "Error: Python 3.10+ required (found ${_py_ver}). The code indexer uses match/case syntax." >&2
+    echo "  Upgrade:" >&2
+    case "$(uname -s)" in
+      Darwin) echo "    brew install python@3.12" >&2 ;;
+      Linux)  echo "    sudo apt install python3.12  # or: dnf install python3.12" >&2 ;;
+      *)      echo "    https://python.org/downloads/" >&2 ;;
+    esac
+    echo "  aiframework will run with reduced functionality (bash-only fallbacks)." >&2
+  fi
+else
+  echo "Warning: python3 not found. Code indexing will use bash-only fallback (less detail)." >&2
+fi
+
 # Resolve through symlinks to find the real install directory
 _AIF_SOURCE="${BASH_SOURCE[0]}"
 while [[ -L "$_AIF_SOURCE" ]]; do
