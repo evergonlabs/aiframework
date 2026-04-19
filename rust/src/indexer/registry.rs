@@ -7,8 +7,8 @@ pub type ParserFn = fn(&str, &str) -> (Vec<Symbol>, Vec<String>, Vec<String>);
 /// Get parser for a file extension. Returns None if unsupported.
 pub fn get_parser(ext: &str) -> Option<ParserFn> {
     match ext {
-        // Python
-        "py" => Some(parsers::python::parse),
+        // Python (tree-sitter based — more accurate than regex)
+        "py" => Some(parsers::ts_python::parse),
 
         // TypeScript / JavaScript
         "ts" | "tsx" | "js" | "jsx" | "mjs" | "cjs" => Some(parsers::typescript::parse),
