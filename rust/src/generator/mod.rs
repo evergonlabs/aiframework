@@ -2,7 +2,12 @@ pub mod agents_md;
 pub mod ci;
 pub mod claude_md;
 pub mod cursorrules;
+pub mod docs;
 pub mod hooks;
+pub mod rules;
+pub mod skills;
+pub mod tracking;
+pub mod vault;
 
 use serde_json::Value;
 use std::path::Path;
@@ -54,6 +59,32 @@ pub fn generate(
         std::fs::write(&ci_path, &ci_content)?;
         generated.push(".github/workflows/ci.yml".into());
     }
+
+    // docs/reference/architecture.md
+    let arch_path = target.join("docs/reference/architecture.md");
+    if !arch_path.exists() {
+        let docs_dir = target.join("docs/reference");
+        std::fs::create_dir_all(&docs_dir)?;
+        let docs_content = docs::generate(manifest, code_index);
+        std::fs::write(&arch_path, &docs_content)?;
+        generated.push("docs/reference/architecture.md".into());
+    }
+
+    // .claude/skills/{short}-review and {short}-ship
+    let skill_files = skills::generate(target, manifest)?;
+    generated.extend(skill_files);
+
+    // .claude/rules/workflow.md
+    let rule_files = rules::generate(target, manifest)?;
+    generated.extend(rule_files);
+
+    // vault/ directory structure
+    let vault_files = vault::generate(target, manifest, code_index)?;
+    generated.extend(vault_files);
+
+    // tools/learnings/{short}-learnings.jsonl
+    let tracking_files = tracking::generate(target, manifest)?;
+    generated.extend(tracking_files);
 
     Ok(generated)
 }

@@ -1,17 +1,21 @@
-pub mod identity;
-pub mod stack;
-pub mod commands;
-pub mod structure;
 pub mod archetype;
 pub mod ci;
+pub mod code_index;
+pub mod commands;
 pub mod domain;
 pub mod env;
+pub mod identity;
 pub mod quality;
+pub mod sheal;
+pub mod skill_suggest;
+pub mod stack;
+pub mod structure;
+pub mod user_context;
 
 use serde_json::{json, Value};
 use std::path::Path;
 
-/// Run all scanners and produce a manifest.
+/// Run all 13 scanners and produce a complete manifest.
 pub fn discover(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
     let target = target.canonicalize()?;
 
@@ -19,16 +23,20 @@ pub fn discover(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
     let files = collect_files(&target)?;
     let file_names: Vec<String> = files.iter().map(|f| f.to_string()).collect();
 
-    // Run scanners
+    // Run all scanners
     let identity = identity::scan(&target, &file_names);
     let stack = stack::scan(&target, &file_names);
     let commands = commands::scan(&target, &file_names, &stack);
     let structure = structure::scan(&target, &file_names);
     let archetype = archetype::scan(&target, &file_names);
-    let ci = ci::scan(&target, &file_names);
+    let ci_data = ci::scan(&target, &file_names);
     let domain = domain::scan(&target, &file_names);
-    let env = env::scan(&target, &file_names);
+    let env_data = env::scan(&target, &file_names);
     let quality = quality::scan(&target, &file_names);
+    let user_context = user_context::scan(&target, &file_names);
+    let skill_suggestions = skill_suggest::scan(&target, &file_names);
+    let code_index_meta = code_index::scan(&target, &file_names);
+    let sheal_data = sheal::scan(&target, &file_names);
 
     let manifest = json!({
         "identity": identity,
@@ -36,10 +44,14 @@ pub fn discover(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
         "commands": commands,
         "structure": structure,
         "archetype": archetype,
-        "ci": ci,
+        "ci": ci_data,
         "domain": domain,
-        "env": env,
+        "env": env_data,
         "quality": quality,
+        "user_context": user_context,
+        "skill_suggestions": skill_suggestions,
+        "code_index": code_index_meta,
+        "sheal": sheal_data,
     });
 
     Ok(manifest)

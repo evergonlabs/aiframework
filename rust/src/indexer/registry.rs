@@ -10,20 +10,23 @@ pub fn get_parser(ext: &str) -> Option<ParserFn> {
         // Python (tree-sitter based — more accurate than regex)
         "py" => Some(parsers::ts_python::parse),
 
-        // TypeScript / JavaScript
-        "ts" | "tsx" | "js" | "jsx" | "mjs" | "cjs" => Some(parsers::typescript::parse),
+        // TypeScript (tree-sitter based)
+        "ts" | "tsx" => Some(parsers::ts_typescript::parse_ts),
 
-        // Go
-        "go" => Some(parsers::go::parse),
+        // JavaScript (tree-sitter based)
+        "js" | "jsx" | "mjs" | "cjs" => Some(parsers::ts_typescript::parse_js),
 
-        // Rust
-        "rs" => Some(parsers::rust::parse),
+        // Go (tree-sitter based)
+        "go" => Some(parsers::ts_go::parse),
+
+        // Rust (tree-sitter based)
+        "rs" => Some(parsers::ts_rust::parse),
 
         // Ruby
         "rb" => Some(parsers::ruby::parse),
 
-        // Bash / Shell
-        "sh" | "bash" | "zsh" => Some(parsers::bash::parse),
+        // Bash / Shell (tree-sitter based)
+        "sh" | "bash" | "zsh" => Some(parsers::ts_bash::parse),
 
         // Java
         "java" => Some(parsers::java::parse),
