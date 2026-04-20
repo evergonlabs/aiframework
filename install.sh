@@ -579,14 +579,39 @@ main() {
 }
 RECEIPT_EOF
 
-  # Install optional companions
+  # Install companion tools (skip with SKIP_COMPANIONS=1)
   if [ "${SKIP_COMPANIONS:-0}" != "1" ]; then
+    echo ""
+    info "Installing companion tools..."
+
     # sheal (session intelligence) — requires Node.js
     if check_command npm; then
-      info "Installing sheal (session intelligence)..."
-      npm install -g @liwala/sheal@latest 2>/dev/null && ok "sheal installed" || warn "sheal install failed (non-fatal)"
+      if ! check_command sheal; then
+        info "  Installing sheal (session intelligence)..."
+        npm install -g @liwala/sheal@latest 2>/dev/null && ok "  sheal installed" || warn "  sheal install failed (non-fatal)"
+      else
+        ok "  sheal already installed ($(sheal --version 2>/dev/null || echo '?'))"
+      fi
     else
-      info "Tip: Install Node.js and run 'npm install -g @liwala/sheal' for session intelligence"
+      warn "  sheal requires Node.js — install Node.js, then: npm install -g @liwala/sheal"
+    fi
+
+    # gstack (37 workflow skills for Claude Code)
+    GSTACK_DIR="$HOME/.claude/skills/gstack"
+    if [ -d "$GSTACK_DIR" ]; then
+      ok "  gstack already installed"
+    else
+      if check_command git; then
+        info "  Installing gstack (37 workflow skills)..."
+        git clone --quiet --depth 1 https://github.com/garrytan/gstack.git "$GSTACK_DIR" 2>/dev/null && {
+          if [ -f "$GSTACK_DIR/setup" ]; then
+            (cd "$GSTACK_DIR" && bash setup 2>/dev/null) || true
+          fi
+          ok "  gstack installed ($(ls -d "$GSTACK_DIR"/*/ 2>/dev/null | wc -l | tr -d ' ') skills)"
+        } || warn "  gstack install failed (non-fatal)"
+      else
+        warn "  gstack requires git — install git, then: git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack"
+      fi
     fi
   fi
 
@@ -597,10 +622,6 @@ RECEIPT_EOF
   echo "  To get started:"
   echo ""
   printf "    ${BOLD}aiframework run --target ~/your-project${NC}\n"
-  echo ""
-  echo "  Optional companions:"
-  echo "    npm install -g @liwala/sheal          Session intelligence"
-  echo "    git clone ... ~/.claude/skills/gstack  37 workflow skills"
   echo ""
   echo "  Docs: https://github.com/evergonlabs/aiframework"
   echo ""

@@ -24,12 +24,25 @@ aiframework scans your repo once and generates a `CLAUDE.md` — the configurati
 
 **The result:** Claude knows your lint/test/build commands, your architecture, your security invariants, and can navigate your codebase through a dependency graph of every file — from the first message.
 
+## The bigger picture
+
+AI coding assistants are powerful, but they start every session blind. They don't know your stack, your conventions, your architecture. You spend the first 10 minutes of every session re-explaining context that should be automatic.
+
+aiframework solves the full lifecycle:
+
+1. **Setup** — scan your repo, generate configs, build a knowledge graph (aiframework)
+2. **Runtime** — workflow skills for shipping, reviewing, debugging, QA (gstack)
+3. **Learning** — extract what worked, capture gotchas, improve future sessions (sheal)
+
+One install gives you all three. Your AI assistant understands your project from the first message, has tools to do real work, and gets smarter over time.
+
 ## Why aiframework
 
 - **Deterministic.** Same repo produces the same output every time. No hallucination, no drift.
 - **Deep.** 13 scanners analyze identity, stack, commands, CI/CD, domains, environment, quality tools, archetype, and more. A tree-sitter code indexer extracts every function, class, type, and import across 20 languages.
 - **Fast.** Full pipeline runs in ~0.3 seconds. Single Rust binary, 8.9 MB, zero runtime dependencies.
 - **Universal.** Works with Claude Code, Cursor, GitHub Copilot, OpenAI Codex, and Google Gemini. One scan, every AI assistant benefits.
+- **End-to-end.** Not just config generation — includes 37 workflow skills, session intelligence, persistent memory, and a knowledge graph that grows with your project.
 
 ---
 
@@ -85,7 +98,12 @@ brew tap evergonlabs/tap && brew install aiframework
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
 ```
 
-This detects your platform (macOS Intel/ARM, Linux x86/ARM, WSL, Windows Git Bash), downloads a pre-built binary, and adds it to your PATH. No runtime dependencies — the binary is self-contained.
+This detects your platform, downloads the binary, and installs companion tools automatically:
+- **aiframework** — the core binary (zero runtime deps)
+- **sheal** — session intelligence (if Node.js is available)
+- **gstack** — 37 workflow skills for Claude Code (via git clone)
+
+Skip companions with `SKIP_COMPANIONS=1`.
 
 ### From source
 
