@@ -579,6 +579,17 @@ main() {
 }
 RECEIPT_EOF
 
+  # Install optional companions
+  if [ "${SKIP_COMPANIONS:-0}" != "1" ]; then
+    # sheal (session intelligence) — requires Node.js
+    if check_command npm; then
+      info "Installing sheal (session intelligence)..."
+      npm install -g @liwala/sheal@latest 2>/dev/null && ok "sheal installed" || warn "sheal install failed (non-fatal)"
+    else
+      info "Tip: Install Node.js and run 'npm install -g @liwala/sheal' for session intelligence"
+    fi
+  fi
+
   # Clean success output
   echo ""
   ok "aiframework ${VERSION} installed"
@@ -586,6 +597,10 @@ RECEIPT_EOF
   echo "  To get started:"
   echo ""
   printf "    ${BOLD}aiframework run --target ~/your-project${NC}\n"
+  echo ""
+  echo "  Optional companions:"
+  echo "    npm install -g @liwala/sheal          Session intelligence"
+  echo "    git clone ... ~/.claude/skills/gstack  37 workflow skills"
   echo ""
   echo "  Docs: https://github.com/evergonlabs/aiframework"
   echo ""

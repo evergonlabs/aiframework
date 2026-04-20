@@ -76,6 +76,20 @@ pub fn scan(target: &Path, files: &[String]) -> Value {
             })
             .unwrap_or(false);
 
+    // gstack detection
+    let has_gstack = dirs::home_dir()
+        .map(|h| h.join(".claude/skills/gstack").is_dir())
+        .unwrap_or(false);
+
+    let gstack_skill_count = if has_gstack {
+        dirs::home_dir()
+            .and_then(|h| std::fs::read_dir(h.join(".claude/skills/gstack")).ok())
+            .map(|entries| entries.flatten().filter(|e| e.path().is_dir()).count())
+            .unwrap_or(0)
+    } else {
+        0
+    };
+
     json!({
         "installed": installed,
         "version": version,
@@ -87,5 +101,7 @@ pub fn scan(target: &Path, files: &[String]) -> Value {
         "global_learnings_count": global_learnings_count,
         "has_rules_block": has_rules_block,
         "has_retro_skill": has_retro_skill,
+        "has_gstack": has_gstack,
+        "gstack_skill_count": gstack_skill_count,
     })
 }

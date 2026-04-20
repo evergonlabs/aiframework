@@ -280,11 +280,11 @@ The session protocol (`.claude/rules/session-protocol.md`) instructs Claude to r
 
 ## Ecosystem
 
-aiframework handles **setup-time intelligence** — it runs once and generates everything. Two optional companion tools extend it with **runtime intelligence**:
+aiframework handles **setup-time intelligence** — scanning, indexing, generating configs. Two optional companion tools extend it with **runtime intelligence** during your coding sessions:
 
-### gstack
+### gstack — 37 workflow skills
 
-[gstack](https://github.com/garrytan/gstack) is a collection of 37+ skills for Claude Code that handle day-to-day development workflows:
+[gstack](https://github.com/garrytan/gstack) adds day-to-day development skills to Claude Code: shipping, QA, security audits, design review, browser automation.
 
 | Category | Skills |
 |:---------|:-------|
@@ -293,16 +293,17 @@ aiframework handles **setup-time intelligence** — it runs once and generates e
 | **Plan & Design** | `/plan-ceo-review`, `/plan-eng-review`, `/autoplan`, `/design-shotgun` |
 | **Utilities** | `/checkpoint`, `/guard`, `/freeze`, `/pair-agent`, `/codex` |
 
-gstack is optional. aiframework works fully without it. But together, aiframework provides the context and gstack provides the workflows.
+**Integration:** aiframework detects gstack installation (`~/.claude/skills/gstack/`) and reports it in the manifest. The two tools complement each other — aiframework gives Claude the context, gstack gives Claude the workflows.
 
 ```bash
 # Install gstack (optional)
-git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup
+git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup
 ```
 
-### sheal
+### sheal — session intelligence
 
-[sheal](https://www.npmjs.com/package/@liwala/sheal) is a runtime session intelligence layer. It watches your Claude Code sessions, extracts learnings from what worked and what failed, and bridges those insights back into your project.
+[sheal](https://www.npmjs.com/package/@liwala/sheal) watches your Claude Code sessions, extracts learnings, and bridges them back into your project as persistent knowledge.
 
 | Command | When | What |
 |:--------|:-----|:-----|
@@ -311,7 +312,7 @@ git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack && cd ~/.cl
 | `sheal drift` | Weekly | Detect learnings that aren't being applied |
 | `sheal ask "question"` | Anytime | Search session history |
 
-aiframework detects sheal automatically (the `sheal` scanner) and generates `.sheal/config.json` with your project's test/lint commands. Learnings are stored in `tools/learnings/*.jsonl` and synced to the vault.
+**Integration:** aiframework detects sheal automatically (the `sheal` scanner reports version, learning counts, and config status). On `--tier full`, it generates `.sheal/config.json` with your project's test/lint/build commands pre-filled. The installer offers to install sheal via npm.
 
 ```bash
 # Install sheal (optional, requires Node.js)
@@ -320,14 +321,16 @@ npm install -g @liwala/sheal
 
 ### Agentic memory patterns
 
-The vault system is inspired by [agentic-memory-vault](https://github.com/galimba/agentic-memory-vault) — a pattern for giving AI agents persistent memory across sessions. aiframework implements this pattern with:
+The vault system draws from the [agentic-memory-vault](https://github.com/galimba/agentic-memory-vault) pattern — a design for giving AI agents persistent memory across sessions. aiframework implements this pattern with:
 
-- **Status tracking**: `vault/memory/status.md` as a living document Claude reads every session
-- **Decision logging**: `vault/memory/decisions/` for ADR-style records
-- **Learning extraction**: sheal retros → JSONL → vault sync
+- **Status tracking**: `vault/memory/status.md` — a living document Claude reads every session start
+- **Decision logging**: `vault/memory/decisions/` — ADR-style records of why things were decided
+- **Learning extraction**: sheal retros → JSONL → vault sync (when sheal is installed)
 - **Knowledge graph**: wiki pages as navigable context (not just raw files)
 
-The key insight: AI agents work better when they have **structured context** they can read at session start, not just raw code. The vault provides that structure.
+The key insight: AI coding agents work better with **structured context** they can read at session start, not just raw source code. The vault provides that structure — and it persists across sessions, across team members, across tools.
+
+All three companions are optional. aiframework works fully standalone.
 
 ---
 
