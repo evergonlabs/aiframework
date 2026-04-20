@@ -20,8 +20,8 @@ allowed-tools:
 ## Step 1: Verify
 
 ```bash
-find . -name .sh -not -path .git -not -path vault  xargs shellcheck
-find . -name .sh -not -path .git -not -path vault  xargs bash -n
+cd rust && cargo clippy
+cd rust && cargo check
 make test
 ```
 

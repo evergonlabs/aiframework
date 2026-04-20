@@ -1,92 +1,76 @@
 # CLAUDE.md — aiframework
 
-> Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly. Stack: bash+python+rust/none.
+> Make Claude Code understand your project instantly. Stack: Rust.
 
 | You need to... | Read |
 |----------------|------|
 | Understand this repo | This file |
-| Debug a recurring issue | `docs/LESSONS_LEARNED.md` |
-| See architecture/modules | `docs/reference/architecture.md` |
+| See architecture | `docs/reference/architecture.md` |
 | Check workflow rules | `.claude/rules/workflow.md` |
 
 ## Commands
 
 ```bash
-# Lint
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
+# Build
+cd rust && cargo build --release
 
-# Type check
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
+# Lint
+cd rust && cargo clippy
 
 # Test
-make test
+cd rust && cargo test
 
+# Run
+cd rust && cargo run -- run --target /path/to/repo
 ```
-
-## Invariants
-
-- **INV-1**: LLM trust boundary — validate all AI output
 
 ## Architecture
 
+- **Stack**: Rust (single binary, 8.9 MB, zero runtime deps)
 - **Archetype**: cli-tool (active, complex)
 
 ## Key Locations
 
-- **AI/LLM Integration**: bin/aiframework-update-check
-- **AI/LLM Integration**: bin/aiframework-mcp
-- **AI/LLM Integration**: bin/aiframework-telemetry
-- **Scripts**: `bin/`
-- **Scripts**: `tools/`
-- **CI**: `.github/`
-- **Data**: `lib/data/` — detection registries and config
+- **CLI**: `rust/src/cli.rs`
+- **Scanners**: `rust/src/scanner/` (13 scanners)
+- **Indexer**: `rust/src/indexer/` (13 language parsers, 8 tree-sitter)
+- **Generators**: `rust/src/generator/` (14 generators)
+- **Validators**: `rust/src/validator/mod.rs` (5 checks)
+- **MCP Server**: `rust/src/mcp/mod.rs`
+- **Config/Tiers**: `rust/src/config.rs`
+- **Telemetry**: `rust/src/telemetry.rs`
+- **UI**: `rust/src/ui.rs`
+- **Language Registry**: `rust/data/languages.json`
 
 **Most important files** (by dependency rank):
-- `lib/scanners/sheal.sh`
-- `lib/generators/sheal.sh`
-- `lib/indexers/registry.py`
-- `lib/indexers/graph.py`
-- `lib/bridge/sheal_learnings.sh`
-- `lib/generators/preserve.sh`
-- `lib/validators/security.sh`
-- `lib/scanners/skill_suggest.sh`
-- `lib/validators/freshness.sh`
-- `lib/validators/quality_gate.sh`
+- `rust/src/cli.rs`
+- `rust/src/indexer/mod.rs`
+- `rust/src/scanner/mod.rs`
+- `rust/src/generator/mod.rs`
+- `rust/src/generator/claude_md.rs`
+- `rust/src/config.rs`
+- `rust/src/ui.rs`
+- `rust/src/indexer/graph.rs`
+- `rust/src/validator/mod.rs`
+- `rust/src/mcp/mod.rs`
 
-## Environment Variables
+## Invariants
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| POSTHOG_API_KEY | No | - |
-| POSTHOG_HOST | No | - |
-| SHA256 | No | - |
-| TARBALL_URL | No | - |
-| VERSION | No | - |
+- **INV-1**: LLM trust boundary — validate all AI output
+- **INV-2**: No secrets in source code
 
 ## Gotchas
 
-> Criteria: (a) broadly reusable, (b) easy to violate, (c) costly when forgotten. Use `/aiframework-learn` to add.
-
-- Lint functions follow lint_hrNNN_name() convention with pass/fail return
-- Bash 3.2 compatibility requires avoiding associative arrays
-- Lean vs full CLAUDE.md dispatch based on archetype complexity
-- Data registries in lib/data/ are the source of truth for detection
-- Python 3.10+ required, not 3.9+ — match/case syntax used in indexer
-
-## Common Mistakes
-
-- Not running the full test suite before marking done
-- Editing the wrong config file (staging vs production)
-- Forgetting to update documentation after changes
-
-## Key State
-
-- Source files: 124
-- Tests: [run `make test` to count]
+- Tree-sitter parsers are NOT thread-safe — create one per rayon thread
+- Generators never overwrite user-created files (check `write_if_missing_or_generated`)
+- Tier system gates generators: Lean < Standard < Full < Enterprise
+- `rust/data/languages.json` is embedded at compile time via `include_str!`
+- Manifest field names must match bash version for backward compatibility (e.g., `short` alias)
 
 ## Makefile
 
 ```bash
+make build
 make install
 make uninstall
 make lint
@@ -95,83 +79,12 @@ make check
 make dist
 ```
 
-## Automated Enforcement
+## Key State
 
-| Trigger | What runs |
-|---------|-----------|
-| `git commit` | lint check |
-| `git push` | lint + test + invariant scan |
-| PR to main | CI: full build + test + lint |
-
-## Skills
-
-- `/aif-ready` — **Run first.** Researches your stack, enhances this file, makes repo Claude Code-ready
-- `/aiframework-review` — Pre-commit code review checking invariants
-- `/aiframework-ship` — Lint + review + changelog + commit (never pushes without approval)
-- `/aiframework-learn` — Capture gotchas to persistent storage
-- `/aif-evolve` — Weekly: synthesize learnings into better rules
-- `/aif-pulse` — Monthly: discover new Claude Code features
-- `/sheal-check` — Health check (tests, deps, env)
-- `/sheal-retro` — Session retrospective + learning extraction
-- `/sheal-drift` — Detect unapplied learnings, promote to rules
-- `/sheal-ask` — Query session history
-
-## Self-Healing Workflow
-
-Run `sheal check` at session start (automatic via hook). Run `sheal retro` at session end.
-
-| Command | When | What |
-|---------|------|------|
-| `sheal check` | Session start | Health check (auto via hook) |
-| `sheal retro` | Session end | Extract learnings from session |
-| `sheal drift` | Weekly | Detect when learnings aren't applied |
-| `sheal learn list` | Anytime | View active learnings |
-| `sheal ask "question"` | Anytime | Search session history |
-
-## Vault
-
-Knowledge persists in `vault/` across sessions. Check `vault/memory/status.md` at session start.
-
-```bash
-vault/.vault/scripts/vault-tools.sh doctor   # Full diagnostic
-vault/.vault/scripts/vault-tools.sh lint     # Quality scan
-```
-
-## Doc Sync
-
-After structural changes, update docs per `.claude/rules/pipeline.md` matrix.
-See `docs/reference/architecture.md` for module map and structure tree.
-
-## Getting Started
-
-First time? Run `/aif-ready` — it researches your stack, enhances this file, and makes your repo fully Claude Code-ready.
-Returning? Read `vault/memory/status.md`, check `git log --oneline -10`.
-
-## Self-Evolution
-
-This file auto-evolves. Rules of thumb:
-- **Same mistake twice** → add to Invariants above with a "Reason:" annotation explaining why it matters
-- **Applies only to certain files** → create `.claude/rules/<domain>.md` with `paths:` frontmatter
-- **Multi-step workflow** → create `.claude/skills/<name>/SKILL.md`
-- **Run `/aif-evolve` periodically** to synthesize learnings into rules
-- **This file should get shorter** — migrate content to rules and skills as patterns stabilize
-- **Heavy domain context** → create `DOMAIN.md` for domain-specific knowledge (loaded by Claude Code)
-- **Run `aiframework refresh`** when dependencies or structure change
+- Source files: 67 Rust files
+- Tests: 42 (cargo test)
+- Binary: 8.9 MB (release, stripped, LTO)
 
 ---
 
-*Generated: 2026-04-19 by aiframework v1.4.0. Run `aiframework refresh` to update. Lean mode (complex).*
-
-<!-- BEGIN SHEAL INTEGRATION -->
-## Self-Healing Workflow
-
-Run `sheal check` at the start of every session to catch environment issues early.
-Run `sheal retro` at the end of sessions to extract learnings (requires Entire.io).
-
-### Session Learnings
-
-Learnings are managed as ADR-style files. Run `sheal learn list` to view them.
-- Add: `sheal learn add "insight" --tags=foo,bar`
-- Sync from global: `sheal learn sync`
-- See `.sheal/learnings/` for project-specific learnings
-<!-- END SHEAL INTEGRATION -->
+*Generated by aiframework v2.0.0. Stack: Rust.*

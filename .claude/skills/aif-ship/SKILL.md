@@ -26,8 +26,8 @@ aiframework-telemetry skill_invoked skill=aif-ship 2>/dev/null || true
 ## Step 1: Verify
 
 ```bash
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
+cd rust && cargo clippy
+cd rust && cargo check
 ```
 
 ## Step 2: Invariant Scan
