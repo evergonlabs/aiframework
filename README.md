@@ -32,7 +32,7 @@ aiframework solves the full lifecycle:
 
 1. **Setup** — scan your repo, generate configs, build a knowledge graph (aiframework)
 2. **Runtime** — workflow skills for shipping, reviewing, debugging, QA ([gstack](https://github.com/garrytan/gstack))
-3. **Learning** — extract what worked, capture gotchas, improve future sessions ([sheal](https://github.com/AiFramework-co/sheal))
+3. **Learning** — extract what worked, capture gotchas, improve future sessions ([sheal](https://github.com/liwala/sheal))
 
 One install gives you all three. Your AI assistant understands your project from the first message, has tools to do real work, and gets smarter over time.
 
@@ -321,7 +321,7 @@ cd ~/.claude/skills/gstack && ./setup
 
 ### sheal — session intelligence
 
-[sheal](https://www.npmjs.com/package/@liwala/sheal) watches your Claude Code sessions, extracts learnings, and bridges them back into your project as persistent knowledge.
+[sheal](https://github.com/liwala/sheal) watches your Claude Code sessions, extracts learnings, and bridges them back into your project as persistent knowledge.
 
 | Command | When | What |
 |:--------|:-----|:-----|
