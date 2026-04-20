@@ -216,7 +216,7 @@ fn count_lines(text: &str) -> usize {
 }
 
 /// ISO 8601 timestamp without pulling in chrono crate
-fn chrono_now() -> String {
+pub fn chrono_now() -> String {
     use std::time::SystemTime;
     let dur = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)

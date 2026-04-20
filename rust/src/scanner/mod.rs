@@ -17,6 +17,7 @@ use std::path::Path;
 
 /// Run all 13 scanners and produce a complete manifest.
 pub fn discover(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
+    let start = std::time::Instant::now();
     let target = target.canonicalize()?;
 
     // Collect file list for detection
@@ -38,7 +39,19 @@ pub fn discover(target: &Path) -> Result<Value, Box<dyn std::error::Error>> {
     let code_index_meta = code_index::scan(&target, &file_names);
     let sheal_data = sheal::scan(&target, &file_names);
 
+    let elapsed = start.elapsed();
+
     let manifest = json!({
+        "_meta": {
+            "generated_by": "aiframework-rust",
+            "generated_at": crate::indexer::chrono_now(),
+            "aiframework_version": env!("CARGO_PKG_VERSION"),
+            "version": env!("CARGO_PKG_VERSION"),
+            "scanner": "aiframework-rust/discover",
+            "target_dir": target.to_string_lossy(),
+            "elapsed_ms": elapsed.as_millis() as u64,
+            "scanner_count": 13,
+        },
         "identity": identity,
         "stack": stack,
         "commands": commands,

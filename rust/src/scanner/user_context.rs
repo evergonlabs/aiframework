@@ -58,5 +58,11 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
         "contact": contact,
         "owner_email": owner_email,
         "maintained": maintained,
+        // Interactive-only fields (populated when --non-interactive is not set)
+        "production_url": Value::Null,
+        "active_workstream": Value::Null,
+        "credentials_location": Value::Null,
+        "team_conventions": Value::Null,
+        "known_pitfalls": Value::Null,
     })
 }
