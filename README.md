@@ -231,6 +231,106 @@ The indexer reads your actual source code using [tree-sitter](https://tree-sitte
 
 ---
 
+## Knowledge graph
+
+Most AI coding assistants treat your codebase as flat text. aiframework builds a **knowledge graph** — a wiki of your entire codebase where every file is a page and every import is a bidirectional link.
+
+```
+vault/wiki/
+├── index.md                              Master registry (all files)
+├── concepts/
+│   └── architecture.md                   Module graph, top files by PageRank
+└── entities/
+    ├── src-api-auth-controller-ts.md     Symbols, imports, imported-by, complexity
+    ├── src-api-auth-service-ts.md        [[linked]] to controller via import edge
+    ├── src-lib-database-ts.md            Referenced by 12 files (high PageRank)
+    └── ...                               One page per source file (top 50)
+```
+
+**How it helps Claude:** Instead of reading every file to understand your codebase, Claude can traverse the wiki graph. If you ask about authentication, Claude reads `src-api-auth-controller-ts.md`, sees it imports `auth-service`, follows the link, and understands the full auth flow — without reading the raw source.
+
+**What each entity page contains:**
+- File path, language, line count
+- Cyclomatic complexity score
+- PageRank importance (how many files depend on it)
+- All symbols (functions, classes, types) with signatures
+- Imports (what this file depends on)
+- Imported-by (what depends on this file)
+
+The graph updates on every `git push` (via the pre-push hook) or `aiframework refresh`.
+
+---
+
+## Session memory
+
+aiframework creates a persistent memory layer in `vault/memory/`:
+
+```
+vault/memory/
+├── status.md          Current session state — what's in progress, what's blocked
+├── decisions/         ADR-style decision logs
+└── notes/             Session-extracted insights
+```
+
+**Why this matters:** Claude Code's context resets every session. Without external memory, you re-explain decisions, re-state constraints, re-describe the architecture every time. The vault gives Claude a place to read "what happened last session" and "what decisions were made."
+
+The session protocol (`.claude/rules/session-protocol.md`) instructs Claude to read `vault/memory/status.md` at the start of every session, so it picks up where you left off.
+
+---
+
+## Ecosystem
+
+aiframework handles **setup-time intelligence** — it runs once and generates everything. Two optional companion tools extend it with **runtime intelligence**:
+
+### gstack
+
+[gstack](https://github.com/garrytan/gstack) is a collection of 37+ skills for Claude Code that handle day-to-day development workflows:
+
+| Category | Skills |
+|:---------|:-------|
+| **Ship & Debug** | `/ship`, `/review`, `/investigate`, `/health`, `/retro` |
+| **QA & Browser** | `/qa`, `/browse`, `/design-review`, `/benchmark`, `/cso` |
+| **Plan & Design** | `/plan-ceo-review`, `/plan-eng-review`, `/autoplan`, `/design-shotgun` |
+| **Utilities** | `/checkpoint`, `/guard`, `/freeze`, `/pair-agent`, `/codex` |
+
+gstack is optional. aiframework works fully without it. But together, aiframework provides the context and gstack provides the workflows.
+
+```bash
+# Install gstack (optional)
+git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup
+```
+
+### sheal
+
+[sheal](https://www.npmjs.com/package/@liwala/sheal) is a runtime session intelligence layer. It watches your Claude Code sessions, extracts learnings from what worked and what failed, and bridges those insights back into your project.
+
+| Command | When | What |
+|:--------|:-----|:-----|
+| `sheal check` | Session start | Health check (auto via hook) |
+| `sheal retro` | Session end | Extract learnings from the session |
+| `sheal drift` | Weekly | Detect learnings that aren't being applied |
+| `sheal ask "question"` | Anytime | Search session history |
+
+aiframework detects sheal automatically (the `sheal` scanner) and generates `.sheal/config.json` with your project's test/lint commands. Learnings are stored in `tools/learnings/*.jsonl` and synced to the vault.
+
+```bash
+# Install sheal (optional, requires Node.js)
+npm install -g @liwala/sheal
+```
+
+### Agentic memory patterns
+
+The vault system is inspired by [agentic-memory-vault](https://github.com/galimba/agentic-memory-vault) — a pattern for giving AI agents persistent memory across sessions. aiframework implements this pattern with:
+
+- **Status tracking**: `vault/memory/status.md` as a living document Claude reads every session
+- **Decision logging**: `vault/memory/decisions/` for ADR-style records
+- **Learning extraction**: sheal retros → JSONL → vault sync
+- **Knowledge graph**: wiki pages as navigable context (not just raw files)
+
+The key insight: AI agents work better when they have **structured context** they can read at session start, not just raw code. The vault provides that structure.
+
+---
+
 ## CLI reference
 
 ```
