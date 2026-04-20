@@ -96,7 +96,8 @@ pub fn detect_language(files: &[String]) -> Option<(String, &'static LanguageEnt
         }
         if let Some(exts) = &entry.extensions {
             for ext in exts {
-                let suffix = format!(".{}", ext);
+                // Handle both ".py" and "py" formats in the registry
+                let suffix = if ext.starts_with('.') { ext.clone() } else { format!(".{}", ext) };
                 let matches = files.iter().filter(|f| f.ends_with(&suffix)).count();
                 score += matches.min(10); // cap at 10 per extension
             }

@@ -156,11 +156,38 @@ fn detect_maturity(target: &Path) -> String {
 
 fn detect_complexity(files: &[String]) -> String {
     let count = files.len();
-    if count < 20 {
+
+    // Complexity signals beyond just file count
+    let has_docker = files.iter().any(|f| f == "Dockerfile" || f == "docker-compose.yml");
+    let has_ci = files.iter().any(|f| f.contains(".github/workflows/") || f.contains(".gitlab-ci"));
+    let has_multiple_languages = {
+        let mut exts = std::collections::HashSet::new();
+        for f in files {
+            if let Some(ext) = std::path::Path::new(f).extension().and_then(|e| e.to_str()) {
+                if matches!(ext, "ts" | "js" | "py" | "rs" | "go" | "rb" | "java" | "cs" | "php") {
+                    exts.insert(ext);
+                }
+            }
+        }
+        exts.len() >= 2
+    };
+    let has_monorepo = files.iter().any(|f| f == "turbo.json" || f == "lerna.json" || f == "nx.json");
+    let pkg_json_count = files.iter().filter(|f| f.ends_with("package.json")).count();
+
+    // Score-based complexity
+    let mut score = 0;
+    score += count.min(500) / 10; // file count contribution (max 50)
+    if has_docker { score += 10; }
+    if has_ci { score += 10; }
+    if has_multiple_languages { score += 15; }
+    if has_monorepo { score += 20; }
+    if pkg_json_count >= 3 { score += 15; } // multiple packages
+
+    if score < 10 {
         "simple".into()
-    } else if count < 100 {
+    } else if score < 30 {
         "moderate".into()
-    } else if count < 500 {
+    } else if score < 60 {
         "complex".into()
     } else {
         "enterprise".into()

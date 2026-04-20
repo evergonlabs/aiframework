@@ -1,9 +1,12 @@
 use serde_json::{json, Value};
 use std::path::Path;
 
-/// Scan for domain-specific concerns by matching file path patterns.
+/// Scan for domain-specific concerns by matching file path patterns AND dependencies.
 pub fn scan(target: &Path, files: &[String]) -> Value {
     let mut domains = Vec::new();
+
+    // Load dependency content for dependency-based domain detection
+    let dep_text = load_all_deps(target, files);
 
     let domain_defs: &[(&str, &str, &[&str])] = &[
         ("auth", "Authentication & Authorization", &[
@@ -59,7 +62,13 @@ pub fn scan(target: &Path, files: &[String]) -> Value {
             .map(|f| f.to_string())
             .collect();
 
-        if !matching.is_empty() {
+        // Also check dependencies for this domain
+        let dep_match = patterns.iter().any(|p| {
+            let clean = p.trim_end_matches('/').trim_end_matches('.');
+            dep_text.contains(clean)
+        });
+
+        if !matching.is_empty() || dep_match {
             domains.push(json!({
                 "name": name,
                 "display": display,
@@ -248,7 +257,27 @@ fn count_components(files: &[String]) -> Value {
 }
 
 fn detect_cross_package_imports(_files: &[String]) -> Vec<Value> {
-    // Detect imports across monorepo package boundaries
-    // For now, return empty — this is populated for monorepos
     vec![]
+}
+
+/// Load all dependency file contents for domain detection.
+fn load_all_deps(target: &Path, files: &[String]) -> String {
+    let mut content = String::new();
+    // Root manifests
+    for name in &["package.json", "Cargo.toml", "requirements.txt", "go.mod", "Gemfile", "composer.json", "pyproject.toml"] {
+        if let Ok(c) = std::fs::read_to_string(target.join(name)) {
+            content.push_str(&c.to_lowercase());
+            content.push('\n');
+        }
+    }
+    // Workspace package.json files
+    for f in files {
+        if f.ends_with("package.json") && f.contains('/') && !f.contains("node_modules") {
+            if let Ok(c) = std::fs::read_to_string(target.join(f)) {
+                content.push_str(&c.to_lowercase());
+                content.push('\n');
+            }
+        }
+    }
+    content
 }

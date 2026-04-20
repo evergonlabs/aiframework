@@ -13,15 +13,24 @@ pub fn scan(target: &Path, files: &[String]) -> Value {
     // Detect all languages present
     let languages = detect_all_languages(files);
 
-    // Detect framework
+    // Detect framework — check root AND workspace package.json files
     let framework = lang_entry
         .and_then(|entry| {
-            // Read a few key files for content-based detection
             let mut contents = std::collections::HashMap::new();
+            // Root manifests
             for f in ["package.json", "Cargo.toml", "requirements.txt", "go.mod", "Gemfile", "composer.json"] {
                 let path = target.join(f);
                 if let Ok(content) = std::fs::read_to_string(&path) {
                     contents.insert(f.to_string(), content);
+                }
+            }
+            // Also scan workspace package.json files (monorepo support)
+            for file in files {
+                if file.ends_with("package.json") && file.contains('/') && !file.contains("node_modules") {
+                    let path = target.join(file);
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        contents.insert(file.clone(), content);
+                    }
                 }
             }
             data::detect_framework(entry, files, &contents)

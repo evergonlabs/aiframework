@@ -131,7 +131,10 @@ fn is_env_var_name(name: &str) -> bool {
 
 fn is_sensitive_name(name: &str) -> bool {
     let upper = name.to_uppercase();
-    ["SECRET", "KEY", "TOKEN", "PASSWORD", "PRIVATE", "CREDENTIAL"]
+    // Keywords that indicate sensitive values
+    ["SECRET", "KEY", "TOKEN", "PASSWORD", "PRIVATE", "CREDENTIAL",
+     "DATABASE_URL", "DB_URL", "REDIS_URL", "MONGO_URL", "CONNECTION_STRING",
+     "AUTH", "API_KEY", "AWS_", "GCP_", "AZURE_"]
         .iter()
         .any(|s| upper.contains(s))
 }
