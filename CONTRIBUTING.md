@@ -1,32 +1,64 @@
 # Contributing to aiframework
 
+## Setup
+
+```bash
+git clone https://github.com/evergonlabs/aiframework
+cd aiframework/rust
+cargo build
+cargo test
+```
+
+Requires [Rust 1.75+](https://rustup.rs).
+
 ## Branch Naming
+
 - `feat/description` — new feature
 - `fix/description` — bug fix
 - `refactor/description` — code restructuring
-- `chore/description` — maintenance
-- `docs/description` — documentation only
 
 ## Commit Messages (Conventional Commits)
-- `feat: add user authentication`
-- `fix: resolve timeout on large requests`
-- `refactor: extract calculation to separate module`
+
+```
+feat: add kotlin tree-sitter parser
+fix: resolve timeout on large repos
+refactor: extract scanner into separate module
+```
 
 ## Pull Request Process
+
 1. Branch from `main`
-2. Run lint + test + build locally (pre-push hook enforces this)
+2. Run `cargo test` and `cargo clippy` locally
 3. Create PR with description: What, Why, How, Testing
-4. Wait for CI to pass
-5. Request review
+4. CI must pass (build + test + smoke tests on Ubuntu + macOS)
 
 ## Code Style
-- Linter: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck`
-- Formatted by: not configured
+
+- `cargo clippy` for linting
+- `cargo fmt` for formatting
+- Follow existing patterns in `rust/src/`
 
 ## Testing
 
-No test framework is configured yet. Testing is done via:
+```bash
+cd rust
+cargo test              # 42 unit + integration tests
+cargo run -- index --target .. --summary   # smoke test
+```
 
-1. **Syntax check**: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n`
-2. **Lint**: `find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck`
-3. **CI**: GitHub Actions runs quality checks on all PRs
+Tests live in `rust/tests/` (integration) and inline `#[cfg(test)]` modules (unit).
+
+## Project Structure
+
+```
+rust/src/
+├── cli.rs          CLI commands (clap)
+├── config.rs       Tier system + config loading
+├── telemetry.rs    PostHog analytics
+├── ui.rs           Terminal output (colors, tables)
+├── scanner/        13 repo scanners
+├── indexer/        Code indexer + 13 language parsers
+├── generator/      14 file generators
+├── validator/      5 validation checks
+└── mcp/            MCP JSON-RPC server
+```

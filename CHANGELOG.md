@@ -5,20 +5,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Added (Track B: Rust Rewrite — 6,582 LOC, 2.1 MB binary)
-- **All 7 CLI commands working**: run, discover, generate, index, verify, refresh, update
-- **9 scanners**: identity, stack, commands, structure, archetype, ci, domain, env, quality
-- **5 generators**: CLAUDE.md, AGENTS.md, .cursorrules, .githooks, .github/workflows/ci.yml
-- **Validator**: file existence, content structure, command validity, manifest integrity
-- **12 language parsers**: Python (tree-sitter), TypeScript/JS, Go, Rust, Ruby, Bash, Java, C#, PHP, Kotlin, Swift, Elixir
-- **Code metrics**: cyclomatic complexity, logical LOC, pattern detection (large files, deep nesting, etc.)
-- **Dependency graph + PageRank** — finds 16% more symbols, 20% more edges than Python version
-- **Beautiful terminal UI**: retro ASCII banner, color-coded phases, box-drawing verify table, progress bars
-- **Smart refresh**: drift detection based on file modification times
-- **Self-update**: checks GitHub for new versions, shows install instructions
-- **Smart file preservation**: skips existing user files, only overwrites aiframework-generated content
-- **26 tests** covering indexer, parsers, scanners, generators, data registry
-- **Embedded language registry**: 20 languages compiled into the binary, zero runtime deps
+## [2.0.0] — 2026-04-20
+### Changed — BREAKING
+- **100% Rust rewrite** — single 8.9 MB binary replaces all bash scripts + Python
+- **Zero runtime dependencies** — no Python, no jq, no Node required
+- **Installer rewritten** — downloads pre-built binary, falls back to cargo build
+
+### Added
+- **10 CLI commands**: run, discover, generate, index, verify, refresh, report, stats, update, mcp
+- **13 scanners**: identity, stack, commands, structure, archetype, ci, domain, env, quality, user_context, skill_suggest, code_index, sheal
+- **14 generators**: CLAUDE.md, AGENTS.md, .cursorrules, hooks, CI, skills, rules, docs, vault, vault_ingest, wiki_graph, tracking, sheal, report
+- **5 validators**: files, consistency, security, quality_gate, freshness
+- **8 tree-sitter parsers**: Python, TypeScript/JS, Go, Rust, Ruby, Java, Bash (AST-based)
+- **5 regex parsers**: C#, PHP, Kotlin, Swift, Elixir
+- **Tier system**: lean/standard/full/enterprise gating for generators
+- **Telemetry**: PostHog fire-and-forget with opt-out
+- **MCP server**: 7 tools, 5 resources (JSON-RPC 2.0 over stdin/stdout)
+- **Code metrics**: cyclomatic complexity, logical LOC, pattern detection
+- **Knowledge store**: cross-repo statistics in ~/.aiframework/knowledge/
+- **Smart no-args**: detects project state, suggests next command
+- **Interactive confirmation**: prompt before generation (skip with --non-interactive)
+- **Beautiful terminal UI**: retro banner, color-coded phases, box-drawing tables
+- **42 tests** (unit + integration)
+
+### Removed
+- All bash scripts (bin/aiframework, bin/aiframework-mcp, etc.)
+- All Python code (lib/indexers/, lib/mcp/)
+- Bash test suite (replaced by Rust tests)
+- Dependencies on Python 3.10+, jq, shellcheck
 
 ## [1.4.0] — 2026-04-19
 ### Added

@@ -71,10 +71,10 @@ After marking any feature complete and before pushing:
 - [ ] Documentation updated if needed
 - [ ] No regressions in existing functionality
 
-### Bash QA Rules
-- All scripts must pass shellcheck with zero warnings
-- All scripts must start with set -euo pipefail for strict error handling
-- All user-supplied variables must be quoted — no unquoted $VAR expansions
-- NEVER use `|| true` to silence errors without understanding the failure
-- NEVER use `set +e` to disable error handling without re-enabling it
+### Rust QA Rules
+- All code must pass `cargo clippy` with zero warnings
+- All code must pass `cargo test`
+- Use `?` for error propagation, avoid `.unwrap()` in non-test code
+- All user-facing output goes through `ui.rs` module
+- Never use `unsafe` without explicit justification
 

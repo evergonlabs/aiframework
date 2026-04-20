@@ -4,9 +4,10 @@
 
 Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand your project instantly.
 
-[![version](https://img.shields.io/badge/v1.4.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
+[![version](https://img.shields.io/badge/v2.0.0-blue?style=flat-square&label=version)](https://github.com/evergonlabs/aiframework/releases)
 [![license](https://img.shields.io/badge/MIT-green?style=flat-square&label=license)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/evergonlabs/aiframework/ci.yml?style=flat-square&label=CI)](https://github.com/evergonlabs/aiframework/actions)
+[![Rust](https://img.shields.io/badge/rust-8.9MB_binary-orange?style=flat-square)](rust/)
 [![Claude Code](https://img.shields.io/badge/compatible-cc785c?style=flat-square&logo=anthropic&logoColor=white&label=claude%20code)](https://docs.anthropic.com/en/docs/claude-code)
 
 </div>
@@ -18,20 +19,38 @@ Make [Claude Code](https://docs.anthropic.com/en/docs/claude-code) understand yo
 aiframework scans your repo — language, framework, dependencies, file structure, domains — and generates a `CLAUDE.md` plus supporting configs that Claude Code reads automatically.
 
 **Before:** Claude asks "what framework is this?" and guesses wrong commands.
-**After:** Claude knows your lint/test/build commands, your architecture, your security rules, and can navigate your codebase through a knowledge graph of every file.
+**After:** Claude knows your lint/test/build commands, architecture, security rules, and can navigate your codebase through a knowledge graph of every file.
 
 ```
 $ aiframework run --target .
 
-DISCOVER  ████████████████████ 13 scanners
-  python / fastapi / api-service
-  47 endpoints, 209 symbols, 4 domains detected
+  ┌─────────────────────────────────────┐
+  │  ▓▓▓ aiframework v2               │
+  └─────────────────────────────────────┘
 
-GENERATE  ████████████████████ 23 files written
-  CLAUDE.md, .claude/rules/, .claude/skills/, vault/
+  DISCOVER  ████████████████████
+  │ typescript / nextjs / web-app
+  │ domains: Auth, Database, API
 
-VERIFY    ████████████████████ all checks passed
+  INDEX  ████████████████████
+  │ 209 files, 1,247 symbols, 186 edges
+
+  GENERATE  ████████████████████
+  ✓ CLAUDE.md
+  ✓ AGENTS.md
+  ✓ .cursorrules
+  ✓ .githooks/pre-commit
+  ✓ .github/workflows/ci.yml
+
+  VERIFY  ████████████████████
+  ✓ 12/12 checks passed
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ Pipeline complete in 0.3s
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+Single binary. Zero runtime dependencies. 8.9 MB.
 
 ---
 
@@ -41,14 +60,11 @@ VERIFY    ████████████████████ all check
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
 ```
 
-The installer checks dependencies, detects your OS and package manager, and tells you exactly what's missing.
+Downloads a pre-built binary for your platform. If no binary is available, falls back to `git clone + cargo build`.
 
 ```bash
-# Preview what will be installed (no changes made)
+# Preview what will be installed
 curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --dry-run
-
-# Auto-install missing deps (jq, Python, git) on Linux/macOS
-curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh -s -- --auto-deps
 ```
 
 <details>
@@ -57,70 +73,44 @@ curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/instal
 | Method | Command |
 |:-------|:--------|
 | **Homebrew** | `brew tap evergonlabs/tap && brew install aiframework` |
+| **Cargo** | `cd rust && cargo install --path .` |
 | **Manual** | `git clone https://github.com/evergonlabs/aiframework && cd aiframework && make install` |
-| **Tarball** | Download from [Releases](https://github.com/evergonlabs/aiframework/releases), extract, `make install` |
-
-</details>
-
-<details>
-<summary>Installer flags</summary>
-
-| Flag | What it does |
-|:-----|:-------------|
-| `--dry-run` | Show what will be installed without making changes |
-| `--auto-deps` | Auto-install missing dependencies (requires sudo on Linux) |
-| `--no-modify-rc` | Don't add aiframework to your shell PATH |
-| `--uninstall` | Remove aiframework and clean up |
-| `--help` | Show all options |
 
 </details>
 
 ### Requirements
 
-| Tool | Version | Why |
-|:-----|:--------|:----|
-| `bash` | 3.2+ | Runs the CLI |
-| `git` | any | Clones repos, tracks changes |
-| `python3` | **3.10+** | Code indexer (uses match/case syntax) |
-| `jq` | any | Reads JSON manifests |
+**None.** The binary is self-contained. No Python, no Node, no jq.
 
-Optional: `node`/`npm` (for [sheal](https://www.npmjs.com/package/@liwala/sheal) session intelligence), `shellcheck` (script linting).
+To build from source: [Rust 1.75+](https://rustup.rs).
 
 ### Platforms
 
-| Platform | Status |
+| Platform | Binary |
 |:---------|:-------|
-| macOS (Intel + ARM) | CI-tested |
-| Linux (Ubuntu, Fedora, Arch) | CI-tested |
-| Alpine Linux (musl) | CI-tested |
-| WSL | Supported |
-| Windows (Git Bash / MSYS2) | Supported (not in CI) |
+| macOS (Intel) | `x86_64-apple-darwin` |
+| macOS (ARM) | `aarch64-apple-darwin` |
+| Linux (x86) | `x86_64-unknown-linux-gnu` |
+| Linux (ARM) | `aarch64-unknown-linux-gnu` |
+| Linux (musl) | `x86_64-unknown-linux-musl` |
+| Windows | `x86_64-pc-windows-msvc` |
 
 ---
 
 ## Quick start
 
-**1. Bootstrap your project:**
-
 ```bash
+# 1. Scan your project (takes ~0.3 seconds)
 aiframework run --target ~/your-project
-```
 
-This scans the repo and generates all config files. Takes about 60 seconds.
-
-**2. Open Claude Code and run the setup skill:**
-
-```bash
+# 2. Open Claude Code
 cd ~/your-project && claude
-```
 
-Then type:
-
-```
+# 3. Run the setup skill (once per project)
 /aif-ready
 ```
 
-This researches your specific stack, enhances the generated configs, and optimizes settings. **Run once per project.** After that, just code.
+That's it. Claude now knows your stack.
 
 ---
 
@@ -129,86 +119,75 @@ This researches your specific stack, enhances the generated configs, and optimiz
 | File | Purpose |
 |:-----|:--------|
 | `CLAUDE.md` | Main config — stack, commands, rules, architecture |
-| `.claude/rules/` | Auto-loaded instructions by path pattern (workflow, testing, security) |
-| `.claude/skills/` | Slash commands (`/aif-review`, `/aif-ship`, etc.) |
-| `.claude/settings.json` | Permissions and automation config |
-| `.cursorrules` | Cursor IDE rules (same data, Cursor format) |
-| `.githooks/` | Pre-commit lint + pre-push quality gate |
-| `.github/workflows/ci.yml` | CI pipeline matched to your language |
-| `vault/wiki/` | Knowledge graph — one page per source file, linked by imports |
-| `docs/` | Architecture doc + Diataxis scaffold |
-| `AGENTS.md` | Compatible with Cursor, Copilot, Codex, Gemini |
-| `tools/learnings/` | Persistent learning storage (JSONL) |
+| `AGENTS.md` | Works with Cursor, Copilot, Codex, Gemini |
+| `.cursorrules` | Cursor IDE rules |
+| `.claude/rules/` | Auto-loaded instructions by path pattern |
+| `.claude/skills/` | Slash commands (`/aif-review`, `/aif-ship`) |
+| `.githooks/` | Pre-commit lint + pre-push tests |
+| `.github/workflows/ci.yml` | CI pipeline for your language |
+| `vault/wiki/` | Knowledge graph — one page per file |
+| `docs/` | Architecture documentation |
 
-Same repo, same output, every time. Deterministic.
+**Tier system** controls what's generated:
+- **Lean**: CLAUDE.md + AGENTS.md (simple projects)
+- **Standard**: + hooks, CI, skills, rules, docs (default)
+- **Full**: + vault, knowledge graph, session intelligence
+
+Override with `--tier lean|standard|full|enterprise`.
 
 ---
 
-## How it works
+## Architecture
 
 ```
 aiframework run --target /path/to/repo
 │
-│  DISCOVER ──── scan everything, assume nothing
-│  ├── identity       name, version, short name
-│  ├── stack          language, framework, monorepo?
-│  ├── commands       package manager, lint, test, build
-│  ├── structure      files, dirs, source roots
-│  ├── ci + deploy    GitHub Actions, Docker, Fly.io, Vercel...
-│  ├── env            variables from .env, config files
-│  ├── domain         18 types (auth, db, ai, graphql...)
-│  ├── code_index     symbols + imports + edges (20 languages)
-│  └── archetype      library, cli-tool, web-app, api-service...
-│  ╰──→ manifest.json + code-index.json
+│  DISCOVER (13 scanners)
+│  ├── identity       name, version, description
+│  ├── stack          language, framework, monorepo
+│  ├── commands       lint, test, build, package manager
+│  ├── structure      dirs, files, entry points
+│  ├── ci             GitHub Actions, deploy targets
+│  ├── env            variables from .env, Dockerfile
+│  ├── domain         auth, db, api, ai, frontend...
+│  ├── quality        linters, formatters, test frameworks
+│  ├── archetype      cli-tool, web-app, api-service, library
+│  └── ...            user_context, skills, sheal, code_index
 │
-│  GENERATE ──── deterministic, reproducible
-│  ╰──→ CLAUDE.md, rules, skills, hooks, CI, vault, docs
+│  INDEX (tree-sitter + regex, 13 languages)
+│  ├── symbols        functions, classes, types, methods
+│  ├── imports        file-to-file dependency edges
+│  ├── PageRank       importance scoring
+│  └── metrics        complexity, logical LOC, patterns
 │
-│  VERIFY ────── trust, but verify
-│  ├── files          do expected files exist?
-│  ├── consistency    commands match across CLAUDE.md, hooks, CI?
-│  ├── security       secrets in source? .gitignore coverage?
-│  ├── quality_gate   lint/test commands working?
-│  └── freshness      manifest stale? files drifted?
-│  ╰──→ PASS / FAIL / WARN
+│  GENERATE (tier-gated, 14 generators)
+│  └── CLAUDE.md, rules, skills, hooks, CI, vault...
+│
+│  VERIFY (5 validators)
+│  ├── files          expected outputs exist
+│  ├── consistency    commands match across files
+│  ├── security       no secrets, .gitignore coverage
+│  ├── quality_gate   lint/test commands configured
+│  └── freshness      manifest up to date
 ```
 
 ### Language support
 
-20 languages with framework detection:
+20 languages. 8 use tree-sitter (AST parsing), 5 use regex:
 
-| Language | Frameworks |
-|:---------|:-----------|
-| TypeScript / JavaScript | Next.js, NestJS, React, Vue, Express, Hono, Svelte |
-| Python | FastAPI, Django, Flask, Starlette |
-| Go | Gin, Echo, Chi, Fiber |
-| Rust | Actix, Axum, Rocket, Warp |
-| Ruby | Rails, Sinatra |
-| Java | Spring Boot, Quarkus |
-| C# | ASP.NET, Blazor |
-| PHP | Laravel, Symfony |
-| Kotlin, Swift, Elixir, Bash | Major frameworks |
-| C, C++, Scala, Dart, Zig, Lua, R | Extensible via `lib/data/languages.json` |
-
-The code indexer reads your actual source to extract functions, classes, types, and import edges — so Claude Code can navigate your codebase intelligently.
-
----
-
-## Slash commands
-
-Available inside Claude Code after running `/aif-ready`:
-
-| Command | What it does |
-|:--------|:-------------|
-| `/aif-ready` | One-time setup — researches stack, enhances configs |
-| `/aif-review` | Pre-commit code review against your project's rules |
-| `/aif-ship` | Lint + review + changelog + commit (never pushes without approval) |
-| `/aif-learn` | Save a gotcha so Claude remembers next time |
-| `/aif-analyze` | Find missing tests, circular deps, dead code |
-| `/aif-evolve` | Promote accumulated learnings into permanent rules |
-| `/aif-pulse` | Discover new Claude Code features to adopt |
-
-Configs auto-refresh on every `git push` — no manual sync needed.
+| Language | Parser | Frameworks |
+|:---------|:-------|:-----------|
+| Python | tree-sitter | FastAPI, Django, Flask |
+| TypeScript / JavaScript | tree-sitter | Next.js, React, Vue, Express, NestJS |
+| Go | tree-sitter | Gin, Echo, Chi, Fiber |
+| Rust | tree-sitter | Actix, Axum, Rocket |
+| Ruby | tree-sitter | Rails, Sinatra |
+| Java | tree-sitter | Spring Boot, Quarkus |
+| Bash | tree-sitter | — |
+| C# | regex | ASP.NET, Blazor |
+| PHP | regex | Laravel, Symfony |
+| Kotlin, Swift, Elixir | regex | Major frameworks |
+| + 7 more | extensible | via `rust/data/languages.json` |
 
 ---
 
@@ -218,108 +197,100 @@ Configs auto-refresh on every `git push` — no manual sync needed.
 aiframework <command> [options]
 
 Commands:
-  run            discover + generate + verify (full pipeline)
-  discover       scan repo → manifest.json + code-index.json
-  generate       manifest → all config files
-  verify         validate generated files (5 validators)
-  refresh        re-discover + generate only if drift detected
-  report         human-readable summary of discovered data
-  index          build code-index.json (standalone)
-  stats          cross-repo knowledge store statistics
-  update         self-update + refresh all bootstrapped repos
+  run         Full pipeline: discover + index + generate + verify
+  discover    Scan repo → manifest.json + code-index.json
+  generate    Manifest → all config files
+  verify      Validate generated files
+  index       Build code index (standalone)
+  refresh     Re-scan only if drift detected
+  report      Human-readable discovery summary
+  stats       Cross-repo knowledge statistics
+  update      Self-update (git/homebrew/binary)
+  mcp         MCP server for Claude Code integration
 
 Options:
-  --target <path>       target repo (default: cwd)
-  --non-interactive     skip user context questions
-  --no-index            skip code indexing
-  --dry-run             preview without writing
-  --verbose             detailed output
+  --target <path>         Target repo (default: cwd)
+  --tier <tier>           lean | standard | full | enterprise
+  --dry-run               Preview without writing
+  --non-interactive       Skip prompts
+  --no-index              Skip code indexing
+  --verbose               Detailed output
 ```
-
-Aliases: `update` = `upgrade` = `self-update`.
 
 ---
 
-## Upgrading
+## Slash commands
+
+Available in Claude Code after `/aif-ready`:
+
+| Command | What it does |
+|:--------|:-------------|
+| `/aif-ready` | One-time setup — researches stack, enhances configs |
+| `/aif-review` | Pre-commit review against project rules |
+| `/aif-ship` | Lint + review + changelog + commit |
+| `/aif-learn` | Save a gotcha for Claude to remember |
+| `/aif-analyze` | Find missing tests, circular deps |
+| `/aif-evolve` | Promote learnings into permanent rules |
+
+---
+
+## MCP server
+
+Expose repo context to any MCP-compatible client:
 
 ```bash
-aiframework update
+aiframework mcp --target .
 ```
 
-Auto-detects install method (git / Homebrew / tarball), pulls latest, verifies checksum, and refreshes all bootstrapped repos.
+**Resources**: manifest, code-index, commands, invariants, architecture
+**Tools**: `get_top_files`, `get_file_symbols`, `search_symbols`, `analyze_file`, `find_tests`, `check_invariants`, `refresh`
 
 ---
 
-## Knowledge graph
+## Building from source
 
-Every source file gets a wiki page in `vault/wiki/`. Every import becomes a bidirectional link. Claude Code traverses the graph to understand any part of the codebase without reading every file.
-
-```
-vault/wiki/
-├── index.md                          master registry
-├── concepts/
-│   └── architecture.md               module graph + top files by PageRank
-└── entities/
-    ├── src-api-auth-controller-ts.md  symbols, imports, imported-by
-    ├── src-api-auth-service-ts.md     [[linked]] to controller
-    └── ...                            one page per source file
+```bash
+git clone https://github.com/evergonlabs/aiframework
+cd aiframework/rust
+cargo build --release
+./target/release/aiframework --help
 ```
 
-Auto-updates on every `git push`.
+Run tests:
+
+```bash
+cargo test
+```
+
+Binary size: ~8.9 MB (stripped, LTO).
 
 ---
 
 ## Extending
 
-All detection is data-driven. Add a language, domain, or archetype by editing one JSON file:
+Language detection is data-driven. Add a language by editing `rust/data/languages.json`:
 
-| Registry | Entries | File |
-|:---------|:--------|:-----|
-| Languages | 20 | `lib/data/languages.json` |
-| Domains | 18 | `lib/data/domains.json` |
-| Deploy targets | 24 | `lib/data/deploy_targets.json` |
-| Archetypes | 11 | `lib/data/archetypes.json` |
-
----
-
-## Ecosystem
-
-aiframework handles **setup-time** intelligence. Two optional tools extend it at runtime:
-
-| Tool | What | Install |
-|:-----|:-----|:--------|
-| [gstack](https://github.com/garrytan/gstack) | 37 runtime skills: `/ship`, `/qa`, `/review`, `/investigate`, `/cso`, browser automation | See gstack README |
-| [sheal](https://www.npmjs.com/package/@liwala/sheal) | Session intelligence: watches sessions, extracts learnings, detects drift | Auto-installed (needs Node.js) |
-
-Both are optional. aiframework works fully standalone.
-
----
-
-## Roadmap
-
-aiframework v2 is being rewritten in Rust for zero-dependency distribution:
-
-| Feature | Status |
-|:--------|:-------|
-| Code indexer (12 parsers, tree-sitter) | Done |
-| Dependency graph + PageRank | Done |
-| Complexity metrics | Done |
-| Language/framework detection | Done |
-| Scanner modules (identity, stack, commands, structure) | Done |
-| Generator modules (CLAUDE.md, rules, skills) | In progress |
-| MCP server | Planned |
-| Cross-platform binary releases (6 targets) | Planned |
-
-The Rust binary is 2 MB, has zero runtime dependencies, and indexes code 3-5x faster than the Python version. Track progress in `rust/`.
+```json
+{
+  "languages": {
+    "your-language": {
+      "marker_files": ["your-language.config"],
+      "extensions": [".yl"],
+      "frameworks": {
+        "your-framework": {
+          "marker_content": "your-framework"
+        }
+      }
+    }
+  }
+}
+```
 
 ---
 
 ## Telemetry
 
-Anonymous, aggregate usage data to prioritize languages, fix common failures, and improve generated output.
-
-**Collected:** event type (`run`, `refresh`), version, OS, detected language/framework, error counts, duration.
-**Never collected:** source code, file contents, file paths, project names, git history, personal information.
+Anonymous usage data (event type, version, OS, language detected). Never collects source code, file paths, or personal information.
 
 Opt out:
 
@@ -331,7 +302,7 @@ mkdir -p ~/.aiframework && echo "telemetry: false" >> ~/.aiframework/config
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
