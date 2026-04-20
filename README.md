@@ -31,8 +31,8 @@ AI coding assistants are powerful, but they start every session blind. They don'
 aiframework solves the full lifecycle:
 
 1. **Setup** — scan your repo, generate configs, build a knowledge graph (aiframework)
-2. **Runtime** — workflow skills for shipping, reviewing, debugging, QA (gstack)
-3. **Learning** — extract what worked, capture gotchas, improve future sessions (sheal)
+2. **Runtime** — workflow skills for shipping, reviewing, debugging, QA ([gstack](https://github.com/garrytan/gstack))
+3. **Learning** — extract what worked, capture gotchas, improve future sessions ([sheal](https://github.com/AiFramework-co/sheal))
 
 One install gives you all three. Your AI assistant understands your project from the first message, has tools to do real work, and gets smarter over time.
 

@@ -1,50 +1,40 @@
-# Environment
-.env
-.env.local
-.env.*.local
-
-# aiframework runtime
-.aiframework/
-
-# Python
 __pycache__/
-*.pyc
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Claude memory (local only)
+.aiframework/
 .claude/memory/
-
-# Build artifacts
-dist/
-
-# Internal ops docs (not for public repo)
-TELEMETRY-SETUP.md
-SESSION-HANDOFF-*.md
-
-# Local runtime state
+.DS_Store
+.env
+.env.*.local
+.env.local
+.idea/
 .self-heal.json
-vault/.vault/.wiki-hashes.json
-vault/.vault/lint-report-*.txt
-vault/.vault/.initialized
-
-# Secrets and credentials
-*.pem
+.vscode/
+*.cert
 *.key
 *.p12
+*.pem
 *.pfx
-*.cert
-id_rsa
-id_ed25519
-credentials*
-*.secret
-/rust/target/
 *.pyc
+*.secret
+*.swo
+*.swp
+/rust/target/
+# aiframework runtime
+# Build artifacts
+# Claude memory (local only)
+# Environment
+# IDE
+# Internal ops docs (not for public repo)
+# Local runtime state
+# OS
+# Python
+# Secrets and credentials
+credentials*
+dist/
+id_ed25519
+id_rsa
+SESSION-HANDOFF-*.md
+TELEMETRY-SETUP.md
+Thumbs.db
+vault/.vault/.initialized
+vault/.vault/.wiki-hashes.json
+vault/.vault/lint-report-*.txt

@@ -5,7 +5,7 @@
 # Manual updates: change url + sha256, then `brew audit --new aiframework`
 
 class Aiframework < Formula
-  desc "Universal automation bootstrap CLI for Claude Code"
+  desc "Make Claude Code understand your project instantly"
   homepage "https://github.com/evergonlabs/aiframework"
   url "https://github.com/evergonlabs/aiframework/releases/download/v__VERSION__/aiframework-__VERSION__.tar.gz"
   sha256 "__SHA256__"
@@ -13,31 +13,16 @@ class Aiframework < Formula
 
   head "https://github.com/evergonlabs/aiframework.git", branch: "main"
 
-  depends_on "jq"
-  depends_on "python@3"
+  depends_on "rust" => :build
 
   def install
-    prefix.install Dir["*"]
-    bin.install_symlink prefix/"bin/aiframework"
-    bin.install_symlink prefix/"bin/aiframework-mcp"
-    bin.install_symlink prefix/"bin/aiframework-telemetry"
-    bin.install_symlink prefix/"bin/aiframework-update-check"
-  end
-
-  def caveats
-    <<~EOS
-      To bootstrap a project:
-        aiframework run --target ~/your-project
-
-      Then open Claude Code and run:
-        /aif-ready
-
-      Optional: Install sheal for runtime session intelligence:
-        npm install -g @liwala/sheal@latest
-    EOS
+    cd "rust" do
+      system "cargo", "build", "--release"
+      bin.install "target/release/aiframework"
+    end
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/aiframework --version")
+    assert_match "aiframework", shell_output("#{bin}/aiframework --help")
   end
 end
