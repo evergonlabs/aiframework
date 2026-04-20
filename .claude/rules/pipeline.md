@@ -24,9 +24,9 @@ Rules: No secrets in code — use environment variables.
 
 ### Stage 4: VERIFY (after every code change — ALWAYS)
 ```bash
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs shellcheck              # Must pass with 0 errors
-find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n         # Must pass
-make test              # Must pass
+cd rust && cargo check        # Must pass
+cd rust && cargo build         # Must pass
+cd rust && cargo test          # Must pass
 ```
 
 > Run `vault/.vault/scripts/vault-tools.sh lint` to verify vault integrity.
@@ -56,7 +56,7 @@ Run doc-sync check against this matrix:
 | New env variable | CLAUDE.md (Env Variables), .env.example |
 | New invariant | CLAUDE.md (Invariants) |
 | Schema change | CLAUDE.md (Key Locations), migration docs |
-| New dependency | CLAUDE.md (Project Identity), package manifest |
+| New dependency | CLAUDE.md (Project Identity), Cargo.toml |
 | New service/module | CLAUDE.md (Key Locations, Project Structure) |
 | Architectural change | `docs/` architecture docs |
 
@@ -128,5 +128,4 @@ When any file in a domain's key files changes, update the corresponding docs.
 
 | Domain | Key Files | Doc Impact |
 |--------|-----------|------------|
-| AI/LLM Integration | bin/aiframework-update-check, bin/aiframework-mcp | CLAUDE.md, docs/ |
-
+| AI/LLM Integration | rust/src/ (LLM modules) | CLAUDE.md, docs/ |

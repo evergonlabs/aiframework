@@ -31,7 +31,7 @@ Never commit API keys, passwords, tokens, or credentials.
 ## Review Specialists
 
 ### AI/LLM Integration
-Trigger paths: bin/aiframework-update-check, bin/aiframework-mcp, bin/aiframework-telemetry
+Trigger paths: rust/src/ (any module handling LLM interaction)
 
 - [ ] LLM outputs are sanitized before use
 - [ ] Prompt injection defenses in place
@@ -40,4 +40,3 @@ Trigger paths: bin/aiframework-update-check, bin/aiframework-mcp, bin/aiframewor
 - [ ] Fallback behavior when LLM is unavailable
 - [ ] Cost monitoring/alerting configured
 - [ ] Output validation before displaying to users
-

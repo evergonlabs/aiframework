@@ -1,14 +1,12 @@
 #!/bin/sh
-# aiframework installer — works on macOS, Linux, and Windows (Git Bash / WSL / MSYS2)
+# aiframework installer — downloads pre-built Rust binary or builds from source
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh
 #
 # Options (env vars):
 #   PREFIX=/usr/local       install prefix (default: auto-detected per platform)
-#   AIFRAMEWORK_DIR=...     clone target (default: auto-detected per platform)
-#   BRANCH=main             git branch to install
-#   SKIP_SHEAL=1            skip sheal install
+#   BRANCH=main             git branch for source build fallback
 
 set -e
 
@@ -44,17 +42,19 @@ detect_platform() {
   case "$OS" in
     Darwin)
       PLATFORM="macos"
+      RELEASE_PLATFORM="apple-darwin"
       ;;
     Linux)
-      # Check if running inside WSL
       if [ -f /proc/version ] && grep -qi microsoft /proc/version 2>/dev/null; then
         PLATFORM="wsl"
       else
         PLATFORM="linux"
       fi
+      RELEASE_PLATFORM="unknown-linux-gnu"
       ;;
     MINGW*|MSYS*|CYGWIN*)
       PLATFORM="windows"
+      RELEASE_PLATFORM="pc-windows-msvc"
       ;;
     *)
       die "Unsupported OS: $OS. aiframework supports macOS, Linux, WSL, and Windows (Git Bash/MSYS2)."
@@ -62,10 +62,9 @@ detect_platform() {
   esac
 
   case "$ARCH" in
-    x86_64|amd64)  ARCH="x86_64" ;;
-    arm64|aarch64) ARCH="arm64" ;;
-    i686|i386)     ARCH="x86" ;;
-    *)             warn "Unusual architecture: $ARCH. Proceeding anyway." ;;
+    x86_64|amd64)  ARCH="x86_64"; RELEASE_ARCH="x86_64" ;;
+    arm64|aarch64) ARCH="arm64";  RELEASE_ARCH="aarch64" ;;
+    *)             die "Unsupported architecture: $ARCH. Pre-built binaries are available for x86_64 and arm64." ;;
   esac
 }
 
@@ -81,33 +80,15 @@ set_default_paths() {
     die "Invalid BRANCH value: $BRANCH (only alphanumeric, dots, slashes, dashes allowed)"
   fi
   GITHUB_REPO="https://github.com/evergonlabs/aiframework.git"
-
-  # Set AIFRAMEWORK_DIR
-  if [ -z "${AIFRAMEWORK_DIR:-}" ]; then
-    case "$PLATFORM" in
-      windows|MINGW*|MSYS*|CYGWIN*)
-        # Windows: use LOCALAPPDATA or USERPROFILE
-        if [ -n "${LOCALAPPDATA:-}" ]; then
-          AIFRAMEWORK_DIR="$(cygpath -u "$LOCALAPPDATA" 2>/dev/null || echo "$LOCALAPPDATA")/aiframework"
-        else
-          AIFRAMEWORK_DIR="$HOME/.aiframework-src"
-        fi
-        ;;
-      *)
-        AIFRAMEWORK_DIR="$HOME/.aiframework-src"
-        ;;
-    esac
-  fi
+  GITHUB_RELEASE_BASE="https://github.com/evergonlabs/aiframework/releases/latest/download"
 
   # Set PREFIX
   if [ -z "${PREFIX:-}" ]; then
     case "$PLATFORM" in
       windows)
-        # Windows Git Bash: use ~/bin (commonly in PATH)
         PREFIX="$HOME"
         ;;
       *)
-        # Unix: ~/.local for non-root, /usr/local for root
         if [ "$(id -u)" -eq 0 ]; then
           PREFIX="/usr/local"
         else
@@ -140,46 +121,29 @@ detect_pkg_manager() {
 
 # Generate install command for a package per distro
 pkg_install_hint() {
-  local pkg="$1"
+  pkg="$1"
   case "$PLATFORM" in
     macos)
-      case "$pkg" in
-        python3) echo "brew install python@3.12" ;;
-        *)       echo "brew install $pkg" ;;
-      esac
+      echo "brew install $pkg"
       ;;
     linux|wsl)
-      local mgr
       mgr=$(detect_pkg_manager)
       case "$mgr" in
-        apt)     case "$pkg" in
-                   python3) echo "sudo apt-get install -y python3.12 python3.12-venv" ;;
-                   *)       echo "sudo apt-get install -y $pkg" ;;
-                 esac ;;
-        dnf)     case "$pkg" in
-                   python3) echo "sudo dnf install -y python3.12" ;;
-                   *)       echo "sudo dnf install -y $pkg" ;;
-                 esac ;;
+        apt)     echo "sudo apt-get install -y $pkg" ;;
+        dnf)     echo "sudo dnf install -y $pkg" ;;
         yum)     echo "sudo yum install -y $pkg" ;;
-        pacman)  case "$pkg" in
-                   python3) echo "sudo pacman -S --noconfirm python" ;;
-                   jq)      echo "sudo pacman -S --noconfirm jq" ;;
-                   *)       echo "sudo pacman -S --noconfirm $pkg" ;;
-                 esac ;;
-        apk)     case "$pkg" in
-                   python3) echo "sudo apk add python3" ;;
-                   *)       echo "sudo apk add $pkg" ;;
-                 esac ;;
+        pacman)  echo "sudo pacman -S --noconfirm $pkg" ;;
+        apk)     echo "sudo apk add $pkg" ;;
         zypper)  echo "sudo zypper install -y $pkg" ;;
         *)       echo "Install $pkg using your package manager" ;;
       esac
       ;;
     windows)
       case "$pkg" in
-        python3) echo "https://python.org/downloads/  (check 'Add to PATH')" ;;
-        jq)      echo "choco install jq  OR  scoop install jq" ;;
-        git)     echo "https://git-scm.com/download/win" ;;
-        *)       echo "Install $pkg manually" ;;
+        git)   echo "https://git-scm.com/download/win" ;;
+        curl)  echo "Git Bash includes curl, or install via scoop/choco" ;;
+        cargo) echo "https://rustup.rs" ;;
+        *)     echo "Install $pkg manually" ;;
       esac
       ;;
   esac
@@ -187,7 +151,7 @@ pkg_install_hint() {
 
 # Auto-install a missing dependency (only with --auto-deps)
 try_auto_install() {
-  local pkg="$1"
+  pkg="$1"
   if [ "${AUTO_DEPS:-0}" != "1" ]; then
     return 1
   fi
@@ -195,45 +159,27 @@ try_auto_install() {
     macos)
       if check_command brew; then
         info "  Auto-installing $pkg via Homebrew..."
-        case "$pkg" in
-          python3) brew install python@3.12 2>/dev/null && return 0 ;;
-          *)       brew install "$pkg" 2>/dev/null && return 0 ;;
-        esac
+        brew install "$pkg" 2>/dev/null && return 0
       fi
       ;;
     linux|wsl)
-      local mgr
       mgr=$(detect_pkg_manager)
       case "$mgr" in
         apt)
           info "  Auto-installing $pkg via apt..."
-          case "$pkg" in
-            python3) sudo apt-get update -qq && sudo apt-get install -y python3.12 2>/dev/null && return 0
-                     sudo apt-get install -y python3 2>/dev/null && return 0 ;;
-            *)       sudo apt-get update -qq && sudo apt-get install -y "$pkg" 2>/dev/null && return 0 ;;
-          esac
+          sudo apt-get update -qq && sudo apt-get install -y "$pkg" 2>/dev/null && return 0
           ;;
         dnf)
           info "  Auto-installing $pkg via dnf..."
-          case "$pkg" in
-            python3) sudo dnf install -y python3.12 2>/dev/null && return 0 ;;
-            *)       sudo dnf install -y "$pkg" 2>/dev/null && return 0 ;;
-          esac
+          sudo dnf install -y "$pkg" 2>/dev/null && return 0
           ;;
         pacman)
           info "  Auto-installing $pkg via pacman..."
-          case "$pkg" in
-            python3) sudo pacman -S --noconfirm python 2>/dev/null && return 0 ;;
-            jq)      sudo pacman -S --noconfirm jq 2>/dev/null && return 0 ;;
-            *)       sudo pacman -S --noconfirm "$pkg" 2>/dev/null && return 0 ;;
-          esac
+          sudo pacman -S --noconfirm "$pkg" 2>/dev/null && return 0
           ;;
         apk)
           info "  Auto-installing $pkg via apk..."
-          case "$pkg" in
-            python3) sudo apk add python3 2>/dev/null && return 0 ;;
-            *)       sudo apk add "$pkg" 2>/dev/null && return 0 ;;
-          esac
+          sudo apk add "$pkg" 2>/dev/null && return 0
           ;;
         zypper)
           info "  Auto-installing $pkg via zypper..."
@@ -249,7 +195,17 @@ check_dependencies() {
   missing=0
   missing_pkgs=""
 
-  # git (required)
+  # bash (required, 3.2+)
+  if check_command bash; then
+    bash_ver="$(bash --version | head -1 | sed 's/.*version \([0-9.]*\).*/\1/')"
+    ok "bash $bash_ver"
+  else
+    err "bash is required but not installed"
+    missing=1
+    missing_pkgs="$missing_pkgs bash"
+  fi
+
+  # git (required for source build fallback)
   if check_command git; then
     git_ver="$(git --version | awk '{print $3}')"
     ok "git $git_ver"
@@ -265,67 +221,31 @@ check_dependencies() {
     fi
   fi
 
-  # bash (required, 3.2+)
-  if check_command bash; then
-    bash_ver="$(bash --version | head -1 | sed 's/.*version \([0-9.]*\).*/\1/')"
-    ok "bash $bash_ver"
+  # curl or wget (required for binary download)
+  if check_command curl; then
+    ok "curl $(curl --version | head -1 | awk '{print $2}')"
+    DOWNLOAD_CMD="curl"
+  elif check_command wget; then
+    ok "wget $(wget --version 2>/dev/null | head -1 | awk '{print $3}')"
+    DOWNLOAD_CMD="wget"
   else
-    err "bash is required but not installed"
-    missing=1
-    missing_pkgs="$missing_pkgs bash"
-  fi
-
-  # python3 (required, 3.10+)
-  # On Windows, python3 might not exist but python does
-  PY_CMD=""
-  if check_command python3; then
-    PY_CMD="python3"
-  elif check_command python; then
-    # Verify it's Python 3, not Python 2
-    py_check="$(python -c 'import sys; print(sys.version_info.major)' 2>/dev/null || echo "2")"
-    if [ "$py_check" = "3" ]; then
-      PY_CMD="python"
+    if try_auto_install curl; then
+      ok "curl (auto-installed)"
+      DOWNLOAD_CMD="curl"
+    else
+      err "curl or wget is required but neither is installed"
+      info "  Install: $(pkg_install_hint curl)"
+      missing=1
+      missing_pkgs="$missing_pkgs curl"
     fi
   fi
 
-  if [ -n "$PY_CMD" ]; then
-    py_ver="$($PY_CMD -c 'import sys; print("{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro))')"
-    py_minor="$($PY_CMD -c 'import sys; print(sys.version_info.minor)')"
-    py_major="$($PY_CMD -c 'import sys; print(sys.version_info.major)')"
-    if [ "$py_major" -gt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -ge 10 ]; }; then
-      ok "$PY_CMD $py_ver"
-    else
-      err "Python 3.10+ required, found $py_ver. The code indexer uses match/case syntax (PEP 634)."
-      info "  Upgrade: $(pkg_install_hint python3)"
-      missing=1
-      missing_pkgs="$missing_pkgs python3"
-    fi
+  # cargo (optional — for source build fallback)
+  if check_command cargo; then
+    cargo_ver="$(cargo --version | awk '{print $2}')"
+    ok "cargo $cargo_ver (optional, for source builds)"
   else
-    if try_auto_install python3; then
-      py_ver="$(python3 -c 'import sys; print("{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro))' 2>/dev/null || echo "unknown")"
-      ok "python3 $py_ver (auto-installed)"
-    else
-      err "python3 is required but not installed"
-      info "  Install: $(pkg_install_hint python3)"
-      missing=1
-      missing_pkgs="$missing_pkgs python3"
-    fi
-  fi
-
-  # jq (required)
-  if check_command jq; then
-    jq_ver="$(jq --version 2>/dev/null | tr -d 'jq-')"
-    ok "jq $jq_ver"
-  else
-    if try_auto_install jq; then
-      jq_ver="$(jq --version 2>/dev/null | tr -d 'jq-')"
-      ok "jq $jq_ver (auto-installed)"
-    else
-      err "jq is required but not installed"
-      info "  Install: $(pkg_install_hint jq)"
-      missing=1
-      missing_pkgs="$missing_pkgs jq"
-    fi
+    info "cargo not found (optional — needed only if pre-built binary is unavailable)"
   fi
 
   if [ "$missing" -ne 0 ]; then
@@ -339,77 +259,115 @@ check_dependencies() {
   fi
 }
 
+# ── Download helper ──
+
+download() {
+  url="$1"
+  output="$2"
+  case "${DOWNLOAD_CMD:-curl}" in
+    curl) curl -fsSL --retry 3 -o "$output" "$url" ;;
+    wget) wget -q -O "$output" "$url" ;;
+  esac
+}
+
+# Check if a URL exists (HTTP 200)
+url_exists() {
+  url="$1"
+  case "${DOWNLOAD_CMD:-curl}" in
+    curl) curl -fsSL --head --retry 1 -o /dev/null "$url" 2>/dev/null ;;
+    wget) wget -q --spider "$url" 2>/dev/null ;;
+  esac
+}
+
 # ── Install ──
 
-install_aiframework() {
-  echo ""
-  info "Install directory: ${BOLD}$AIFRAMEWORK_DIR${NC}"
-  info "Binaries:          ${BOLD}$BIN_DIR${NC}"
-  info "Branch:            ${BOLD}$BRANCH${NC}"
-  echo ""
+install_binary() {
+  TARBALL_NAME="aiframework-${RELEASE_ARCH}-${RELEASE_PLATFORM}.tar.gz"
+  RELEASE_URL="${GITHUB_RELEASE_BASE}/${TARBALL_NAME}"
 
-  # Clone or update
-  if [ -d "$AIFRAMEWORK_DIR/.git" ]; then
-    info "Existing installation found -- updating..."
-    (
-      cd "$AIFRAMEWORK_DIR" || die "Cannot cd to $AIFRAMEWORK_DIR"
-      if git remote get-url origin >/dev/null 2>&1; then
-        git fetch --quiet origin "$BRANCH"
-        git checkout --quiet "$BRANCH" 2>/dev/null || true
-        git reset --hard --quiet "origin/$BRANCH"
-      else
-        git remote add origin "$GITHUB_REPO" 2>/dev/null || git remote set-url origin "$GITHUB_REPO"
-        git fetch --quiet origin "$BRANCH"
-        git checkout --quiet "$BRANCH" 2>/dev/null || true
-        git reset --hard --quiet "origin/$BRANCH"
-      fi
-    )
-    ok "Updated to latest"
-  else
-    info "Cloning aiframework..."
-    git clone --quiet --depth 1 --branch "$BRANCH" "$GITHUB_REPO" "$AIFRAMEWORK_DIR"
-    ok "Cloned to $AIFRAMEWORK_DIR"
-  fi
+  echo ""
+  info "Binary directory: ${BOLD}$BIN_DIR${NC}"
+  echo ""
 
   # Create bin directory
   mkdir -p "$BIN_DIR"
 
-  # Create symlinks or copies (Windows MSYS/Git Bash can't always symlink)
-  case "$PLATFORM" in
-    windows)
-      # Windows: copy scripts instead of symlinking (symlinks require admin)
-      cp -f "$AIFRAMEWORK_DIR/bin/aiframework" "$BIN_DIR/aiframework"
-      cp -f "$AIFRAMEWORK_DIR/bin/aiframework-mcp" "$BIN_DIR/aiframework-mcp"
-      cp -f "$AIFRAMEWORK_DIR/bin/aiframework-telemetry" "$BIN_DIR/aiframework-telemetry"
-      cp -f "$AIFRAMEWORK_DIR/bin/aiframework-update-check" "$BIN_DIR/aiframework-update-check"
-      ok "Copied binaries to $BIN_DIR"
-      warn "On Windows, run 'aiframework update' after updates (files are copied, not symlinked)"
-      ;;
-    *)
-      ln -sf "$AIFRAMEWORK_DIR/bin/aiframework" "$BIN_DIR/aiframework"
-      ln -sf "$AIFRAMEWORK_DIR/bin/aiframework-mcp" "$BIN_DIR/aiframework-mcp"
-      ln -sf "$AIFRAMEWORK_DIR/bin/aiframework-telemetry" "$BIN_DIR/aiframework-telemetry"
-      ln -sf "$AIFRAMEWORK_DIR/bin/aiframework-update-check" "$BIN_DIR/aiframework-update-check"
-      ok "Symlinked binaries to $BIN_DIR"
-      ;;
-  esac
+  # Try pre-built binary first
+  info "Checking for pre-built binary..."
+  info "  URL: $RELEASE_URL"
 
-  # Install sheal (optional)
-  if [ "${SKIP_SHEAL:-0}" != "1" ]; then
-    if check_command npm; then
-      info "Installing sheal (runtime session intelligence)..."
-      npm install -g @liwala/sheal@latest 2>/dev/null && ok "sheal installed" || warn "sheal install failed (non-fatal)"
+  TMPDIR_INSTALL="$(mktemp -d)"
+  trap 'rm -rf "$TMPDIR_INSTALL"' EXIT
+
+  if url_exists "$RELEASE_URL"; then
+    info "Downloading pre-built binary for ${RELEASE_ARCH}-${RELEASE_PLATFORM}..."
+    if download "$RELEASE_URL" "$TMPDIR_INSTALL/$TARBALL_NAME"; then
+      (
+        cd "$TMPDIR_INSTALL" || die "Cannot cd to temp dir"
+        tar xzf "$TARBALL_NAME"
+      )
+      # Find the binary in the extracted archive
+      if [ -f "$TMPDIR_INSTALL/aiframework" ]; then
+        EXTRACTED_BIN="$TMPDIR_INSTALL/aiframework"
+      elif [ -f "$TMPDIR_INSTALL/aiframework/aiframework" ]; then
+        EXTRACTED_BIN="$TMPDIR_INSTALL/aiframework/aiframework"
+      else
+        # Search for it
+        EXTRACTED_BIN="$(find "$TMPDIR_INSTALL" -name 'aiframework' -type f ! -name '*.tar.gz' | head -1)"
+      fi
+
+      if [ -n "$EXTRACTED_BIN" ] && [ -f "$EXTRACTED_BIN" ]; then
+        cp "$EXTRACTED_BIN" "$BIN_DIR/aiframework"
+        chmod +x "$BIN_DIR/aiframework"
+        INSTALL_METHOD="binary"
+        ok "Installed pre-built binary to $BIN_DIR/aiframework"
+      else
+        warn "Archive downloaded but binary not found inside — falling back to source build"
+        INSTALL_METHOD=""
+      fi
     else
-      info "Tip: Install Node.js 22+ and run 'npm install -g @liwala/sheal' for runtime session intelligence"
+      warn "Download failed — falling back to source build"
+      INSTALL_METHOD=""
+    fi
+  else
+    info "No pre-built binary available for ${RELEASE_ARCH}-${RELEASE_PLATFORM}"
+    INSTALL_METHOD=""
+  fi
+
+  # Fallback: git clone + cargo build
+  if [ -z "${INSTALL_METHOD:-}" ]; then
+    if ! check_command cargo; then
+      echo ""
+      die "No pre-built binary available and cargo is not installed. Install Rust via https://rustup.rs and re-run."
+    fi
+
+    SRC_DIR="$(mktemp -d)"
+    # Update trap to clean both temp dirs
+    trap 'rm -rf "$TMPDIR_INSTALL" "$SRC_DIR"' EXIT
+
+    info "Building from source (this may take a few minutes)..."
+    git clone --quiet --depth 1 --branch "$BRANCH" "$GITHUB_REPO" "$SRC_DIR"
+    ok "Cloned source to $SRC_DIR"
+
+    info "Running cargo build --release..."
+    (cd "$SRC_DIR" && cargo build --release --quiet)
+
+    if [ -f "$SRC_DIR/target/release/aiframework" ]; then
+      cp "$SRC_DIR/target/release/aiframework" "$BIN_DIR/aiframework"
+      chmod +x "$BIN_DIR/aiframework"
+      INSTALL_METHOD="source"
+      ok "Built and installed from source to $BIN_DIR/aiframework"
+    else
+      die "Cargo build succeeded but binary not found at target/release/aiframework"
     fi
   fi
 
   # Verify install
-  VERSION="$(cat "$AIFRAMEWORK_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
-  if [ -x "$BIN_DIR/aiframework" ] || [ -L "$BIN_DIR/aiframework" ] || [ -f "$BIN_DIR/aiframework" ]; then
-    ok "aiframework v${VERSION} installed successfully"
+  if [ -x "$BIN_DIR/aiframework" ]; then
+    VERSION="$("$BIN_DIR/aiframework" --version 2>/dev/null | awk '{print $NF}' || echo "unknown")"
+    ok "aiframework ${VERSION} installed successfully"
   else
-    die "Installation failed -- $BIN_DIR/aiframework not found"
+    die "Installation failed — $BIN_DIR/aiframework not found or not executable"
   fi
 }
 
@@ -458,7 +416,7 @@ ensure_path() {
 
   # Check if already in rc file
   if [ -f "$SHELL_RC" ] && grep -qF "$BIN_DIR" "$SHELL_RC" 2>/dev/null; then
-    info "PATH entry already in $SHELL_RC -- restart your shell or run: source $SHELL_RC"
+    info "PATH entry already in $SHELL_RC — restart your shell or run: source $SHELL_RC"
     return 0
   fi
 
@@ -474,17 +432,28 @@ uninstall_aiframework() {
   set_default_paths
 
   info "Removing aiframework..."
-  rm -f "$BIN_DIR/aiframework" "$BIN_DIR/aiframework-mcp" "$BIN_DIR/aiframework-telemetry" "$BIN_DIR/aiframework-update-check"
-  if [ -d "$AIFRAMEWORK_DIR" ]; then
-    rm -rf "$AIFRAMEWORK_DIR"
-    ok "Removed $AIFRAMEWORK_DIR"
+
+  # Remove binary
+  if [ -f "$BIN_DIR/aiframework" ] || [ -L "$BIN_DIR/aiframework" ]; then
+    rm -f "$BIN_DIR/aiframework"
+    ok "Removed $BIN_DIR/aiframework"
+  else
+    warn "Binary not found at $BIN_DIR/aiframework"
+  fi
+
+  # Remove legacy symlinks if they exist
+  rm -f "$BIN_DIR/aiframework-mcp" "$BIN_DIR/aiframework-telemetry" "$BIN_DIR/aiframework-update-check"
+
+  # Remove legacy source directory if it exists
+  if [ -d "$HOME/.aiframework-src" ]; then
+    rm -rf "$HOME/.aiframework-src"
+    ok "Removed legacy source directory ~/.aiframework-src"
   fi
 
   # Remove the exact PATH block we added (2-line: "# aiframework" + PATH export)
   for rc_file in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.profile" "$HOME/.config/fish/config.fish"; do
     if [ -f "$rc_file" ] && grep -qF "$BIN_DIR" "$rc_file" 2>/dev/null; then
       cp "$rc_file" "${rc_file}.aif-backup"
-      # Only remove lines that are exactly "# aiframework" followed by a PATH line containing our BIN_DIR
       awk -v bindir="$BIN_DIR" '
         /^# aiframework$/ { pending = $0; next }
         pending && index($0, bindir) > 0 { pending = ""; next }
@@ -529,13 +498,13 @@ main() {
       --help|-h)
         echo "Usage: curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh"
         echo ""
-        echo "Supported platforms: macOS, Linux, WSL, Windows (Git Bash / MSYS2)"
+        echo "Installs the aiframework Rust binary. No runtime dependencies required."
+        echo ""
+        echo "Supported platforms: macOS (x86_64, arm64), Linux (x86_64, arm64), WSL, Windows (Git Bash / MSYS2)"
         echo ""
         echo "Options (env vars):"
         echo "  PREFIX=~/.local        Install prefix (default: auto-detected)"
-        echo "  AIFRAMEWORK_DIR=...    Clone directory (default: ~/.aiframework-src)"
-        echo "  BRANCH=main            Git branch"
-        echo "  SKIP_SHEAL=1           Skip sheal install"
+        echo "  BRANCH=main            Git branch (used for source build fallback)"
         echo ""
         echo "Flags:"
         echo "  --uninstall            Remove aiframework"
@@ -543,6 +512,14 @@ main() {
         echo "  --auto-deps            Auto-install missing dependencies (requires sudo on Linux)"
         echo "  --dry-run              Show what would be installed without making changes"
         echo "  --help                 Show this help"
+        echo ""
+        echo "Install flow:"
+        echo "  1. Download pre-built binary from GitHub Releases"
+        echo "  2. If unavailable, fall back to: git clone + cargo build --release"
+        echo ""
+        echo "Dependencies:"
+        echo "  Required: bash 3.2+, git, curl (or wget)"
+        echo "  Optional: cargo (only needed if no pre-built binary for your platform)"
         exit 0
         ;;
     esac
@@ -560,19 +537,14 @@ main() {
 
   # --dry-run: show what would happen and exit
   if [ "${DRY_RUN:-0}" = "1" ]; then
+    TARBALL_NAME="aiframework-${RELEASE_ARCH}-${RELEASE_PLATFORM}.tar.gz"
+    RELEASE_URL="${GITHUB_RELEASE_BASE}/${TARBALL_NAME}"
     echo ""
     printf "${BOLD}Dry run — no changes will be made${NC}\n"
     echo ""
-    info "Would clone/update:  $GITHUB_REPO (branch: $BRANCH)"
-    info "Clone directory:     $AIFRAMEWORK_DIR"
-    info "Symlink binaries to: $BIN_DIR"
-    info "  - $BIN_DIR/aiframework"
-    info "  - $BIN_DIR/aiframework-mcp"
-    info "  - $BIN_DIR/aiframework-telemetry"
-    info "  - $BIN_DIR/aiframework-update-check"
-    if [ "${SKIP_SHEAL:-0}" != "1" ] && check_command npm; then
-      info "Would install:       sheal (via npm)"
-    fi
+    info "Would download:  $RELEASE_URL"
+    info "Fallback:        git clone $GITHUB_REPO + cargo build --release"
+    info "Install binary:  $BIN_DIR/aiframework"
     # Check PATH
     case ":$PATH:" in
       *":$BIN_DIR:"*) info "PATH: $BIN_DIR already in PATH" ;;
@@ -592,7 +564,7 @@ main() {
     exit 0
   fi
 
-  install_aiframework
+  install_binary
   ensure_path
 
   # Write install receipt for self-update and diagnostics
@@ -600,8 +572,7 @@ main() {
   cat > "${HOME}/.aiframework/install-receipt.json" << RECEIPT_EOF
 {
   "version": "${VERSION}",
-  "method": "curl-installer",
-  "install_dir": "$(tildify "$AIFRAMEWORK_DIR")",
+  "method": "${INSTALL_METHOD}",
   "bin_dir": "$(tildify "$BIN_DIR")",
   "platform": "${PLATFORM}-${ARCH}",
   "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date +%Y-%m-%dT%H:%M:%SZ)"
@@ -610,7 +581,7 @@ RECEIPT_EOF
 
   # Clean success output
   echo ""
-  ok "aiframework v${VERSION} installed"
+  ok "aiframework ${VERSION} installed"
   echo ""
   echo "  To get started:"
   echo ""

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  rust:
     strategy:
       fail-fast: false
       matrix:
@@ -16,127 +16,32 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Bash syntax check
-        run: find . -name '*.sh' -not -path '*/.git/*' -not -path '*/vault/*' | xargs bash -n
-      - name: ShellCheck
-        if: matrix.os == 'ubuntu-latest'
-        uses: ludeeus/action-shellcheck@2.0.0
-        with:
-          scandir: './lib'
-          additional_files: 'bin/aiframework bin/aiframework-mcp bin/aiframework-telemetry bin/aiframework-update-check'
-          severity: error
-
-  python:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Python compile check
-        run: find . -name '*.py' -not -path '*/__pycache__/*' | xargs python3 -m py_compile
-      - name: Run indexer tests
-        run: python3 tests/test_indexer.py
-      - name: Smoke test indexer
-        run: python3 -m lib.indexers.parse --target . --output /tmp/ci-index.json
-
-  integration:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    needs: [lint, python]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install jq
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        working-directory: rust
+        run: cargo build --release
+      - name: Test
+        working-directory: rust
+        run: cargo test
+      - name: Smoke test - index
+        working-directory: rust
+        run: ./target/release/aiframework index --target .. --summary
+      - name: Smoke test - discover
+        working-directory: rust
         run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            sudo apt-get install -y jq
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            brew install jq 2>/dev/null || true
-          fi
-        shell: bash
-      - name: Full pipeline (discover + generate + verify)
-        run: |
-          ./bin/aiframework run --target . --non-interactive 2>&1 || echo "::warning::Pipeline exited with $?"
-      - name: Verify manifest exists
-        run: test -f .aiframework/manifest.json
-      - name: Verify code index exists
-        run: test -f .aiframework/code-index.json
-      - name: Verify CLAUDE.md was generated
-        run: test -f CLAUDE.md
-      - name: Check archetype detected
-        run: jq -e '.archetype.type' .aiframework/manifest.json
+          ./target/release/aiframework discover --target .. --output /tmp/ci-test
+          test -f /tmp/ci-test/manifest.json
+      - name: Smoke test - verify
+        working-directory: rust
+        run: ./target/release/aiframework verify --target ..
 
   installer:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install jq (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get install -y jq
-      - name: Install jq (macOS)
-        if: runner.os == 'macOS'
-        run: brew install jq 2>/dev/null || true
-      - name: Run installer tests
-        run: bash tests/test_installer.sh
-        shell: bash
-      - name: Test dist tarball
-        run: |
-          make dist
-          VERSION=$(cat VERSION | tr -d '[:space:]')
-          test -f "dist/aiframework-${VERSION}.tar.gz"
-          tar tzf "dist/aiframework-${VERSION}.tar.gz" | grep "aiframework/bin/aiframework" || { echo "FAIL: bin/aiframework not in tarball"; exit 1; }
-          rm -rf dist
-        shell: bash
-
-  alpine:
-    runs-on: ubuntu-latest
-    needs: [lint]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Test on Alpine Linux (musl)
-        run: |
-          docker run --rm -v "$PWD":/workspace -w /workspace alpine:3.19 sh -c '
-            apk add --no-cache bash python3 py3-pip jq git coreutils
-            echo "=== Alpine $(cat /etc/alpine-release) ==="
-            bash -n bin/aiframework
-            bash -n bin/aiframework-update-check
-            python3 -m py_compile lib/indexers/parse.py
-            echo "=== Installer dry-run ==="
-            sh install.sh --dry-run
-            echo "=== Full pipeline ==="
-            git config --global --add safe.directory /workspace
-            ./bin/aiframework run --target . --non-interactive 2>&1 || echo "::warning::Pipeline exited with $?"
-            test -f .aiframework/manifest.json && echo "OK: manifest.json"
-            test -f CLAUDE.md && echo "OK: CLAUDE.md"
-          '
-
-  json-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate data registries
-        run: |
-          python3 -c "
-          import json, sys
-          files = ['lib/data/languages.json', 'lib/data/domains.json', 'lib/data/deploy_targets.json', 'lib/data/archetypes.json']
-          for f in files:
-              try:
-                  json.load(open(f))
-                  print(f'OK: {f}')
-              except Exception as e:
-                  print(f'FAIL: {f}: {e}')
-                  sys.exit(1)
-          "
+      - name: Installer syntax check
+        run: bash -n install.sh
+      - name: Installer help
+        run: bash install.sh --help
+      - name: Installer dry-run
+        run: bash install.sh --dry-run
