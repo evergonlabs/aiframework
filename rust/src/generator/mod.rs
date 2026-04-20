@@ -105,6 +105,20 @@ pub fn generate_with_tier(
         let rule_files = rules::generate(target, manifest)?;
         generated.extend(rule_files);
 
+        // .claude/hooks/session-start.sh (smart session detection)
+        let hook_dir = target.join(".claude/hooks");
+        let hook_path = hook_dir.join("session-start.sh");
+        if !hook_path.exists() {
+            std::fs::create_dir_all(&hook_dir)?;
+            std::fs::write(&hook_path, include_str!("../../session-start-hook.sh"))?;
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755))?;
+            }
+            generated.push(".claude/hooks/session-start.sh".into());
+        }
+
         // tools/learnings/{short}-learnings.jsonl
         let tracking_files = tracking::generate(target, manifest)?;
         generated.extend(tracking_files);

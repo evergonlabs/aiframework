@@ -8,14 +8,25 @@ globs: "**/*"
 ## Session Start Protocol
 
 At the start of each session:
-1. Read `vault/memory/status.md` — check for ongoing work and operational context
-2. Read `vault/wiki/index.md` — scan domain concepts and knowledge pages
-3. Read `tools/learnings/aiframework-learnings.jsonl` — surface relevant learnings
-4. Check `git log --oneline -10` — understand recent work
-5. Check `git status` — understand current state
-6. If a STATUS.md file exists — read it for multi-phase task progress
-7. **Auto: `aiframework-update-check` runs via SessionStart hook** — if output says `UPGRADE_AVAILABLE`, tell the user: "A new version of aiframework is available. Run `aiframework update` to upgrade."
-8. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+1. **Auto: session-start hook runs** — reads the `systemMessage` from `.claude/hooks/session-start.sh`. If it suggests actions (refresh, install, update), tell the user clearly and offer to run them.
+2. Read `vault/memory/status.md` — check for ongoing work and operational context
+3. Read `vault/wiki/index.md` — scan domain concepts and knowledge pages
+4. Read `tools/learnings/aiframework-learnings.jsonl` — surface relevant learnings
+5. Check `git log --oneline -10` — understand recent work
+6. Check `git status` — understand current state
+7. Decision Priority: User > Invariants > Workflow Rules > Core Principles > Docs
+
+### Responding to Session Hook Messages
+
+When the session-start hook returns a `systemMessage`, act on each item:
+- "not installed" → tell user the install command
+- "not bootstrapped" → offer to run `aiframework run --target .`
+- "CLAUDE.md is X days old" → suggest `aiframework refresh`
+- "code index missing" → suggest `aiframework index --target .`
+- "Run /aif-ready" → suggest the user types `/aif-ready`
+- "sheal not installed" → mention it enhances learning across sessions
+- "gstack not installed" → mention it adds 37 workflow skills
+- "update available" → suggest `aiframework update`
 
 ## End-of-Session Checklist
 
