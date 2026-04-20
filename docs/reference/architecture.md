@@ -1,6 +1,6 @@
 # Architecture — aiframework
 
-Single Rust binary. 12,927 LOC, 8.9 MB, zero runtime dependencies.
+Single Rust binary. ~13,000 LOC, 8.9 MB, zero runtime dependencies.
 
 ## Module Map
 

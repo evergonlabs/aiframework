@@ -486,7 +486,7 @@ cargo build --release
 Run tests:
 
 ```bash
-cargo test        # 42 tests
+cargo test
 cargo clippy      # lint
 ```
 
