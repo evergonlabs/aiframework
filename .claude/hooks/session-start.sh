@@ -48,9 +48,22 @@ if [[ -f "$PROJECT_DIR/.aiframework/manifest.json" && ! -f "$PROJECT_DIR/.aifram
 fi
 
 # ── 5. Check if /aif-ready has been run ──
-if [[ -f "$PROJECT_DIR/CLAUDE.md" ]]; then
-  if ! grep -q "aif-ready" "$PROJECT_DIR/CLAUDE.md" 2>/dev/null; then
-    MESSAGES="${MESSAGES}Tip: Run /aif-ready to enhance your config with stack-specific knowledge from the web.\n"
+AIF_READY_MARKER="$PROJECT_DIR/.aiframework/.aif-ready-done"
+if [[ -f "$PROJECT_DIR/CLAUDE.md" && -d "$PROJECT_DIR/.aiframework" ]]; then
+  if [[ ! -f "$AIF_READY_MARKER" ]]; then
+    MESSAGES="${MESSAGES}First session detected. Running automatic enhancement — researching your stack, discovering skills, and optimizing your configuration. Type /aif-ready to start, or I'll suggest improvements as we work.\n"
+  else
+    # Check if marker is older than 30 days
+    if [[ "$(uname)" == "Darwin" ]]; then
+      MARKER_MTIME=$(stat -f %m "$AIF_READY_MARKER" 2>/dev/null || echo 0)
+    else
+      MARKER_MTIME=$(stat -c %Y "$AIF_READY_MARKER" 2>/dev/null || echo 0)
+    fi
+    MARKER_NOW=$(date +%s)
+    MARKER_DAYS_OLD=$(( (MARKER_NOW - MARKER_MTIME) / 86400 ))
+    if [[ $MARKER_DAYS_OLD -gt 30 ]]; then
+      MESSAGES="${MESSAGES}/aif-ready was last run ${MARKER_DAYS_OLD} days ago. Consider re-running /aif-ready for updated stack research.\n"
+    fi
   fi
 fi
 
@@ -74,6 +87,15 @@ if command -v aiframework &>/dev/null; then
   REMOTE_VER=$(curl -fsSL --connect-timeout 2 --max-time 3 https://raw.githubusercontent.com/evergonlabs/aiframework/main/VERSION 2>/dev/null | tr -d '[:space:]' || echo "")
   if [[ -n "$REMOTE_VER" && "$REMOTE_VER" != "$CURRENT_VER" && "$REMOTE_VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     MESSAGES="${MESSAGES}aiframework update available: ${CURRENT_VER} → ${REMOTE_VER}. Run: aiframework update\n"
+  fi
+fi
+
+# ── 9. Auto-evolve suggestion ──
+if [[ -d "$PROJECT_DIR/tools/learnings" ]]; then
+  LEARNING_COUNT=$(find "$PROJECT_DIR/tools/learnings" -name "*.jsonl" -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
+  LAST_EVOLVE="$PROJECT_DIR/.aiframework/.last-evolve"
+  if [[ "$LEARNING_COUNT" -gt 5 ]] && [[ ! -f "$LAST_EVOLVE" || -n "$(find "$LAST_EVOLVE" -mtime +7 2>/dev/null)" ]]; then
+    MESSAGES="${MESSAGES}${LEARNING_COUNT} learnings accumulated. Run /aif-evolve to promote the best into permanent rules.\n"
   fi
 fi
 

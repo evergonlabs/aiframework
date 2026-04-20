@@ -102,6 +102,144 @@ fn make_executable(_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Generate `.claude/settings.json` with PostToolUse auto-format hooks,
+/// PreToolUse safety guards, and permission auto-allow rules.
+///
+/// Reads the formatter from `manifest["quality"]["formatter"]["tool"]` and maps
+/// it to the appropriate CLI command. Skips generation if the file already exists.
+pub fn generate_claude_settings(
+    target: &Path,
+    manifest: &Value,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let settings_path = target.join(".claude/settings.json");
+    if settings_path.exists() {
+        return Ok(Vec::new());
+    }
+
+    let claude_dir = target.join(".claude");
+    std::fs::create_dir_all(&claude_dir)?;
+
+    let formatter_tool = str_or(manifest, &["quality", "formatter", "tool"], "");
+    let format_cmd = formatter_command(&formatter_tool);
+
+    let settings = build_claude_settings(&format_cmd);
+    std::fs::write(&settings_path, &settings)?;
+
+    Ok(vec![".claude/settings.json".into()])
+}
+
+/// Map a detected formatter tool name to the CLI command that formats a single file.
+fn formatter_command(tool: &str) -> String {
+    let normalized = tool.to_lowercase();
+    if normalized.contains("prettier") {
+        "npx prettier --write \"$CLAUDE_TOOL_INPUT_FILE\" 2>/dev/null || true".into()
+    } else if normalized.contains("ruff") {
+        "ruff format \"$CLAUDE_TOOL_INPUT_FILE\" 2>/dev/null || true".into()
+    } else if normalized.contains("rustfmt") {
+        "rustfmt \"$CLAUDE_TOOL_INPUT_FILE\" 2>/dev/null || true".into()
+    } else if normalized.contains("gofmt") || normalized.contains("goimports") {
+        "gofmt -w \"$CLAUDE_TOOL_INPUT_FILE\" 2>/dev/null || true".into()
+    } else if normalized.contains("black") {
+        "black \"$CLAUDE_TOOL_INPUT_FILE\" 2>/dev/null || true".into()
+    } else {
+        String::new()
+    }
+}
+
+/// Build the full `.claude/settings.json` content as a formatted JSON string.
+fn build_claude_settings(format_cmd: &str) -> String {
+    let mut hooks = Vec::<String>::new();
+
+    // ── SessionStart hook ──────────────────────────────────────────────
+    hooks.push(r#"    {
+      "matcher": "SessionStart",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/session-start.sh"
+        }
+      ]
+    }"#.into());
+
+    // ── PostToolUse: auto-format after Write|Edit ──────────────────────
+    if !format_cmd.is_empty() {
+        hooks.push(format!(
+            r#"    {{
+      "matcher": "Write|Edit",
+      "hooks": [
+        {{
+          "type": "command",
+          "command": "bash -c '{format_cmd}'"
+        }}
+      ]
+    }}"#
+        ));
+    }
+
+    // ── Stop hook: learning reminder ───────────────────────────────────
+    hooks.push(r#"    {
+      "matcher": "Stop",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash -c 'echo \"Reminder: run /sheal-retro to extract session learnings.\"'"
+        }
+      ]
+    }"#.into());
+
+    // ── PreToolUse: block dangerous Bash commands ──────────────────────
+    hooks.push(r#"    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash -c 'CMD=\"$CLAUDE_TOOL_INPUT\"; if echo \"$CMD\" | grep -qE \"rm -rf /|DROP TABLE|git push.*--force.*main|git reset --hard\"; then echo \"{\\\"decision\\\": \\\"block\\\", \\\"reason\\\": \\\"Dangerous command detected. Review manually.\\\"}\"; fi'"
+        }
+      ]
+    }"#.into());
+
+    // ── PreToolUse: block production config edits ──────────────────────
+    hooks.push(r#"    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash -c 'FILE=\"$CLAUDE_TOOL_INPUT_FILE\"; if echo \"$FILE\" | grep -qE \"\\.env\\.prod|\\.env\\.production|production\\.yml|prod\\.conf\"; then echo \"{\\\"decision\\\": \\\"block\\\", \\\"reason\\\": \\\"Production config file. Edit staging config instead.\\\"}\"; fi'"
+        }
+      ]
+    }"#.into());
+
+    // ── PermissionRequest: auto-allow safe commands ────────────────────
+    hooks.push(r#"    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash -c 'CMD=\"$CLAUDE_TOOL_INPUT\"; if echo \"$CMD\" | grep -qE \"^(npm test|npm run lint|npx prettier|cargo test|cargo clippy|make test|make lint|go test|pytest|ruff)\"; then echo \"{\\\"decision\\\": \\\"allow\\\"}\"; fi'"
+        }
+      ]
+    }"#.into());
+
+    let hooks_json = hooks.join(",\n");
+
+    format!(
+        r#"{{
+  "permissions": {{
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch"
+    ]
+  }},
+  "hooks": [
+{hooks_json}
+  ]
+}}
+"#
+    )
+}
+
 /// Navigate nested JSON safely.
 fn str_or(value: &Value, path: &[&str], default: &str) -> String {
     let mut current = value;

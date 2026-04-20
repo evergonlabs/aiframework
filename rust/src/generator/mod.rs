@@ -122,6 +122,10 @@ pub fn generate_with_tier(
         // tools/learnings/{short}-learnings.jsonl
         let tracking_files = tracking::generate(target, manifest)?;
         generated.extend(tracking_files);
+
+        // .claude/settings.json — PostToolUse auto-format + PreToolUse safety guards
+        let settings_files = hooks::generate_claude_settings(target, manifest)?;
+        generated.extend(settings_files);
     }
 
     // ── Full+: vault, vault_ingest, wiki_graph, sheal ───────────────────
