@@ -7,10 +7,12 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
     let mut seen: Vec<String> = Vec::new();
 
     // Priority 1: .env.example / .env.template / .env.sample
+    let mut source: Option<&str> = None;
     for env_file in &[".env.example", ".env.template", ".env.sample"] {
         let path = target.join(env_file);
         if let Ok(content) = std::fs::read_to_string(&path) {
             parse_env_file(&content, env_file, &mut vars, &mut seen);
+            source = Some(env_file);
             break;
         }
     }
@@ -21,8 +23,17 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
     // Priority 3: docker-compose environment
     parse_compose(target, &mut vars, &mut seen);
 
+    // Check for public env vars (NEXT_PUBLIC_ or VITE_)
+    let has_public_env = vars.iter().any(|v| {
+        v["name"].as_str().map_or(false, |n| {
+            n.starts_with("NEXT_PUBLIC_") || n.starts_with("VITE_")
+        })
+    });
+
     json!({
         "variables": vars,
+        "source": source,
+        "has_public_env": has_public_env,
     })
 }
 

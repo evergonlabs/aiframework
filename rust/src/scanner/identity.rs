@@ -10,6 +10,7 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
 
     let compose_services = detect_compose_services(target);
     let dockerfile = detect_dockerfile(target);
+    let docker_image_name = detect_docker_image_name(target);
 
     json!({
         "name": name,
@@ -19,6 +20,7 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
         "description": description,
         "compose_services": compose_services,
         "dockerfile": dockerfile,
+        "docker_image_name": docker_image_name,
     })
 }
 
@@ -220,6 +222,44 @@ fn detect_dockerfile(target: &Path) -> Value {
         "base_image": base_image,
         "exposed_port": exposed_port,
     })
+}
+
+fn detect_docker_image_name(target: &Path) -> Value {
+    // Check Makefile for IMAGE= or IMAGE_NAME=
+    if let Ok(content) = std::fs::read_to_string(target.join("Makefile")) {
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if let Some(rest) = trimmed.strip_prefix("IMAGE_NAME")
+                .or_else(|| trimmed.strip_prefix("IMAGE"))
+                .or_else(|| trimmed.strip_prefix("DOCKER_IMAGE"))
+            {
+                let rest = rest.trim();
+                if let Some(val) = rest.strip_prefix('=').or_else(|| rest.strip_prefix(":=")) {
+                    let val = val.trim().trim_matches('"').trim_matches('\'');
+                    if !val.is_empty() && !val.contains('$') {
+                        return json!(val);
+                    }
+                }
+            }
+        }
+    }
+
+    // Check docker-compose for image: field
+    for name in &["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"] {
+        if let Ok(content) = std::fs::read_to_string(target.join(name)) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if let Some(rest) = trimmed.strip_prefix("image:") {
+                    let val = rest.trim().trim_matches('"').trim_matches('\'');
+                    if !val.is_empty() && !val.contains("${") {
+                        return json!(val);
+                    }
+                }
+            }
+        }
+    }
+
+    Value::Null
 }
 
 fn to_short_name(name: &str) -> String {

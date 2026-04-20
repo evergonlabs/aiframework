@@ -14,7 +14,7 @@ use crate::validator;
 #[command(name = "aiframework", version, about = "Make Claude Code understand your project instantly")]
 pub struct Args {
     #[command(subcommand)]
-    pub command: Command,
+    pub command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -147,7 +147,12 @@ pub fn parse() -> Args {
 }
 
 pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
-    match args.command {
+    let command = match args.command {
+        Some(cmd) => cmd,
+        None => return smart_noargs(),
+    };
+
+    match command {
         Command::Index {
             target,
             output,
@@ -334,6 +339,9 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 total_edges,
             );
 
+            // Write knowledge store entry
+            write_knowledge_entry(&target, &manifest, code_index.as_ref());
+
             // Telemetry: fire-and-forget
             telemetry::send_event("run", &json!({
                 "language": lang,
@@ -386,6 +394,9 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                     ));
                 }
             }
+
+            // Write knowledge store entry
+            write_knowledge_entry(&target, &manifest, None);
 
             // Telemetry
             telemetry::send_event("discover", &json!({}));
@@ -709,42 +720,345 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             ui::banner();
             ui::phase("UPDATE");
 
-            // Check current version
             let current_version = env!("CARGO_PKG_VERSION");
             ui::phase_kv("current", current_version);
 
-            // Try to fetch latest version from GitHub
-            ui::info("Checking for updates...");
+            // Detect install method
+            let home = std::env::var("HOME").unwrap_or_default();
+            let src_dir = PathBuf::from(&home).join(".aiframework-src");
 
-            let latest = fetch_latest_version();
-            match latest {
-                Some(ref v) if v != current_version => {
-                    ui::ok(&format!("New version available: {v}"));
-                    println!();
-                    ui::info("To update, re-run the installer:");
-                    ui::dim("  curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh");
-                    println!();
-                    ui::dim("Or if installed via Homebrew:");
-                    ui::dim("  brew upgrade aiframework");
-                    println!();
+            let install_method = if src_dir.join(".git").is_dir() {
+                "git"
+            } else if std::process::Command::new("brew")
+                .args(["list", "aiframework"])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
+            {
+                "homebrew"
+            } else {
+                "tarball"
+            };
+
+            ui::phase_kv("method", install_method);
+
+            // Perform the upgrade
+            let upgrade_ok = match install_method {
+                "git" => {
+                    ui::info("Pulling latest from git...");
+                    let output = std::process::Command::new("git")
+                        .args(["-C", &src_dir.to_string_lossy(), "pull", "--ff-only", "origin", "main"])
+                        .output();
+                    match output {
+                        Ok(o) if o.status.success() => {
+                            let msg = String::from_utf8_lossy(&o.stdout);
+                            ui::ok(&format!("git pull: {}", msg.trim()));
+                            true
+                        }
+                        Ok(o) => {
+                            let err = String::from_utf8_lossy(&o.stderr);
+                            ui::error(&format!("git pull failed: {}", err.trim()));
+                            false
+                        }
+                        Err(e) => {
+                            ui::error(&format!("Failed to run git: {e}"));
+                            false
+                        }
+                    }
                 }
-                Some(_) => {
-                    ui::ok(&format!("Already at latest version ({current_version})"));
-                    println!();
+                "homebrew" => {
+                    ui::info("Upgrading via Homebrew...");
+                    let output = std::process::Command::new("brew")
+                        .args(["upgrade", "aiframework"])
+                        .output();
+                    match output {
+                        Ok(o) if o.status.success() => {
+                            ui::ok("Homebrew upgrade complete.");
+                            true
+                        }
+                        Ok(o) => {
+                            let stderr = String::from_utf8_lossy(&o.stderr);
+                            let stdout = String::from_utf8_lossy(&o.stdout);
+                            // brew returns non-zero if already up-to-date
+                            if stdout.contains("already installed") || stderr.contains("already installed") {
+                                ui::ok("Already at latest version via Homebrew.");
+                                true
+                            } else {
+                                ui::error(&format!("brew upgrade failed: {}", stderr.trim()));
+                                false
+                            }
+                        }
+                        Err(e) => {
+                            ui::error(&format!("Failed to run brew: {e}"));
+                            false
+                        }
+                    }
                 }
-                None => {
-                    ui::warn("Could not reach GitHub to check for updates.");
-                    ui::dim("Check manually: https://github.com/evergonlabs/aiframework/releases");
-                    println!();
+                _ => {
+                    // tarball / curl installer
+                    ui::info("Reinstalling via curl installer...");
+                    let output = std::process::Command::new("sh")
+                        .args(["-c", "curl -fsSL https://raw.githubusercontent.com/evergonlabs/aiframework/main/install.sh | sh"])
+                        .output();
+                    match output {
+                        Ok(o) if o.status.success() => {
+                            ui::ok("Installer completed successfully.");
+                            true
+                        }
+                        Ok(o) => {
+                            let err = String::from_utf8_lossy(&o.stderr);
+                            ui::error(&format!("Installer failed: {}", err.trim()));
+                            false
+                        }
+                        Err(e) => {
+                            ui::error(&format!("Failed to run installer: {e}"));
+                            false
+                        }
+                    }
+                }
+            };
+
+            // After upgrade: refresh all known repos from the knowledge store
+            if upgrade_ok {
+                let knowledge_dir = PathBuf::from(&home).join(".aiframework/knowledge");
+                if knowledge_dir.is_dir() {
+                    let mut refreshed = 0u32;
+                    let mut failed = 0u32;
+
+                    if let Ok(entries) = std::fs::read_dir(&knowledge_dir) {
+                        for entry in entries.filter_map(|e| e.ok()) {
+                            let path = entry.path();
+                            if path.extension().and_then(|e| e.to_str()) != Some("json") {
+                                continue;
+                            }
+                            if let Ok(content) = std::fs::read_to_string(&path) {
+                                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
+                                    if let Some(repo_path) = val["_meta"]["repo_path"].as_str() {
+                                        let repo = PathBuf::from(repo_path);
+                                        if repo.join(".aiframework/manifest.json").exists() {
+                                            ui::dim(&format!("  Refreshing {}...", tildify(&repo)));
+                                            // Run discover + generate on the repo
+                                            match scanner::discover(&repo) {
+                                                Ok(manifest) => {
+                                                    let aif_dir = repo.join(".aiframework");
+                                                    let _ = std::fs::create_dir_all(&aif_dir);
+                                                    let _ = std::fs::write(
+                                                        aif_dir.join("manifest.json"),
+                                                        serde_json::to_string_pretty(&manifest).unwrap_or_default(),
+                                                    );
+                                                    // Index
+                                                    if let Ok(index) = indexer::index_repo(&repo) {
+                                                        let _ = std::fs::write(
+                                                            aif_dir.join("code-index.json"),
+                                                            serde_json::to_string_pretty(&index).unwrap_or_default(),
+                                                        );
+                                                    }
+                                                    // Generate
+                                                    let cfg = config::load_config(&repo, &manifest, None);
+                                                    let _ = generator::generate_with_tier(
+                                                        &repo, &manifest, None, cfg.tier,
+                                                    );
+                                                    refreshed += 1;
+                                                }
+                                                Err(e) => {
+                                                    ui::warn(&format!("  Failed to refresh {}: {e}", tildify(&repo)));
+                                                    failed += 1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if refreshed > 0 || failed > 0 {
+                        println!();
+                        ui::ok(&format!("Refreshed {refreshed} repo(s)"));
+                        if failed > 0 {
+                            ui::warn(&format!("{failed} repo(s) failed to refresh"));
+                        }
+                    }
                 }
             }
 
+            println!();
+
             // Telemetry
-            telemetry::send_event("upgrade", &json!({}));
+            telemetry::send_event("upgrade", &json!({
+                "method": install_method,
+                "success": upgrade_ok,
+            }));
 
             Ok(())
         }
     }
+}
+
+/// Smart no-args: detect project state and suggest next step.
+fn smart_noargs() -> Result<(), Box<dyn std::error::Error>> {
+    let version = env!("CARGO_PKG_VERSION");
+    println!();
+    println!("\x1b[1maiframework\x1b[0m v{version}");
+    println!();
+
+    let cwd = std::env::current_dir().unwrap_or_default();
+
+    let has_aif = cwd.join(".aiframework").is_dir();
+    let has_claude_md = cwd.join("CLAUDE.md").is_file();
+    let has_git = cwd.join(".git").is_dir();
+
+    if has_aif && has_claude_md {
+        // Already bootstrapped
+        println!("  This repo is already bootstrapped.");
+        println!();
+        println!("  \x1b[1maiframework refresh\x1b[0m    Update if files changed");
+        println!("  \x1b[1maiframework verify\x1b[0m     Check everything is consistent");
+        println!("  \x1b[1maiframework update\x1b[0m     Update aiframework itself");
+    } else if has_git {
+        // Git repo, not yet bootstrapped — detect language
+        let lang = if cwd.join("package.json").exists() {
+            Some("node")
+        } else if cwd.join("Cargo.toml").exists() {
+            Some("rust")
+        } else if cwd.join("go.mod").exists() {
+            Some("go")
+        } else if cwd.join("requirements.txt").exists() || cwd.join("pyproject.toml").exists() {
+            Some("python")
+        } else if cwd.join("Gemfile").exists() {
+            Some("ruby")
+        } else {
+            None
+        };
+
+        let display_path = tildify(&cwd);
+        if let Some(l) = lang {
+            println!("  Detected: \x1b[1m{l}\x1b[0m project at {display_path}");
+        } else {
+            println!("  Detected: git repo at {display_path}");
+        }
+        println!();
+        println!("  \x1b[1maiframework run\x1b[0m        Scan this repo and generate CLAUDE.md");
+        println!("  \x1b[1maiframework run --dry-run\x1b[0m  Preview without writing files");
+    } else {
+        // No git repo
+        println!("  No git repo detected in current directory.");
+        println!();
+        println!("  \x1b[1maiframework run --target ~/your-project\x1b[0m");
+    }
+
+    println!();
+    println!("  \x1b[1maiframework --help\x1b[0m     See all commands");
+    println!();
+
+    Ok(())
+}
+
+/// Replace $HOME prefix with ~ for display.
+fn tildify(path: &std::path::Path) -> String {
+    if let Ok(home) = std::env::var("HOME") {
+        let p = path.to_string_lossy();
+        if p.starts_with(&home) {
+            return format!("~{}", &p[home.len()..]);
+        }
+    }
+    path.to_string_lossy().to_string()
+}
+
+/// Write a knowledge entry to ~/.aiframework/knowledge/{repo_name}.json
+fn write_knowledge_entry(
+    target: &std::path::Path,
+    manifest: &serde_json::Value,
+    code_index: Option<&serde_json::Value>,
+) {
+    let home = match std::env::var("HOME") {
+        Ok(h) => h,
+        Err(_) => return,
+    };
+
+    let knowledge_dir = PathBuf::from(&home).join(".aiframework/knowledge");
+    if std::fs::create_dir_all(&knowledge_dir).is_err() {
+        return;
+    }
+
+    let repo_name = manifest["identity"]["short_name"]
+        .as_str()
+        .or_else(|| manifest["identity"]["name"].as_str())
+        .unwrap_or("unknown");
+
+    let repo_path = target.canonicalize()
+        .unwrap_or_else(|_| target.to_path_buf());
+
+    // Build _meta from manifest + code index
+    let mut meta = json!({
+        "repo_name": repo_name,
+        "repo_path": repo_path.to_string_lossy(),
+        "aiframework_version": env!("CARGO_PKG_VERSION"),
+        "scanner": "aiframework-rust/discover",
+        "timestamp": chrono_now_for_knowledge(),
+        "language": manifest["stack"]["language"],
+        "framework": manifest["stack"]["framework"],
+        "archetype": manifest["archetype"]["type"],
+    });
+
+    // Add code index stats if available
+    if let Some(index) = code_index {
+        let index_meta = &index["_meta"];
+        if let Some(files) = index_meta["total_files"].as_u64() {
+            meta["total_files"] = json!(files);
+        }
+        if let Some(symbols) = index_meta["total_symbols"].as_u64() {
+            meta["total_symbols"] = json!(symbols);
+        }
+        if let Some(edges) = index_meta["total_edges"].as_u64() {
+            meta["total_edges"] = json!(edges);
+        }
+        if let Some(langs) = index_meta["languages"].as_object() {
+            meta["languages"] = json!(langs);
+        }
+    }
+
+    let entry = json!({ "_meta": meta });
+
+    let filename = format!("{}.json", repo_name);
+    let path = knowledge_dir.join(&filename);
+
+    if let Ok(json_str) = serde_json::to_string_pretty(&entry) {
+        let _ = std::fs::write(&path, json_str);
+    }
+}
+
+/// ISO 8601 timestamp for knowledge entries
+fn chrono_now_for_knowledge() -> String {
+    use std::time::SystemTime;
+    let dur = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default();
+    let secs = dur.as_secs();
+    let days = secs / 86400;
+    let time_secs = secs % 86400;
+    let hours = time_secs / 3600;
+    let mins = (time_secs % 3600) / 60;
+    let s = time_secs % 60;
+    let mut y = 1970i64;
+    let mut remaining = days as i64;
+    loop {
+        let days_in_year = if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) { 366 } else { 365 };
+        if remaining < days_in_year { break; }
+        remaining -= days_in_year;
+        y += 1;
+    }
+    let month_days: [i64; 12] = if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) {
+        [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    } else {
+        [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    };
+    let mut m = 0usize;
+    for (i, &d) in month_days.iter().enumerate() {
+        if remaining < d { m = i; break; }
+        remaining -= d;
+    }
+    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", y, m + 1, remaining + 1, hours, mins, s)
 }
 
 /// Format a number with comma separators (e.g. 2100 -> "2,100")

@@ -114,8 +114,22 @@ pub fn generate(manifest: &Value, code_index: Option<&Value>) -> String {
         if let Some(top) = meta["top_files"].as_array() {
             out.push_str(&section_header("TOP FILES (PageRank)", w));
             for f in top.iter().take(10) {
-                let path = f["file"].as_str().unwrap_or("?");
-                let score = f["importance"].as_u64().unwrap_or(0);
+                // Handle both formats:
+                // Rust indexer: {"file": "path", "importance": 123}
+                // Bash indexer: ["path", 0.00123]
+                let (path, score) = if let Some(arr) = f.as_array() {
+                    // Bash format: [path, float_score]
+                    let p = arr.first().and_then(|v| v.as_str()).unwrap_or("?");
+                    let s = arr.get(1).and_then(|v| v.as_f64())
+                        .map(|v| (v * 1000.0).round() as u64)
+                        .unwrap_or(0);
+                    (p, s)
+                } else {
+                    // Rust format: {file, importance}
+                    let p = f["file"].as_str().unwrap_or("?");
+                    let s = f["importance"].as_u64().unwrap_or(0);
+                    (p, s)
+                };
                 let label = format!("{score:>4}  {path}");
                 out.push_str(&item_line(&label, w));
             }

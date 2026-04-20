@@ -15,6 +15,13 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
     let deploy_target = detect_deploy_target(target);
     let secrets = collect_github_secrets(target, &provider);
 
+    let compose_file = detect_compose_file(target);
+    let deploy_registry = detect_deploy_registry(&all_content);
+    let deploy_trigger = detect_deploy_trigger(&all_content);
+    let has_e2b = target.join("e2b.toml").exists()
+        || all_content.contains("e2b")
+        || target.join(".e2b").is_dir();
+
     json!({
         "provider": provider,
         "workflows": workflows,
@@ -22,6 +29,10 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
         "gaps": gaps,
         "deploy_target": deploy_target,
         "github_secrets": secrets,
+        "compose_file": compose_file,
+        "deploy_registry": deploy_registry,
+        "deploy_trigger": deploy_trigger,
+        "has_e2b": has_e2b,
     })
 }
 
@@ -251,6 +262,57 @@ fn detect_deploy_target(target: &Path) -> String {
         return "terraform".into();
     }
     "none".into()
+}
+
+fn detect_compose_file(target: &Path) -> Value {
+    for name in &["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"] {
+        if target.join(name).exists() {
+            return json!(name);
+        }
+    }
+    Value::Null
+}
+
+fn detect_deploy_registry(ci_content: &str) -> Value {
+    let lower = ci_content.to_lowercase();
+    let registries: &[(&str, &str)] = &[
+        ("ghcr.io", "ghcr.io"),
+        ("ecr.", "ecr"),
+        ("gcr.io", "gcr.io"),
+        ("docker.io", "docker.io"),
+        ("dockerhub", "docker.io"),
+        ("registry.gitlab.com", "gitlab-registry"),
+        ("azurecr.io", "acr"),
+        ("quay.io", "quay.io"),
+    ];
+    for (pattern, name) in registries {
+        if lower.contains(pattern) {
+            return json!(name);
+        }
+    }
+    Value::Null
+}
+
+fn detect_deploy_trigger(ci_content: &str) -> Value {
+    let lower = ci_content.to_lowercase();
+    // Check for tag-based deploys
+    if lower.contains("tags:") || lower.contains("tag:") {
+        return json!("tag");
+    }
+    // Check for manual/workflow_dispatch
+    if lower.contains("workflow_dispatch") {
+        return json!("manual");
+    }
+    // Check for push to main/master
+    if (lower.contains("push:") || lower.contains("on: push"))
+        && (lower.contains("main") || lower.contains("master"))
+    {
+        // Could be push to main
+        if lower.contains("deploy") || lower.contains("release") {
+            return json!("push-to-main");
+        }
+    }
+    Value::Null
 }
 
 fn collect_github_secrets(target: &Path, provider: &str) -> Vec<String> {

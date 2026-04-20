@@ -9,12 +9,15 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
     let test_framework = detect_test_framework(target);
     let hooks = detect_hooks(target);
 
+    let missing_tools = detect_missing_tools(target, &linter, &formatter, &type_checker, &test_framework);
+
     json!({
         "linter": linter,
         "formatter": formatter,
         "type_checker": type_checker,
         "test_framework": test_framework,
         "hooks": hooks,
+        "missing_tools": missing_tools,
     })
 }
 
@@ -217,19 +220,24 @@ fn detect_hooks(target: &Path) -> Value {
     } else {
         return json!({
             "system": Value::Null,
+            "directory": Value::Null,
             "pre_commit": false,
             "pre_push": false,
+            "commit_msg": false,
         });
     };
 
     let hook_path = target.join(dir);
     let pre_commit = hook_path.join("pre-commit").exists();
     let pre_push = hook_path.join("pre-push").exists();
+    let commit_msg = hook_path.join("commit-msg").exists();
 
     json!({
         "system": system,
+        "directory": dir,
         "pre_commit": pre_commit,
         "pre_push": pre_push,
+        "commit_msg": commit_msg,
     })
 }
 
@@ -249,6 +257,29 @@ fn tool_json_none() -> Value {
         "config_file": Value::Null,
         "configured": false,
     })
+}
+
+fn detect_missing_tools(
+    _target: &Path,
+    linter: &Value,
+    formatter: &Value,
+    type_checker: &Value,
+    test_framework: &Value,
+) -> Vec<String> {
+    let mut missing = Vec::new();
+    if !linter["configured"].as_bool().unwrap_or(false) {
+        missing.push("linter".to_string());
+    }
+    if !formatter["configured"].as_bool().unwrap_or(false) {
+        missing.push("formatter".to_string());
+    }
+    if !type_checker["configured"].as_bool().unwrap_or(false) {
+        missing.push("type-checker".to_string());
+    }
+    if !test_framework["configured"].as_bool().unwrap_or(false) {
+        missing.push("test-framework".to_string());
+    }
+    missing
 }
 
 fn has_toml_section(target: &Path, section: &str) -> bool {
