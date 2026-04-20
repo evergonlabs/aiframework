@@ -45,8 +45,16 @@ pub struct PackageManager {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct FrameworkDetection {
+    pub dependency_markers: Option<Vec<String>>,
+    pub file_patterns: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct FrameworkEntry {
     pub display: Option<String>,
+    pub detection: Option<FrameworkDetection>,
+    // Legacy fields (some registries use flat format)
     pub marker: Option<String>,
     pub marker_file: Option<String>,
     pub marker_content: Option<String>,
@@ -108,14 +116,36 @@ pub fn detect_framework(
     let frameworks = lang_entry.frameworks.as_ref()?;
 
     for (fw_name, fw) in frameworks {
-        // Check marker file
+        // New format: detection.dependency_markers + detection.file_patterns
+        if let Some(ref det) = fw.detection {
+            // Check dependency markers in package files
+            if let Some(ref markers) = det.dependency_markers {
+                for (_, content) in file_contents {
+                    let lower = content.to_lowercase();
+                    if markers.iter().any(|m| lower.contains(&m.to_lowercase())) {
+                        return Some(fw_name.clone());
+                    }
+                }
+            }
+            // Check file patterns
+            if let Some(ref patterns) = det.file_patterns {
+                for pattern in patterns {
+                    let clean = pattern.replace("**/", "");
+                    if files.iter().any(|f| f.contains(&clean) || f.ends_with(&clean)) {
+                        return Some(fw_name.clone());
+                    }
+                }
+            }
+        }
+
+        // Legacy format: marker_file
         if let Some(marker_file) = &fw.marker_file {
             if files.iter().any(|f| f.contains(marker_file)) {
                 return Some(fw_name.clone());
             }
         }
 
-        // Check marker content in package files
+        // Legacy format: marker_content
         if let Some(marker_content) = &fw.marker_content {
             for (path, content) in file_contents {
                 if path.ends_with("package.json")

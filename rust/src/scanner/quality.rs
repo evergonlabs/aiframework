@@ -71,6 +71,11 @@ fn detect_linter(target: &Path) -> Value {
         return tool_json("shellcheck", ".shellcheckrc", true);
     }
 
+    // Fallback: check devDependencies in package.json
+    if has_pkg_dep(target, "eslint") || has_pkg_script(target, "lint") {
+        return tool_json("eslint", "package.json", true);
+    }
+
     tool_json_none()
 }
 
@@ -85,6 +90,11 @@ fn detect_formatter(target: &Path) -> Value {
         if target.join(cfg).exists() {
             return tool_json("prettier", cfg, true);
         }
+    }
+
+    // Fallback: check devDependencies
+    if has_pkg_dep(target, "prettier") {
+        return tool_json("prettier", "package.json", true);
     }
 
     // Black
@@ -207,6 +217,17 @@ fn detect_test_framework(target: &Path) -> Value {
         return tool_json("go-test", "built-in", true);
     }
 
+    // Fallback: check devDependencies or scripts
+    if has_pkg_dep(target, "jest") || has_pkg_script(target, "test") {
+        return tool_json("jest", "package.json", true);
+    }
+    if has_pkg_dep(target, "vitest") {
+        return tool_json("vitest", "package.json", true);
+    }
+    if has_pkg_dep(target, "mocha") {
+        return tool_json("mocha", "package.json", true);
+    }
+
     tool_json_none()
 }
 
@@ -286,4 +307,28 @@ fn has_toml_section(target: &Path, section: &str) -> bool {
     std::fs::read_to_string(target.join("pyproject.toml"))
         .map(|c| c.contains(section))
         .unwrap_or(false)
+}
+
+/// Check if a package is in devDependencies or dependencies in package.json.
+fn has_pkg_dep(target: &Path, pkg: &str) -> bool {
+    let pkg_json = target.join("package.json");
+    if let Ok(content) = std::fs::read_to_string(&pkg_json) {
+        if let Ok(parsed) = serde_json::from_str::<Value>(&content) {
+            let in_deps = parsed["dependencies"].get(pkg).is_some();
+            let in_dev = parsed["devDependencies"].get(pkg).is_some();
+            return in_deps || in_dev;
+        }
+    }
+    false
+}
+
+/// Check if a script exists in package.json scripts.
+fn has_pkg_script(target: &Path, script: &str) -> bool {
+    let pkg_json = target.join("package.json");
+    if let Ok(content) = std::fs::read_to_string(&pkg_json) {
+        if let Ok(parsed) = serde_json::from_str::<Value>(&content) {
+            return parsed["scripts"].get(script).is_some();
+        }
+    }
+    false
 }

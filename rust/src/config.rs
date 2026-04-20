@@ -159,11 +159,11 @@ pub fn format_enabled(cfg: &Config, fmt: &str) -> bool {
 /// Check whether the current tier includes a given feature.
 pub fn tier_includes(tier: Tier, feature: &str) -> bool {
     match feature {
-        // Always included (Lean+)
-        "claude" | "agents" => true,
+        // Always included (Lean+) — Claude Code essentials
+        "claude" | "agents" | "hooks" | "rules" | "settings" => true,
 
         // Standard+
-        "cursor" | "hooks" | "ci" | "skills" | "rules" | "docs" | "tracking" => {
+        "cursor" | "ci" | "skills" | "docs" | "tracking" => {
             tier >= Tier::Standard
         }
 

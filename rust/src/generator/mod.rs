@@ -59,7 +59,38 @@ pub fn generate_with_tier(
         generated.push("AGENTS.md".into());
     }
 
-    // ── Standard+: cursorrules, hooks, CI, skills, rules, docs, tracking ─
+    // ── Always: Claude Code essentials (Lean+) ─────────────────────────
+
+    // .githooks/pre-commit + pre-push
+    let hooks_dir = target.join(".githooks");
+    if !hooks_dir.join("pre-commit").exists() {
+        let hook_files = hooks::generate(target, manifest)?;
+        generated.extend(hook_files);
+    }
+
+    // .claude/rules/workflow.md
+    let rule_files = rules::generate(target, manifest)?;
+    generated.extend(rule_files);
+
+    // .claude/hooks/session-start.sh (smart session detection)
+    let hook_dir = target.join(".claude/hooks");
+    let hook_path = hook_dir.join("session-start.sh");
+    if !hook_path.exists() {
+        std::fs::create_dir_all(&hook_dir)?;
+        std::fs::write(&hook_path, include_str!("../../session-start-hook.sh"))?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755))?;
+        }
+        generated.push(".claude/hooks/session-start.sh".into());
+    }
+
+    // .claude/settings.json — auto-format + safety guards
+    let settings_files = hooks::generate_claude_settings(target, manifest)?;
+    generated.extend(settings_files);
+
+    // ── Standard+: cursorrules, CI, skills, docs, tracking ────────────
 
     if tier >= Tier::Standard {
         // .cursorrules — Cursor IDE configuration
@@ -68,13 +99,6 @@ pub fn generate_with_tier(
             let cursorrules_content = cursorrules::generate(manifest);
             std::fs::write(&cursorrules_path, &cursorrules_content)?;
             generated.push(".cursorrules".into());
-        }
-
-        // .githooks/pre-commit + pre-push (skip if hooks already exist)
-        let hooks_dir = target.join(".githooks");
-        if !hooks_dir.join("pre-commit").exists() {
-            let hook_files = hooks::generate(target, manifest)?;
-            generated.extend(hook_files);
         }
 
         // .github/workflows/ci.yml (skip if CI already configured)
@@ -101,31 +125,9 @@ pub fn generate_with_tier(
         let skill_files = skills::generate(target, manifest)?;
         generated.extend(skill_files);
 
-        // .claude/rules/workflow.md
-        let rule_files = rules::generate(target, manifest)?;
-        generated.extend(rule_files);
-
-        // .claude/hooks/session-start.sh (smart session detection)
-        let hook_dir = target.join(".claude/hooks");
-        let hook_path = hook_dir.join("session-start.sh");
-        if !hook_path.exists() {
-            std::fs::create_dir_all(&hook_dir)?;
-            std::fs::write(&hook_path, include_str!("../../session-start-hook.sh"))?;
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755))?;
-            }
-            generated.push(".claude/hooks/session-start.sh".into());
-        }
-
         // tools/learnings/{short}-learnings.jsonl
         let tracking_files = tracking::generate(target, manifest)?;
         generated.extend(tracking_files);
-
-        // .claude/settings.json — PostToolUse auto-format + PreToolUse safety guards
-        let settings_files = hooks::generate_claude_settings(target, manifest)?;
-        generated.extend(settings_files);
     }
 
     // ── Full+: vault, vault_ingest, wiki_graph, sheal ───────────────────
