@@ -15,7 +15,7 @@ const MAGENTA: &str = "\x1b[35m";
 const WHITE: &str = "\x1b[97m";
 
 /// Check if stdout is a TTY (skip colors if piped)
-fn is_tty() -> bool {
+pub fn is_tty() -> bool {
     unsafe { libc_isatty() }
 }
 

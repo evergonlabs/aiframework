@@ -1,9 +1,12 @@
 use clap::{Parser, Subcommand};
+use serde_json::json;
 use std::path::PathBuf;
 
+use crate::config;
 use crate::generator;
 use crate::indexer;
 use crate::scanner;
+use crate::telemetry;
 use crate::ui;
 use crate::validator;
 
@@ -52,6 +55,10 @@ pub enum Command {
         /// Detailed output
         #[arg(long)]
         verbose: bool,
+
+        /// Override tier: lean, standard, full, enterprise
+        #[arg(long)]
+        tier: Option<String>,
     },
 
     /// Scan repo into manifest.json + code-index.json
@@ -71,6 +78,10 @@ pub enum Command {
         /// Detailed output
         #[arg(long)]
         verbose: bool,
+
+        /// Override tier: lean, standard, full, enterprise
+        #[arg(long)]
+        tier: Option<String>,
     },
 
     /// Read manifest, generate all files
@@ -82,6 +93,10 @@ pub enum Command {
         /// Target directory
         #[arg(long, default_value = ".")]
         target: PathBuf,
+
+        /// Override tier: lean, standard, full, enterprise
+        #[arg(long)]
+        tier: Option<String>,
     },
 
     /// Validate generated files
@@ -177,9 +192,10 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         Command::Run {
             target,
             no_index,
+            non_interactive,
             dry_run,
             verbose,
-            ..
+            tier: cli_tier,
         } => {
             let start = std::time::Instant::now();
             ui::banner();
@@ -218,6 +234,7 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             }
 
             // Phase 2: INDEX
+            let mut total_files = 0u64;
             let mut total_symbols = 0u64;
             let mut total_edges = 0u64;
 
@@ -225,9 +242,9 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 ui::phase("INDEX");
                 let index = indexer::index_repo(&target)?;
                 let meta = &index["_meta"];
+                total_files = meta["total_files"].as_u64().unwrap_or(0);
                 total_symbols = meta["total_symbols"].as_u64().unwrap_or(0);
                 total_edges = meta["total_edges"].as_u64().unwrap_or(0);
-                let total_files = meta["total_files"].as_u64().unwrap_or(0);
 
                 ui::phase_detail(&format!(
                     "{total_files} files, {total_symbols} symbols, {total_edges} edges"
@@ -246,11 +263,31 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 None
             };
 
+            // Resolve tier
+            let cfg = crate::config::load_config(&target, &manifest, cli_tier.as_deref());
+            ui::phase_kv("tier", &cfg.tier.to_string());
+
+            // Interactive confirmation (unless --non-interactive or piped)
+            if !non_interactive && ui::is_tty() {
+                println!();
+                ui::info("Proceed with generation? [Y/n] ");
+                let mut input = String::new();
+                if std::io::stdin().read_line(&mut input).is_ok() {
+                    let t = input.trim().to_lowercase();
+                    if t == "n" || t == "no" {
+                        ui::dim("Cancelled.");
+                        return Ok(());
+                    }
+                }
+            }
+
             // Phase 3: GENERATE
             let files_generated;
             if !dry_run {
                 ui::phase("GENERATE");
-                let generated = generator::generate(&target, &manifest, code_index.as_ref())?;
+                let generated = generator::generate_with_tier(
+                    &target, &manifest, code_index.as_ref(), cfg.tier,
+                )?;
                 files_generated = generated.len();
                 for f in &generated {
                     ui::ok(f);
@@ -297,6 +334,19 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 total_edges,
             );
 
+            // Telemetry: fire-and-forget
+            telemetry::send_event("run", &json!({
+                "language": lang,
+                "framework": fw,
+                "archetype": arch,
+                "tier": cfg.tier.to_string(),
+                "file_count": total_files,
+                "symbol_count": total_symbols,
+                "edge_count": total_edges,
+                "files_generated": files_generated,
+                "duration_ms": elapsed.as_millis() as u64,
+            }));
+
             Ok(())
         }
 
@@ -305,6 +355,7 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             output,
             no_index,
             verbose,
+            ..
         } => {
             ui::banner();
             ui::phase("DISCOVER");
@@ -315,9 +366,9 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             std::fs::create_dir_all(&out_dir)?;
 
             let manifest_path = out_dir.join("manifest.json");
-            let json = serde_json::to_string_pretty(&manifest)?;
-            std::fs::write(&manifest_path, &json)?;
-            ui::ok(&format!("manifest.json → {}", manifest_path.display()));
+            let json_str = serde_json::to_string_pretty(&manifest)?;
+            std::fs::write(&manifest_path, &json_str)?;
+            ui::ok(&format!("manifest.json -> {}", manifest_path.display()));
 
             if !no_index {
                 ui::phase("INDEX");
@@ -325,7 +376,7 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 let index_path = out_dir.join("code-index.json");
                 let index_json = serde_json::to_string_pretty(&index)?;
                 std::fs::write(&index_path, &index_json)?;
-                ui::ok(&format!("code-index.json → {}", index_path.display()));
+                ui::ok(&format!("code-index.json -> {}", index_path.display()));
 
                 if verbose {
                     let meta = &index["_meta"];
@@ -336,11 +387,18 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
+            // Telemetry
+            telemetry::send_event("discover", &json!({}));
+
             println!();
             Ok(())
         }
 
-        Command::Generate { target, manifest } => {
+        Command::Generate {
+            target,
+            manifest,
+            tier: cli_tier,
+        } => {
             ui::banner();
             ui::phase("GENERATE");
 
@@ -357,7 +415,16 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 None
             };
 
-            let generated = generator::generate(&target, &manifest, code_index.as_ref())?;
+            // Resolve tier
+            let cfg = config::load_config(&target, &manifest, cli_tier.as_deref());
+            ui::phase_kv("tier", &cfg.tier.to_string());
+
+            let generated = generator::generate_with_tier(
+                &target,
+                &manifest,
+                code_index.as_ref(),
+                cfg.tier,
+            )?;
             for f in &generated {
                 ui::ok(f);
             }
@@ -473,8 +540,13 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             let index_json = serde_json::to_string_pretty(&index)?;
             std::fs::write(aif_dir.join("code-index.json"), &index_json)?;
 
+            // Resolve tier from config/manifest for refresh
+            let cfg = config::load_config(&target, &manifest, None);
+
             ui::phase("GENERATE");
-            let generated = generator::generate(&target, &manifest, Some(&index))?;
+            let generated = generator::generate_with_tier(
+                &target, &manifest, Some(&index), cfg.tier,
+            )?;
             for f in &generated {
                 ui::ok(f);
             }
@@ -666,6 +738,9 @@ pub fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                     println!();
                 }
             }
+
+            // Telemetry
+            telemetry::send_event("upgrade", &json!({}));
 
             Ok(())
         }

@@ -13,17 +13,37 @@ pub mod vault;
 pub mod vault_ingest;
 pub mod wiki_graph;
 
+use crate::config::Tier;
 use serde_json::Value;
 use std::path::Path;
 
 /// Generate all output files from a manifest + code index.
 /// Skips files that already exist to avoid overwriting user customizations.
+/// Uses default tier (Full) for backward compatibility.
 pub fn generate(
     target: &Path,
     manifest: &Value,
     code_index: Option<&Value>,
 ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    generate_with_tier(target, manifest, code_index, Tier::Full)
+}
+
+/// Generate output files gated by tier.
+///
+/// Tier gating:
+/// - Lean:       CLAUDE.md, AGENTS.md
+/// - Standard+:  + .cursorrules, hooks, CI, skills, rules, docs, tracking
+/// - Full+:      + vault, vault_ingest, wiki_graph, sheal
+/// - Enterprise: same as Full (extended invariants handled in config)
+pub fn generate_with_tier(
+    target: &Path,
+    manifest: &Value,
+    code_index: Option<&Value>,
+    tier: Tier,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut generated = Vec::new();
+
+    // ── Always: CLAUDE.md + AGENTS.md (Lean+) ──────────────────────────
 
     // CLAUDE.md — always write (it's the primary output)
     let claude_md = claude_md::generate(manifest, code_index);
@@ -39,76 +59,84 @@ pub fn generate(
         generated.push("AGENTS.md".into());
     }
 
-    // .cursorrules — Cursor IDE configuration
-    let cursorrules_path = target.join(".cursorrules");
-    if !cursorrules_path.exists() {
-        let cursorrules_content = cursorrules::generate(manifest);
-        std::fs::write(&cursorrules_path, &cursorrules_content)?;
-        generated.push(".cursorrules".into());
-    }
+    // ── Standard+: cursorrules, hooks, CI, skills, rules, docs, tracking ─
 
-    // .githooks/pre-commit + pre-push (skip if hooks already exist)
-    let hooks_dir = target.join(".githooks");
-    if !hooks_dir.join("pre-commit").exists() {
-        let hook_files = hooks::generate(target, manifest)?;
-        generated.extend(hook_files);
-    }
-
-    // .github/workflows/ci.yml (skip if CI already configured)
-    let ci_path = target.join(".github/workflows/ci.yml");
-    if !ci_path.exists() {
-        let ci_content = ci::generate(manifest);
-        let ci_dir = target.join(".github/workflows");
-        std::fs::create_dir_all(&ci_dir)?;
-        std::fs::write(&ci_path, &ci_content)?;
-        generated.push(".github/workflows/ci.yml".into());
-    }
-
-    // docs/reference/architecture.md
-    let arch_path = target.join("docs/reference/architecture.md");
-    if !arch_path.exists() {
-        let docs_dir = target.join("docs/reference");
-        std::fs::create_dir_all(&docs_dir)?;
-        let docs_content = docs::generate(manifest, code_index);
-        std::fs::write(&arch_path, &docs_content)?;
-        generated.push("docs/reference/architecture.md".into());
-    }
-
-    // .claude/skills/{short}-review and {short}-ship
-    let skill_files = skills::generate(target, manifest)?;
-    generated.extend(skill_files);
-
-    // .claude/rules/workflow.md
-    let rule_files = rules::generate(target, manifest)?;
-    generated.extend(rule_files);
-
-    // vault/ directory structure
-    let vault_files = vault::generate(target, manifest, code_index)?;
-    generated.extend(vault_files);
-
-    // vault/wiki/entities/ — ingest code index into entity pages
-    if code_index.is_some() {
-        let ingest_files = vault_ingest::generate(target, manifest, code_index)?;
-        generated.extend(ingest_files);
-
-        // vault/wiki/concepts/architecture.md — graph overview
-        let concepts_dir = target.join("vault/wiki/concepts");
-        let arch_wiki_path = concepts_dir.join("architecture.md");
-        if !arch_wiki_path.exists() {
-            std::fs::create_dir_all(&concepts_dir)?;
-            let graph_content = wiki_graph::generate(manifest, code_index);
-            std::fs::write(&arch_wiki_path, &graph_content)?;
-            generated.push("vault/wiki/concepts/architecture.md".into());
+    if tier >= Tier::Standard {
+        // .cursorrules — Cursor IDE configuration
+        let cursorrules_path = target.join(".cursorrules");
+        if !cursorrules_path.exists() {
+            let cursorrules_content = cursorrules::generate(manifest);
+            std::fs::write(&cursorrules_path, &cursorrules_content)?;
+            generated.push(".cursorrules".into());
         }
+
+        // .githooks/pre-commit + pre-push (skip if hooks already exist)
+        let hooks_dir = target.join(".githooks");
+        if !hooks_dir.join("pre-commit").exists() {
+            let hook_files = hooks::generate(target, manifest)?;
+            generated.extend(hook_files);
+        }
+
+        // .github/workflows/ci.yml (skip if CI already configured)
+        let ci_path = target.join(".github/workflows/ci.yml");
+        if !ci_path.exists() {
+            let ci_content = ci::generate(manifest);
+            let ci_dir = target.join(".github/workflows");
+            std::fs::create_dir_all(&ci_dir)?;
+            std::fs::write(&ci_path, &ci_content)?;
+            generated.push(".github/workflows/ci.yml".into());
+        }
+
+        // docs/reference/architecture.md
+        let arch_path = target.join("docs/reference/architecture.md");
+        if !arch_path.exists() {
+            let docs_dir = target.join("docs/reference");
+            std::fs::create_dir_all(&docs_dir)?;
+            let docs_content = docs::generate(manifest, code_index);
+            std::fs::write(&arch_path, &docs_content)?;
+            generated.push("docs/reference/architecture.md".into());
+        }
+
+        // .claude/skills/{short}-review and {short}-ship
+        let skill_files = skills::generate(target, manifest)?;
+        generated.extend(skill_files);
+
+        // .claude/rules/workflow.md
+        let rule_files = rules::generate(target, manifest)?;
+        generated.extend(rule_files);
+
+        // tools/learnings/{short}-learnings.jsonl
+        let tracking_files = tracking::generate(target, manifest)?;
+        generated.extend(tracking_files);
     }
 
-    // .sheal/ session intelligence config
-    let sheal_files = sheal_gen::generate(target, manifest)?;
-    generated.extend(sheal_files);
+    // ── Full+: vault, vault_ingest, wiki_graph, sheal ───────────────────
 
-    // tools/learnings/{short}-learnings.jsonl
-    let tracking_files = tracking::generate(target, manifest)?;
-    generated.extend(tracking_files);
+    if tier >= Tier::Full {
+        // vault/ directory structure
+        let vault_files = vault::generate(target, manifest, code_index)?;
+        generated.extend(vault_files);
+
+        // vault/wiki/entities/ — ingest code index into entity pages
+        if code_index.is_some() {
+            let ingest_files = vault_ingest::generate(target, manifest, code_index)?;
+            generated.extend(ingest_files);
+
+            // vault/wiki/concepts/architecture.md — graph overview
+            let concepts_dir = target.join("vault/wiki/concepts");
+            let arch_wiki_path = concepts_dir.join("architecture.md");
+            if !arch_wiki_path.exists() {
+                std::fs::create_dir_all(&concepts_dir)?;
+                let graph_content = wiki_graph::generate(manifest, code_index);
+                std::fs::write(&arch_wiki_path, &graph_content)?;
+                generated.push("vault/wiki/concepts/architecture.md".into());
+            }
+        }
+
+        // .sheal/ session intelligence config
+        let sheal_files = sheal_gen::generate(target, manifest)?;
+        generated.extend(sheal_files);
+    }
 
     Ok(generated)
 }

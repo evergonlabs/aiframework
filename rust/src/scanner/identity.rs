@@ -14,6 +14,7 @@ pub fn scan(target: &Path, _files: &[String]) -> Value {
     json!({
         "name": name,
         "short_name": short_name,
+        "short": short_name,  // bash compat alias
         "version": version,
         "description": description,
         "compose_services": compose_services,
