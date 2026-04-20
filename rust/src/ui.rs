@@ -11,12 +11,11 @@ const GREEN: &str = "\x1b[32m";
 const YELLOW: &str = "\x1b[33m";
 const RED: &str = "\x1b[31m";
 const CYAN: &str = "\x1b[36m";
-const MAGENTA: &str = "\x1b[35m";
 const WHITE: &str = "\x1b[97m";
 
 /// Check if stdout is a TTY (skip colors if piped)
 pub fn is_tty() -> bool {
-    unsafe { libc_isatty() }
+    libc_isatty()
 }
 
 #[cfg(unix)]
@@ -193,6 +192,7 @@ pub fn verify_footer(name_width: usize, pass: usize, warn: usize, fail: usize) {
 }
 
 /// Print retro-style progress dots
+#[allow(dead_code)]
 pub fn progress(label: &str, current: usize, total: usize) {
     let pct = if total > 0 { current * 100 / total } else { 0 };
     let filled = pct / 5;
@@ -219,6 +219,7 @@ pub fn help_hint(msg: &str) {
 }
 
 /// Print a section divider
+#[allow(dead_code)]
 pub fn divider() {
     println!(
         "  {}────────────────────────────────────────{}",

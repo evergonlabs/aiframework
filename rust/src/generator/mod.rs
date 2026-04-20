@@ -20,6 +20,7 @@ use std::path::Path;
 /// Generate all output files from a manifest + code index.
 /// Skips files that already exist to avoid overwriting user customizations.
 /// Uses default tier (Full) for backward compatibility.
+#[allow(dead_code)]
 pub fn generate(
     target: &Path,
     manifest: &Value,

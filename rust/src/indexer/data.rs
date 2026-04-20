@@ -25,6 +25,7 @@ static LANGUAGES: LazyLock<HashMap<String, LanguageEntry>> = LazyLock::new(|| {
 
 /// A language registry entry matching lib/data/languages.json structure.
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct LanguageEntry {
     pub display: Option<String>,
     pub marker_files: Option<Vec<String>>,
@@ -38,6 +39,7 @@ pub struct LanguageEntry {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct PackageManager {
     pub manifest: Option<String>,
     pub lock_file: Option<Value>,
@@ -45,12 +47,14 @@ pub struct PackageManager {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct FrameworkDetection {
     pub dependency_markers: Option<Vec<String>>,
     pub file_patterns: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct FrameworkEntry {
     pub display: Option<String>,
     pub detection: Option<FrameworkDetection>,
@@ -63,11 +67,13 @@ pub struct FrameworkEntry {
 }
 
 /// Look up a language by name.
+#[allow(dead_code)]
 pub fn get_language(name: &str) -> Option<&LanguageEntry> {
     LANGUAGES.get(name)
 }
 
 /// Get all registered languages.
+#[allow(dead_code)]
 pub fn all_languages() -> &'static HashMap<String, LanguageEntry> {
     &LANGUAGES
 }

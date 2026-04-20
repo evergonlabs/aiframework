@@ -1,7 +1,6 @@
 /// Code complexity and quality metrics computed during indexing.
 /// These go beyond what the Python indexer provides.
 
-use std::collections::HashMap;
 
 /// Compute cyclomatic complexity estimate from source code.
 /// Counts decision points: if, else, for, while, case, catch, &&, ||, ?
@@ -135,6 +134,7 @@ pub fn detect_patterns(content: &str) -> Vec<&'static str> {
 }
 
 /// Compute file-level metrics.
+#[allow(dead_code)]
 pub struct FileMetrics {
     pub total_lines: usize,
     pub logical_loc: usize,

@@ -177,8 +177,10 @@ fn detect_commands(
                 "python -m unittest discover".into()
             },
             "NOT_CONFIGURED".into(),
-            if target.join("mypy.ini").exists() || target.join("pyproject.toml").exists() {
+            if target.join("mypy.ini").exists() || target.join(".mypy.ini").exists() {
                 "mypy .".into()
+            } else if let Ok(content) = std::fs::read_to_string(target.join("pyproject.toml")) {
+                if content.contains("[tool.mypy]") { "mypy .".into() } else { "NOT_CONFIGURED".into() }
             } else {
                 "NOT_CONFIGURED".into()
             },

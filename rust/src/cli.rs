@@ -1075,6 +1075,7 @@ fn format_number(n: u64) -> String {
 }
 
 /// Fetch latest version from GitHub releases (non-blocking, with timeout)
+#[allow(dead_code)]
 fn fetch_latest_version() -> Option<String> {
     // Try to read VERSION from GitHub raw
     let output = std::process::Command::new("curl")

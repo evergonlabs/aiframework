@@ -147,16 +147,19 @@ pub fn load_config(target: &Path, manifest: &Value, cli_tier: Option<&str>) -> C
 }
 
 /// Shorthand: resolve tier only (backward-compat helper).
+#[allow(dead_code)]
 pub fn resolve_tier(cli_tier: Option<&str>, target: &Path, manifest: &Value) -> Tier {
     load_config(target, manifest, cli_tier).tier
 }
 
 /// Check whether a format is enabled in this config.
+#[allow(dead_code)]
 pub fn format_enabled(cfg: &Config, fmt: &str) -> bool {
     cfg.formats.iter().any(|f| f == fmt)
 }
 
 /// Check whether the current tier includes a given feature.
+#[allow(dead_code)]
 pub fn tier_includes(tier: Tier, feature: &str) -> bool {
     match feature {
         // Always included (Lean+) — Claude Code essentials

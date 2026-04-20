@@ -54,16 +54,29 @@ fn classify_archetype(target: &Path, files: &[String]) -> String {
             || f.contains("layouts/") || f.ends_with(".tsx") || f.ends_with(".vue")
             || f.ends_with(".svelte")
     });
-    let has_api = files.iter().any(|f| {
+    let has_api_dirs = files.iter().any(|f| {
         f.contains("routes/") || f.contains("controllers/") || f.contains("handlers/")
             || f.contains("endpoints/")
     });
+
+    // Also detect API by framework dependency
+    let api_frameworks = ["fastapi", "flask", "django", "express", "gin", "echo", "chi",
+                          "fiber", "actix", "axum", "rocket", "sinatra", "rails",
+                          "spring", "quarkus", "nestjs", "hono", "starlette",
+                          "laravel", "symfony"];
+    let has_api_framework = has_dependency_match(target, files, &api_frameworks);
+    let has_api = has_api_dirs || has_api_framework;
 
     if has_frontend && has_api {
         return "full-stack".into();
     }
 
-    // Web framework detection
+    // API service (check before web-app so FastAPI/Express projects get correct type)
+    if has_api && !has_frontend {
+        return "api-service".into();
+    }
+
+    // Web framework detection (frontend-focused)
     let web_frameworks = ["next", "nuxt", "svelte", "remix", "gatsby", "angular", "vue"];
     if has_dependency_match(target, files, &web_frameworks) {
         return "web-app".into();
@@ -71,9 +84,6 @@ fn classify_archetype(target: &Path, files: &[String]) -> String {
 
     if has_frontend {
         return "web-app".into();
-    }
-    if has_api {
-        return "api-service".into();
     }
 
     // CLI tool: has bin/ directory, no web framework

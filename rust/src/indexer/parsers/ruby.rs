@@ -18,9 +18,6 @@ static RE_REQUIRE: LazyLock<Regex> = LazyLock::new(|| {
 static RE_PRIVATE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^\s*private\s*$").unwrap()
 });
-static RE_ATTR: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\s*attr_(?:reader|writer|accessor)\s+(.+)").unwrap()
-});
 
 pub fn parse(content: &str, _filepath: &str) -> (Vec<Symbol>, Vec<String>, Vec<String>) {
     let mut symbols = Vec::new();
